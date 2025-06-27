@@ -875,4 +875,4 @@ setTimeout(() =>
     updateAgentStatus('git', 'ACTIVE');
     updateAgentStatus('haiku', 'COMPOSING');
     updateAgentStatus('greeter', 'WELCOMING');
-}, 2000); 
+}, 2000);
