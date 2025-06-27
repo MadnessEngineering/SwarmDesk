@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwarmDesk - Madness Interactive Agent Command Center</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #0f0;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #0f0;
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #0f0;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #0f0;
+            max-width: 600px;
+            width: 90%;
+            display: none;
+            box-shadow: 0 0 30px #0f0;
+            backdrop-filter: blur(20px);
+        }
+
+        #dialogue-box h3 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+            text-shadow: 0 0 10px #ff6b35;
+        }
+
+        #dialogue-content {
+            margin: 10px 0;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .dialogue-option {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dialogue-option:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 15px #0f0;
+            transform: translateX(5px);
+        }
+
+        #custom-question-container {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #0f0;
+        }
+
+        #custom-question-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
+        }
+
+        #custom-question-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        #custom-question-submit {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        #custom-question-submit:hover {
+            background: #3f3;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #0f0;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .instruction {
+            opacity: 0.8;
+            font-size: 14px;
+            margin-top: 10px;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #0f0;
+            display: none;
+            font-size: 14px;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .floating-text {
+            position: absolute;
+            color: #ff6b35;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 2s ease-out forwards;
+            text-shadow: 0 0 10px #ff6b35;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+
+        .agent-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+            color: #0f0;
+            min-width: 200px;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .agent-status h3 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+            text-shadow: 0 0 10px #ff6b35;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .status-active { color: #0f0; }
+        .status-idle { color: #ff0; }
+        .status-error { color: #f00; }
+
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0 0 5px #0f0; }
+            25% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
+            50% { text-shadow: -2px 0 #f0f, 2px 0 #0ff; }
+            75% { text-shadow: 0 2px #f0f, 0 -2px #0ff; }
+            100% { text-shadow: 0 0 5px #0f0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="ui-overlay">
+        <h2 class="glitch">🚀 SwarmDesk Control Center</h2>
+        <p style="font-size: 16px; color: #ff6b35;">🤖 Agent Command Interface</p>
+        <p>Use WASD to navigate the swarm</p>
+        <p>Arrow keys or mouse to look around</p>
+        <p>Press E to interface with agents</p>
+        <p>Press SPACE for chaos dance mode</p>
+        <p>Press ESC to disconnect/release</p>
+        <p class="instruction">💡 Direct the AI swarm through conversation!</p>
+    </div>
+
+    <div class="agent-status">
+        <h3>🤖 Swarm Status</h3>
+        <div id="agent-status-list">
+            <div class="status-item"><span>Git Assistant:</span><span class="status-active">ACTIVE</span></div>
+            <div class="status-item"><span>Browser Agent:</span><span class="status-idle">IDLE</span></div>
+            <div class="status-item"><span>Haiku Generator:</span><span class="status-active">COMPOSING</span></div>
+            <div class="status-item"><span>Greeter Agent:</span><span class="status-active">WELCOMING</span></div>
+            <div class="status-item"><span>Project Manager:</span><span class="status-idle">STANDBY</span></div>
+        </div>
+    </div>
+
+    <div id="dialogue-box">
+        <h3 id="dialogue-name">Agent Name</h3>
+        <div id="dialogue-content">Content</div>
+        <div id="dialogue-options"></div>
+        <div id="custom-question-container">
+            <p style="margin: 5px 0; font-size: 14px; opacity: 0.8; text-align: center;">━━━ Or send direct command ━━━</p>
+            <input type="text" id="custom-question-input" placeholder="Enter command: e.g., 'commit current changes' or 'browse to github.com'">
+            <button id="custom-question-submit">Execute Command</button>
+        </div>
+    </div>
+
+    <div id="interaction-prompt"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="swarmdesk.js"></script>
+</body>
+</html> 
