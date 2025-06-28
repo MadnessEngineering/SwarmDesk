@@ -877,22 +877,40 @@ function animate(currentTime)
 
     const time = currentTime * 0.001;
 
-    // 🎪 NEW: Enhanced movement system
+    // 🎪 NEW: Enhanced movement system (FIXED!)
     if (!currentAgent)
     {
-        direction.z = Number(controls.moveForward) - Number(controls.moveBackward);
-        direction.x = Number(controls.moveRight) - Number(controls.moveLeft);
-        direction.normalize();
+        // Reset direction
+        direction.set(0, 0, 0);
 
-        if (controls.moveForward || controls.moveBackward) velocity.z -= direction.z * 0.02;
-        if (controls.moveLeft || controls.moveRight) velocity.x -= direction.x * 0.02;
+        // Calculate movement direction relative to camera rotation
+        if (controls.moveForward) direction.z -= 1;
+        if (controls.moveBackward) direction.z += 1;
+        if (controls.moveLeft) direction.x -= 1;
+        if (controls.moveRight) direction.x += 1;
+
+        // Apply camera rotation to movement direction
+        if (direction.length() > 0)
+        {
+            direction.normalize();
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0; // Keep movement horizontal
+            direction.normalize();
+
+            // Apply movement with proper speed
+            velocity.add(direction.multiplyScalar(0.02));
+        }
 
         // Apply movement to camera
         camera.position.add(velocity);
-        velocity.multiplyScalar(0.8); // Friction
+        velocity.multiplyScalar(0.85); // Friction
 
         // Keep camera above ground
         camera.position.y = Math.max(1.6, camera.position.y);
+
+        // Keep player in reasonable bounds
+        camera.position.x = Math.max(-25, Math.min(25, camera.position.x));
+        camera.position.z = Math.max(-25, Math.min(25, camera.position.z));
     }
 
     // 🚀 NEW: Check for interactive objects
