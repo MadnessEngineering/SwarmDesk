@@ -32,7 +32,7 @@ check-backend:
 # Deploy SwarmDesk
 deploy: check-files
 	@echo "🚀 Deploying SwarmDesk to production..."
-	./deploy_swarmdesk.sh
+	./scripts/deploy_swarmdesk.sh
 
 # Test deployment
 test:

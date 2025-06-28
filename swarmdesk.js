@@ -14,6 +14,71 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x000511);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
+// Project README data - the heart of our madness!
+const projectReadmes = {
+    "EventGhost": {
+        title: "🎭 EventGhost-Rust",
+        description: "Automation system rewritten in Rust for maximum performance and madness",
+        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation"],
+        status: "🔥 Active Development"
+    },
+    "DVTTestKit": {
+        title: "🧪 DVT TestKit",
+        description: "Design Verification Testing framework for ensuring quality chaos",
+        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection"],
+        status: "🛠️ Maintenance Mode"
+    },
+    "Inventorium": {
+        title: "📦 Inventorium",
+        description: "Asset and inventory management system - organizing the beautiful chaos",
+        features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard"],
+        status: "🚀 Production Ready"
+    },
+    "Omnispindle": {
+        title: "🌀 Omnispindle",
+        description: "MCP server for todo management - the spinning wheel of productivity",
+        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination"],
+        status: "🔄 Continuous Evolution"
+    },
+    "Swarmonomicon": {
+        title: "🐝 Swarmonomicon",
+        description: "AI agent swarm coordination system - the book of digital bees",
+        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces"],
+        status: "✨ Experimental Madness"
+    },
+    "MadnessCore": {
+        title: "🧠 MadnessCore",
+        description: "System architecture foundation - the beating heart of chaos",
+        features: ["🏗️ Core infrastructure", "🔌 Plugin system", "⚡ High performance"],
+        status: "🏛️ Foundational"
+    }
+};
+
+// MCP Toolkit data for the debugging wall
+const mcpToolkit = {
+    "Todo Management": [
+        "📝 add_todo_tool - Create new todos",
+        "📋 list_todos_by_status - View todos by status",
+        "✅ mark_todo_complete - Complete todos",
+        "🔍 query_todos - Search and filter todos"
+    ],
+    "Project Management": [
+        "📂 list_projects - Get all projects",
+        "📊 list_project_todos - Project-specific todos",
+        "📈 query_todo_logs - Track project activity"
+    ],
+    "Knowledge Base": [
+        "🧠 add_lesson - Store learning",
+        "📚 search_lessons - Find knowledge",
+        "💡 list_lessons - Browse all lessons"
+    ],
+    "System Integration": [
+        "🔧 Real-time status updates",
+        "🌐 Cross-project coordination",
+        "🎯 Intelligent task routing"
+    ]
+};
+
 // Cyber-punk lighting
 const ambientLight = new THREE.AmbientLight(0x0a0a2e, 0.3);
 scene.add(ambientLight);
@@ -132,6 +197,12 @@ function createWorkstation(x, z, projectName, agentType)
     monitorStand.position.set(0, 1.0, -0.5);
     station.add(monitorStand);
 
+    // 🚀 MADNESS ENHANCEMENT: Interactive README Display Panel!
+    const readmePanel = createReadmePanel(projectName, agentType);
+    readmePanel.position.set(1.5, 1.3, 0.2);
+    readmePanel.rotation.y = -Math.PI / 6;
+    station.add(readmePanel);
+
     // Project name label
     const canvas = document.createElement('canvas');
     canvas.width = 512;
@@ -180,7 +251,13 @@ function createWorkstation(x, z, projectName, agentType)
     }
 
     station.position.set(x, 0, z);
-    station.userData = { projectName, agentType, streams: [] };
+    station.userData = {
+        projectName,
+        agentType,
+        streams: [],
+        isInteractive: true,
+        readmeData: projectReadmes[projectName]
+    };
 
     // Store stream references
     station.children.forEach(child =>
@@ -194,6 +271,206 @@ function createWorkstation(x, z, projectName, agentType)
     return station;
 }
 
+// 🎪 NEW MADNESS: Create Interactive README Panel
+function createReadmePanel(projectName, agentType)
+{
+    const panel = new THREE.Group();
+
+    // Panel background
+    const panelGeometry = new THREE.PlaneGeometry(1.8, 2.4);
+    const panelMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.8,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.9
+    });
+    const panelMesh = new THREE.Mesh(panelGeometry, panelMaterial);
+    panel.add(panelMesh);
+
+    // Create README content display
+    const readmeData = projectReadmes[projectName];
+    if (readmeData)
+    {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 768;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
+        ctx.fillRect(0, 0, 512, 768);
+
+        // Border glow
+        ctx.strokeStyle = agentType === 'git' ? '#00ff00' :
+            agentType === 'browser' ? '#0088ff' :
+                agentType === 'haiku' ? '#ff6b35' :
+                    agentType === 'project' ? '#ff00ff' : '#00ffff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10, 10, 492, 748);
+
+        // Title
+        ctx.fillStyle = '#ff6b35';
+        ctx.font = 'bold 24px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText(readmeData.title, 256, 50);
+
+        // Description
+        ctx.fillStyle = '#00ff88';
+        ctx.font = '16px Courier New';
+        ctx.textAlign = 'left';
+        const words = readmeData.description.split(' ');
+        let line = '';
+        let y = 100;
+        for (let i = 0; i < words.length; i++)
+        {
+            const testLine = line + words[i] + ' ';
+            if (ctx.measureText(testLine).width > 450 && i > 0)
+            {
+                ctx.fillText(line, 30, y);
+                line = words[i] + ' ';
+                y += 25;
+            } else
+            {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, 30, y);
+
+        // Features
+        ctx.fillStyle = '#0088ff';
+        ctx.font = 'bold 18px Courier New';
+        ctx.fillText('🚀 FEATURES:', 30, y + 60);
+
+        ctx.fillStyle = '#00ff00';
+        ctx.font = '14px Courier New';
+        readmeData.features.forEach((feature, index) =>
+        {
+            ctx.fillText(feature, 30, y + 90 + (index * 25));
+        });
+
+        // Status
+        ctx.fillStyle = '#ff6b35';
+        ctx.font = 'bold 16px Courier New';
+        ctx.fillText(`STATUS: ${readmeData.status}`, 30, y + 200);
+
+        // Interactive hint
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '12px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText('💡 Press R near workstation for details', 256, 720);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const displayMaterial = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true
+        });
+        const display = new THREE.Mesh(panelGeometry, displayMaterial);
+        display.position.z = 0.01;
+        panel.add(display);
+    }
+
+    panel.userData = {
+        type: 'readme-panel',
+        projectName: projectName,
+        isInteractive: true
+    };
+
+    return panel;
+}
+
+// 🛠️ NEW MADNESS: Create MCP Debugging Toolkit Wall
+function createMCPDebuggingWall()
+{
+    const wall = new THREE.Group();
+
+    // Main wall panel
+    const wallGeometry = new THREE.PlaneGeometry(12, 8);
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.7,
+        roughness: 0.3
+    });
+    const wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall.add(wallMesh);
+
+    // Create MCP toolkit display
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 768;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = 'rgba(0, 10, 30, 0.95)';
+    ctx.fillRect(0, 0, 1024, 768);
+
+    // Title
+    ctx.fillStyle = '#ff6b35';
+    ctx.font = 'bold 36px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('🛠️ MCP DEBUGGING TOOLKIT', 512, 50);
+
+    // Subtitle
+    ctx.fillStyle = '#00ff88';
+    ctx.font = '18px Courier New';
+    ctx.fillText('Madness Control Protocol - Agent Command Interface', 512, 85);
+
+    let yOffset = 130;
+    Object.entries(mcpToolkit).forEach(([category, tools]) =>
+    {
+        // Category header
+        ctx.fillStyle = '#0088ff';
+        ctx.font = 'bold 24px Courier New';
+        ctx.textAlign = 'left';
+        ctx.fillText(`🔧 ${category}`, 40, yOffset);
+        yOffset += 40;
+
+        // Tools
+        ctx.fillStyle = '#00ff00';
+        ctx.font = '16px Courier New';
+        tools.forEach(tool =>
+        {
+            ctx.fillText(`  ${tool}`, 60, yOffset);
+            yOffset += 25;
+        });
+        yOffset += 20;
+    });
+
+    // Interactive hint
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 14px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('💡 Press M near wall to access MCP debugging interface', 512, 720);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const displayMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true
+    });
+    const display = new THREE.Mesh(wallGeometry, displayMaterial);
+    display.position.z = 0.01;
+    wall.add(display);
+
+    // Add glowing border
+    const borderGeometry = new THREE.EdgesGeometry(wallGeometry);
+    const borderMaterial = new THREE.LineBasicMaterial({
+        color: 0x00ff88,
+        linewidth: 3
+    });
+    const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+    border.position.z = 0.02;
+    wall.add(border);
+
+    wall.position.set(-25, 4, 0);
+    wall.rotation.y = Math.PI / 2;
+    wall.userData = {
+        type: 'mcp-debugging-wall',
+        isInteractive: true
+    };
+
+    return wall;
+}
+
 // Create workstations for different projects
 const workstations = [
     createWorkstation(-15, -15, "EventGhost", "automation"),
@@ -205,6 +482,10 @@ const workstations = [
 ];
 
 workstations.forEach(station => scene.add(station));
+
+// 🚀 MADNESS ENHANCEMENT: Add MCP Debugging Wall to the scene!
+const mcpWall = createMCPDebuggingWall();
+scene.add(mcpWall);
 
 // Agent characters
 const agents = [];
@@ -355,20 +636,419 @@ const particleMaterial = new THREE.PointsMaterial({
 const particles = new THREE.Points(particleGeometry, particleMaterial);
 scene.add(particles);
 
-// Player controls
-const player = {
-    position: new THREE.Vector3(0, 1.6, 8),
-    velocity: new THREE.Vector3(0, 0, 0),
-    speed: 0.15,
-    isDancing: false
+// Enhanced interaction system variables
+let nearReadmePanel = null;
+let nearMCPWall = false;
+let currentInteractiveObject = null;
+
+// Enhanced controls with new madness features!
+const controls = {
+    moveForward: false,
+    moveBackward: false,
+    moveLeft: false,
+    moveRight: false,
+    canJump: false,
+    chaos: false
 };
 
-const keys = {};
-let mouseX = 0;
-let nearbyAgent = null;
-let currentAgent = null;
+const keys = {
+    KeyW: 'moveForward',
+    KeyS: 'moveBackward',
+    KeyA: 'moveLeft',
+    KeyD: 'moveRight',
+    Space: 'chaos'
+};
 
-// Event listeners
+// Velocity for smooth movement
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+// Mouse controls
+let mouseMovement = { x: 0, y: 0 };
+let euler = new THREE.Euler(0, 0, 0, 'YXZ');
+let pointerLocked = false;
+
+// Current agent being interacted with
+let currentAgent = null;
+let nearAgent = null;
+
+// 🎪 NEW MADNESS: Enhanced interaction checking
+function checkInteractions()
+{
+    const playerPosition = camera.position;
+
+    // Check for nearby workstations with README panels
+    nearReadmePanel = null;
+    workstations.forEach(station =>
+    {
+        const distance = playerPosition.distanceTo(station.position);
+        if (distance < 4)
+        {
+            nearReadmePanel = station;
+        }
+    });
+
+    // Check for MCP debugging wall
+    const mcpDistance = playerPosition.distanceTo(mcpWall.position);
+    nearMCPWall = mcpDistance < 6;
+
+    // Check for nearby agents (existing functionality)
+    nearAgent = null;
+    agents.forEach(agent =>
+    {
+        const distance = playerPosition.distanceTo(agent.position);
+        if (distance < 3)
+        {
+            nearAgent = agent;
+        }
+    });
+
+    // Update interaction prompt
+    updateInteractionPrompt();
+}
+
+// 🚀 NEW MADNESS: Enhanced interaction prompt system
+function updateInteractionPrompt()
+{
+    const prompt = document.getElementById('interaction-prompt');
+
+    if (nearAgent && !document.getElementById('dialogue-box').style.display === 'block')
+    {
+        prompt.textContent = `Press E to interface with ${nearAgent.userData.name}`;
+        prompt.style.display = 'block';
+    } else if (nearReadmePanel)
+    {
+        prompt.textContent = `Press R to view ${nearReadmePanel.userData.projectName} README details`;
+        prompt.style.display = 'block';
+    } else if (nearMCPWall)
+    {
+        prompt.textContent = 'Press M to access MCP Debugging Toolkit';
+        prompt.style.display = 'block';
+    } else
+    {
+        prompt.style.display = 'none';
+    }
+}
+
+// 🛠️ NEW MADNESS: Show README details
+function showReadmeDetails(station)
+{
+    const readmeData = station.userData.readmeData;
+    if (!readmeData) return;
+
+    // Create enhanced dialogue for README
+    const dialogueBox = document.getElementById('dialogue-box');
+    const dialogueName = document.getElementById('dialogue-name');
+    const dialogueContent = document.getElementById('dialogue-content');
+    const dialogueOptions = document.getElementById('dialogue-options');
+
+    dialogueName.innerHTML = `📖 ${readmeData.title} - Project Documentation`;
+
+    dialogueContent.innerHTML = `
+        <div style="color: #00ff88; margin-bottom: 15px;">
+            <strong>Description:</strong><br>
+            ${readmeData.description}
+        </div>
+        
+        <div style="color: #0088ff; margin-bottom: 15px;">
+            <strong>🚀 Key Features:</strong><br>
+            ${readmeData.features.map(feature => `• ${feature}`).join('<br>')}
+        </div>
+        
+        <div style="color: #ff6b35; margin-bottom: 15px;">
+            <strong>Current Status:</strong> ${readmeData.status}
+        </div>
+        
+        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 20px;">
+            💡 This project is part of the Madness Interactive ecosystem!
+        </div>
+    `;
+
+    dialogueOptions.innerHTML = `
+        <div class="dialogue-option" onclick="closeDialogue()">
+            🔙 Back to Workshop
+        </div>
+        <div class="dialogue-option" onclick="exploreProject('${station.userData.projectName}')">
+            🔍 Explore Project Structure
+        </div>
+        <div class="dialogue-option" onclick="viewProjectTodos('${station.userData.projectName}')">
+            📝 View Project Todos
+        </div>
+    `;
+
+    dialogueBox.style.display = 'block';
+}
+
+// 🔧 NEW MADNESS: Show MCP debugging interface
+function showMCPDebugging()
+{
+    const dialogueBox = document.getElementById('dialogue-box');
+    const dialogueName = document.getElementById('dialogue-name');
+    const dialogueContent = document.getElementById('dialogue-content');
+    const dialogueOptions = document.getElementById('dialogue-options');
+
+    dialogueName.innerHTML = '🛠️ MCP Debugging Toolkit - Madness Control Protocol';
+
+    dialogueContent.innerHTML = `
+        <div style="color: #00ff88; margin-bottom: 15px;">
+            <strong>🚀 Welcome to the MCP Debugging Toolkit!</strong><br>
+            The nerve center of our agent swarm coordination system.
+        </div>
+        
+        <div style="color: #0088ff; margin-bottom: 10px;">
+            <strong>Available MCP Tools:</strong>
+        </div>
+
+        ${Object.entries(mcpToolkit).map(([category, tools]) => `
+            <div style="margin-bottom: 15px;">
+                <div style="color: #ff6b35; font-weight: bold;">🔧 ${category}:</div>
+                ${tools.map(tool => `<div style="color: #00ff00; margin-left: 20px; font-size: 12px;">• ${tool}</div>`).join('')}
+            </div>
+        `).join('')}
+        
+        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 15px;">
+            💡 Real-time MCP integration active - all agents connected!
+        </div>
+    `;
+
+    dialogueOptions.innerHTML = `
+        <div class="dialogue-option" onclick="closeDialogue()">
+            🔙 Back to Workshop
+        </div>
+        <div class="dialogue-option" onclick="runMCPCommand('list_projects')">
+            📂 List All Projects
+        </div>
+        <div class="dialogue-option" onclick="runMCPCommand('check_todos')">
+            📝 Check Active Todos
+        </div>
+        <div class="dialogue-option" onclick="runMCPCommand('system_status')">
+            ⚡ System Status Check
+        </div>
+    `;
+
+    dialogueBox.style.display = 'block';
+}
+
+// 💡 NEW MADNESS: Project exploration functions
+function exploreProject(projectName)
+{
+    createFloatingText(`🔍 Exploring ${projectName}...`, camera.position);
+    console.log(`Exploring project: ${projectName}`);
+    // TODO: Could integrate with actual file browsing
+}
+
+function viewProjectTodos(projectName)
+{
+    createFloatingText(`📝 Loading ${projectName} todos...`, camera.position);
+    console.log(`Viewing todos for: ${projectName}`);
+    // TODO: Integrate with actual MCP todo system
+}
+
+function runMCPCommand(command)
+{
+    createFloatingText(`🛠️ Running MCP: ${command}`, camera.position);
+    console.log(`MCP Command: ${command}`);
+    // TODO: Integrate with actual MCP system
+}
+
+// Floating text effect
+function createFloatingText(text, worldPos)
+{
+    const screenPos = worldPos.clone();
+    screenPos.project(camera);
+
+    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+
+    const div = document.createElement('div');
+    div.className = 'floating-text';
+    div.textContent = text;
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2000);
+}
+
+// 🚀 MADNESS ENHANCED: Animation loop with interactive features
+function animate(currentTime)
+{
+    requestAnimationFrame(animate);
+
+    const time = currentTime * 0.001;
+
+    // 🎪 NEW: Enhanced movement system
+    if (!currentAgent)
+    {
+        direction.z = Number(controls.moveForward) - Number(controls.moveBackward);
+        direction.x = Number(controls.moveRight) - Number(controls.moveLeft);
+        direction.normalize();
+
+        if (controls.moveForward || controls.moveBackward) velocity.z -= direction.z * 0.02;
+        if (controls.moveLeft || controls.moveRight) velocity.x -= direction.x * 0.02;
+
+        // Apply movement to camera
+        camera.position.add(velocity);
+        velocity.multiplyScalar(0.8); // Friction
+
+        // Keep camera above ground
+        camera.position.y = Math.max(1.6, camera.position.y);
+    }
+
+    // 🚀 NEW: Check for interactive objects
+    checkInteractions();
+
+    // Animate particles
+    const positions = particles.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3)
+    {
+        positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
+        if (positions[i + 1] > 20) positions[i + 1] = 0;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+
+    // Animate holographic displays
+    for (let i = 0; i < scene.children.length; i++)
+    {
+        const child = scene.children[i];
+        if (child.material && child.material.color && child.material.transparent)
+        {
+            child.material.opacity = 0.6 + Math.sin(time * 2) * 0.2;
+        }
+    }
+
+    // Animate workstation data streams
+    workstations.forEach(station =>
+    {
+        if (station.userData.streams)
+        {
+            station.userData.streams.forEach(stream =>
+            {
+                stream.position.y = stream.userData.originalY +
+                    Math.sin(time * stream.userData.speed + stream.userData.offset) * 0.5;
+                stream.rotation.y += 0.02;
+            });
+        }
+    });
+
+    // 🤖 Enhanced agent animation
+    agents.forEach(agent =>
+    {
+        // Agent movement AI with enhanced behaviors
+        if (!agent.userData.isDancing && Math.random() < 0.003)
+        {
+            const radius = 5;
+            agent.userData.targetPosition.set(
+                agent.userData.initialPosition.x + (Math.random() - 0.5) * radius,
+                0,
+                agent.userData.initialPosition.z + (Math.random() - 0.5) * radius
+            );
+            agent.userData.moveTimer = 0;
+        }
+
+        // Smooth movement
+        const targetDistance = agent.position.distanceTo(agent.userData.targetPosition);
+        if (targetDistance > 0.1)
+        {
+            const direction = agent.userData.targetPosition.clone().sub(agent.position).normalize();
+            agent.position.add(direction.multiplyScalar(0.01));
+            agent.lookAt(agent.userData.targetPosition.x, agent.position.y, agent.userData.targetPosition.z);
+        }
+
+        // 🎵 Chaos dance mode
+        if (controls.chaos || agent.userData.isDancing)
+        {
+            agent.position.y = 0.2 + Math.sin(time * 5 + agent.position.x) * 0.3;
+            agent.rotation.y += 0.1;
+            if (agent.userData.halo)
+            {
+                agent.userData.halo.rotation.z += 0.2;
+                agent.userData.halo.material.opacity = 0.8 + Math.sin(time * 8) * 0.2;
+            }
+        }
+
+        // Arm movement
+        if (agent.userData.leftArm && agent.userData.rightArm)
+        {
+            agent.userData.leftArm.rotation.z = Math.sin(time * 2) * 0.3;
+            agent.userData.rightArm.rotation.z = -Math.sin(time * 2) * 0.3;
+        }
+
+        // Halo glow animation
+        if (agent.userData.halo)
+        {
+            agent.userData.halo.material.opacity = 0.6 + Math.sin(time * 3) * 0.3;
+        }
+
+        // Status-based color changes
+        if (agent.userData.isActive)
+        {
+            const colorShift = Math.sin(time * 4) * 0.1;
+            agent.children[0].material.emissive.setRGB(colorShift, colorShift, colorShift);
+        }
+    });
+
+    // 🌟 Enhanced MCP wall animation
+    if (mcpWall)
+    {
+        // Subtle wall breathing effect
+        mcpWall.scale.setScalar(1 + Math.sin(time * 0.5) * 0.02);
+
+        // Border glow pulsing
+        if (mcpWall.children[2])
+        { // Border element
+            const glowIntensity = 0.5 + Math.sin(time * 2) * 0.3;
+            mcpWall.children[2].material.opacity = glowIntensity;
+        }
+    }
+
+    // 📖 README panel subtle animations
+    workstations.forEach(station =>
+    {
+        station.children.forEach(child =>
+        {
+            if (child.userData && child.userData.type === 'readme-panel')
+            {
+                child.rotation.y = -Math.PI / 6 + Math.sin(time * 0.5) * 0.05;
+                child.position.y = 1.3 + Math.sin(time * 1.5) * 0.02;
+            }
+        });
+    });
+
+    renderer.render(scene, camera);
+}
+
+// Start the madness!
+animate();
+
+// Window resize handler
+window.addEventListener('resize', () =>
+{
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// 🎪 Welcome message when the madness begins!
+setTimeout(() =>
+{
+    createFloatingText('🚀 Welcome to SwarmDesk Interactive Workshop! 🚀', { x: 0, y: 5, z: 0 });
+    console.log(`
+    🎮 SWARMDESK ENHANCED CONTROLS:
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    🎯 WASD - Move around the workshop
+    🖱️  Mouse - Look around (click to lock pointer)
+    ⌨️  E - Interface with agents
+    📖 R - View project README details  
+    🛠️  M - Access MCP debugging toolkit
+    🎵 SPACE - Toggle chaos dance mode
+    🚪 ESC - Close dialogues/unlock pointer
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    💡 Explore, interact, and embrace the madness!
+    `);
+}, 2000);
+
+// 🎪 NEW MADNESS: Enhanced Event Listeners with Interactive Controls
 document.addEventListener('keydown', (e) =>
 {
     const customQuestionInput = document.getElementById('custom-question-input');
@@ -382,25 +1062,44 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
-    keys[e.key.toLowerCase()] = true;
-    keys[e.key] = true;
+    // Handle movement controls
+    if (keys[e.code])
+    {
+        controls[keys[e.code]] = true;
+    }
 
-    if (e.key.toLowerCase() === 'e' && nearbyAgent && !currentAgent)
+    // Enhanced interaction controls
+    if (e.key.toLowerCase() === 'e' && nearAgent && !currentAgent)
     {
         e.preventDefault();
-        openDialogue(nearbyAgent);
+        openDialogue(nearAgent);
+    }
+
+    // 🚀 NEW: README panel interaction
+    if (e.key.toLowerCase() === 'r' && nearReadmePanel && !currentAgent)
+    {
+        e.preventDefault();
+        showReadmeDetails(nearReadmePanel);
+    }
+
+    // 🛠️ NEW: MCP debugging wall interaction
+    if (e.key.toLowerCase() === 'm' && nearMCPWall && !currentAgent)
+    {
+        e.preventDefault();
+        showMCPDebugging();
     }
 
     if (e.key === ' ')
     {
         e.preventDefault();
-        player.isDancing = !player.isDancing;
-        createFloatingText('🎵 CHAOS DANCE MODE! 🎵', player.position);
+        controls.chaos = !controls.chaos;
+        createFloatingText('🎵 CHAOS DANCE MODE! 🎵', camera.position);
     }
 
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key))
     {
         e.preventDefault();
+        handleArrowKeys(e.key);
     }
 });
 
@@ -409,8 +1108,10 @@ document.addEventListener('keyup', (e) =>
     const customQuestionInput = document.getElementById('custom-question-input');
     if (document.activeElement === customQuestionInput) return;
 
-    keys[e.key.toLowerCase()] = false;
-    keys[e.key] = false;
+    if (keys[e.code])
+    {
+        controls[keys[e.code]] = false;
+    }
 });
 
 document.addEventListener('keydown', (e) =>
@@ -425,12 +1126,19 @@ document.addEventListener('keydown', (e) =>
     }
 });
 
-// Mouse controls
+// Enhanced mouse controls
 document.addEventListener('mousemove', (e) =>
 {
     if (document.pointerLockElement === renderer.domElement && !currentAgent)
     {
-        mouseX += e.movementX * 0.002;
+        mouseMovement.x = e.movementX || 0;
+        mouseMovement.y = e.movementY || 0;
+
+        euler.setFromQuaternion(camera.quaternion);
+        euler.y -= mouseMovement.x * 0.002;
+        euler.x -= mouseMovement.y * 0.002;
+        euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+        camera.quaternion.setFromEuler(euler);
     }
 });
 
@@ -439,25 +1147,46 @@ renderer.domElement.addEventListener('click', () =>
     if (!currentAgent)
     {
         renderer.domElement.requestPointerLock();
+        pointerLocked = true;
     }
 });
 
-// Dialogue system
-const dialogueBox = document.getElementById('dialogue-box');
-const dialogueName = document.getElementById('dialogue-name');
-const dialogueContent = document.getElementById('dialogue-content');
-const dialogueOptions = document.getElementById('dialogue-options');
-const interactionPrompt = document.getElementById('interaction-prompt');
+// Arrow key camera controls
+function handleArrowKeys(key)
+{
+    const rotationSpeed = 0.05;
+    switch (key)
+    {
+        case 'ArrowLeft':
+            camera.rotation.y += rotationSpeed;
+            break;
+        case 'ArrowRight':
+            camera.rotation.y -= rotationSpeed;
+            break;
+        case 'ArrowUp':
+            camera.rotation.x += rotationSpeed;
+            break;
+        case 'ArrowDown':
+            camera.rotation.x -= rotationSpeed;
+            break;
+    }
+}
 
+// Dialogue system functions (preserved and enhanced)
 function openDialogue(agent)
 {
     currentAgent = agent;
+    const dialogueBox = document.getElementById('dialogue-box');
+    const dialogueName = document.getElementById('dialogue-name');
+    const dialogueContent = document.getElementById('dialogue-content');
+
     dialogueBox.style.display = 'block';
     dialogueName.textContent = `${agent.userData.name} - ${agent.userData.role}`;
 
     if (document.pointerLockElement === renderer.domElement)
     {
         document.exitPointerLock();
+        pointerLocked = false;
     }
 
     const greetings = {
@@ -503,6 +1232,7 @@ function openDialogue(agent)
 
 function generateDialogueOptions(agent)
 {
+    const dialogueOptions = document.getElementById('dialogue-options');
     const options = {
         'orchestrator': [
             "What's the current state of all projects?",
@@ -559,6 +1289,7 @@ function selectOption(option)
 {
     if (!currentAgent) return;
 
+    const dialogueContent = document.getElementById('dialogue-content');
     dialogueContent.innerHTML += `<p><strong>You:</strong> ${option}</p>`;
     dialogueContent.innerHTML += `<p><strong>${currentAgent.userData.name}:</strong> <span class="loading"></span></p>`;
     dialogueContent.scrollTop = dialogueContent.scrollHeight;
@@ -627,6 +1358,7 @@ function generateAgentResponse(agent, input)
 
 function closeDialogue()
 {
+    const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox.style.display = 'none';
     currentAgent = null;
 }
@@ -673,206 +1405,4 @@ document.getElementById('custom-question-input').addEventListener('keypress', (e
             e.target.value = '';
         }
     }
-});
-
-// Floating text effect
-function createFloatingText(text, worldPos)
-{
-    const screenPos = worldPos.clone();
-    screenPos.project(camera);
-
-    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-
-    const div = document.createElement('div');
-    div.className = 'floating-text';
-    div.textContent = text;
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
-    document.body.appendChild(div);
-
-    setTimeout(() => div.remove(), 2000);
-}
-
-// Animation loop
-let lastTime = 0;
-
-function animate(currentTime)
-{
-    requestAnimationFrame(animate);
-
-    const deltaTime = (currentTime - lastTime) / 1000;
-    lastTime = currentTime;
-
-    // Update player movement
-    player.velocity.set(0, 0, 0);
-
-    if (!player.isDancing && !currentAgent)
-    {
-        if (keys['w']) player.velocity.z = player.speed;
-        if (keys['s']) player.velocity.z = -player.speed;
-        if (keys['a']) player.velocity.x = -player.speed;
-        if (keys['d']) player.velocity.x = player.speed;
-    }
-
-    // Arrow key camera controls
-    const lookSpeed = 0.05;
-    if (!currentAgent)
-    {
-        if (keys['ArrowLeft']) mouseX += lookSpeed;
-        if (keys['ArrowRight']) mouseX -= lookSpeed;
-    }
-
-    // Update camera
-    if (!player.isDancing && !currentAgent)
-    {
-        camera.rotation.y = mouseX;
-        camera.rotation.x = 0;
-    }
-
-    // Apply movement
-    const forward = new THREE.Vector3(0, 0, -1);
-    forward.applyQuaternion(camera.quaternion);
-    forward.y = 0;
-    forward.normalize();
-
-    const right = new THREE.Vector3(1, 0, 0);
-    right.applyQuaternion(camera.quaternion);
-    right.y = 0;
-    right.normalize();
-
-    player.position.add(forward.multiplyScalar(player.velocity.z));
-    player.position.add(right.multiplyScalar(player.velocity.x));
-
-    // Keep player in bounds
-    player.position.x = Math.max(-25, Math.min(25, player.position.x));
-    player.position.z = Math.max(-25, Math.min(25, player.position.z));
-
-    // Dancing animation
-    if (player.isDancing && !currentAgent)
-    {
-        camera.position.y = player.position.y + Math.sin(Date.now() * 0.01) * 0.3;
-        camera.rotation.z = Math.sin(Date.now() * 0.015) * 0.1;
-        camera.rotation.y = mouseX + Math.sin(Date.now() * 0.008) * 0.2;
-    } else
-    {
-        camera.position.copy(player.position);
-        camera.rotation.z = 0;
-        if (!currentAgent)
-        {
-            camera.rotation.y = mouseX;
-        }
-    }
-
-    // Update agents
-    agents.forEach(agent =>
-    {
-        // Agent movement AI
-        if (agent !== currentAgent)
-        {
-            agent.userData.moveTimer -= deltaTime;
-
-            if (agent.userData.moveTimer <= 0)
-            {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 2 + Math.random() * 4;
-                agent.userData.targetPosition = new THREE.Vector3(
-                    agent.userData.initialPosition.x + Math.cos(angle) * distance,
-                    0,
-                    agent.userData.initialPosition.z + Math.sin(angle) * distance
-                );
-
-                agent.userData.targetPosition.x = Math.max(-20, Math.min(20, agent.userData.targetPosition.x));
-                agent.userData.targetPosition.z = Math.max(-20, Math.min(20, agent.userData.targetPosition.z));
-
-                agent.userData.moveTimer = 3 + Math.random() * 4;
-            }
-
-            // Move towards target
-            const direction = new THREE.Vector3().subVectors(agent.userData.targetPosition, agent.position);
-            direction.y = 0;
-            const distance = direction.length();
-
-            if (distance > 0.1)
-            {
-                direction.normalize();
-                agent.position.add(direction.multiplyScalar(0.02));
-                agent.lookAt(agent.userData.targetPosition);
-                agent.rotation.x = 0;
-                agent.rotation.z = 0;
-            }
-        }
-
-        // Agent glow animation
-        if (agent.userData.halo)
-        {
-            agent.userData.halo.rotation.z += 0.02;
-            agent.userData.halo.material.opacity = 0.4 + Math.sin(Date.now() * 0.003) * 0.2;
-        }
-
-        // Random agent activities
-        if (Math.random() < 0.001)
-        {
-            createFloatingText('💡', agent.position);
-            updateAgentStatus(agent.userData.agentType, 'ACTIVE');
-        }
-    });
-
-    // Update workstation data streams
-    workstations.forEach(station =>
-    {
-        station.userData.streams.forEach(stream =>
-        {
-            stream.position.y = stream.userData.originalY +
-                Math.sin(Date.now() * stream.userData.speed + stream.userData.offset) * 0.5;
-        });
-    });
-
-    // Update particles
-    particles.rotation.y += 0.001;
-
-    // Check for nearby agents
-    nearbyAgent = null;
-    let minDistance = Infinity;
-
-    agents.forEach(agent =>
-    {
-        const distance = player.position.distanceTo(agent.position);
-        if (distance < 3 && distance < minDistance)
-        {
-            minDistance = distance;
-            nearbyAgent = agent;
-        }
-    });
-
-    // Show/hide interaction prompt
-    if (nearbyAgent && !currentAgent)
-    {
-        interactionPrompt.style.display = 'block';
-        interactionPrompt.textContent = `Press E to interface with ${nearbyAgent.userData.name}`;
-    } else
-    {
-        interactionPrompt.style.display = 'none';
-    }
-
-    renderer.render(scene, camera);
-}
-
-// Handle window resize
-window.addEventListener('resize', () =>
-{
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// Start the animation
-animate(0);
-
-// Initial status update
-setTimeout(() =>
-{
-    updateAgentStatus('git', 'ACTIVE');
-    updateAgentStatus('haiku', 'COMPOSING');
-    updateAgentStatus('greeter', 'WELCOMING');
-}, 2000); 
+}); 
