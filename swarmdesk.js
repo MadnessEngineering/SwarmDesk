@@ -199,7 +199,7 @@ function createWorkstation(x, z, projectName, agentType)
 
     // 🚀 MADNESS ENHANCEMENT: Interactive README Display Panel!
     const readmePanel = createReadmePanel(projectName, agentType);
-    readmePanel.position.set(1.5, 1.3, 0.2);
+    readmePanel.position.set(1.5, 1.5, 0.2); // Raised initial position
     readmePanel.rotation.y = -Math.PI / 6;
     station.add(readmePanel);
 
@@ -1029,12 +1029,14 @@ function animate(currentTime)
             {
                 child.rotation.y = -Math.PI / 6 + Math.sin(time * 0.5) * 0.05;
 
-                // Keep panels floating above desk surface with extra generous safety margin
-                const baseHeight = 1.4; // Raised base height
-                const floatAnimation = Math.sin(time * 1.5) * 0.01; // Reduced animation range
-                const minHeight = 1.35; // Much higher minimum to ensure it never clips
+                // Keep panels floating above desk surface (desk is at 0.75 in local coords)
+                const baseHeight = 1.5; // Base position well above desk
+                const floatAnimation = Math.sin(time * 1.5) * 0.03; // Small float effect
+                const minHeight = 1.0; // Minimum height above desk surface (0.75)
 
-                child.position.y = Math.max(minHeight, baseHeight + floatAnimation);
+                // Calculate final position ensuring it stays above desk
+                const finalHeight = baseHeight + floatAnimation;
+                child.position.y = Math.max(minHeight, finalHeight);
             }
         });
     });
