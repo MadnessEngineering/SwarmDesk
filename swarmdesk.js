@@ -1028,7 +1028,13 @@ function animate(currentTime)
             if (child.userData && child.userData.type === 'readme-panel')
             {
                 child.rotation.y = -Math.PI / 6 + Math.sin(time * 0.5) * 0.05;
-                child.position.y = 1.3 + Math.sin(time * 1.5) * 0.02;
+
+                // Keep panels floating above desk surface with a safety margin
+                const baseHeight = 1.3;
+                const floatAnimation = Math.sin(time * 1.5) * 0.02;
+                const minHeight = 1.0; // Desk surface is at ~0.8, so this gives good clearance
+
+                child.position.y = Math.max(minHeight, baseHeight + floatAnimation);
             }
         });
     });
@@ -1174,7 +1180,7 @@ renderer.domElement.addEventListener('click', () =>
 // Arrow key camera controls for backup/alternative control
 function handleArrowKeys(key)
 {
-    const rotationSpeed = 0.02; // Made more responsive
+    const rotationSpeed = 0.1; // Made more responsive
     const currentEuler = new THREE.Euler().setFromQuaternion(camera.quaternion);
 
     switch (key)
@@ -1431,4 +1437,4 @@ document.getElementById('custom-question-input').addEventListener('keypress', (e
             e.target.value = '';
         }
     }
-}); 
+});
