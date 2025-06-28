@@ -1029,10 +1029,10 @@ function animate(currentTime)
             {
                 child.rotation.y = -Math.PI / 6 + Math.sin(time * 0.5) * 0.05;
 
-                // Keep panels floating above desk surface with a safety margin
-                const baseHeight = 1.3;
-                const floatAnimation = Math.sin(time * 1.5) * 0.02;
-                const minHeight = 1.0; // Desk surface is at ~0.8, so this gives good clearance
+                // Keep panels floating above desk surface with extra generous safety margin
+                const baseHeight = 1.4; // Raised base height
+                const floatAnimation = Math.sin(time * 1.5) * 0.01; // Reduced animation range
+                const minHeight = 1.35; // Much higher minimum to ensure it never clips
 
                 child.position.y = Math.max(minHeight, baseHeight + floatAnimation);
             }
