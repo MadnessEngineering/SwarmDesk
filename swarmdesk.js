@@ -1149,13 +1149,15 @@ document.addEventListener('mousemove', (e) =>
 {
     if (document.pointerLockElement === renderer.domElement && !currentAgent)
     {
-        mouseMovement.x = e.movementX || 0;
-        mouseMovement.y = e.movementY || 0;
+        const sensitivity = 0.002;
 
         euler.setFromQuaternion(camera.quaternion);
-        euler.y -= mouseMovement.x * 0.002;
-        euler.x -= mouseMovement.y * 0.002;
+        euler.y -= e.movementX * sensitivity;
+        euler.x -= e.movementY * sensitivity;
+
+        // Clamp vertical rotation to prevent flipping
         euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+
         camera.quaternion.setFromEuler(euler);
     }
 });
@@ -1169,25 +1171,31 @@ renderer.domElement.addEventListener('click', () =>
     }
 });
 
-// Arrow key camera controls
+// Arrow key camera controls for backup/alternative control
 function handleArrowKeys(key)
 {
-    const rotationSpeed = 0.05;
+    const rotationSpeed = 0.02; // Made more responsive
+    const currentEuler = new THREE.Euler().setFromQuaternion(camera.quaternion);
+
     switch (key)
     {
         case 'ArrowLeft':
-            camera.rotation.y += rotationSpeed;
+            currentEuler.y += rotationSpeed;
             break;
         case 'ArrowRight':
-            camera.rotation.y -= rotationSpeed;
+            currentEuler.y -= rotationSpeed;
             break;
         case 'ArrowUp':
-            camera.rotation.x += rotationSpeed;
+            currentEuler.x += rotationSpeed;
+            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
             break;
         case 'ArrowDown':
-            camera.rotation.x -= rotationSpeed;
+            currentEuler.x -= rotationSpeed;
+            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
             break;
     }
+
+    camera.quaternion.setFromEuler(currentEuler);
 }
 
 // Dialogue system functions (preserved and enhanced)
