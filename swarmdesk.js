@@ -86,17 +86,17 @@ const projectReadmes = {
 
 // GitHub repository mapping for each project
 const projectRepositories = {
-    "SwarmDesk": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/SwarmDesk",
-    "Inventorium": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Inventorium",
-    "Swarmonomicon": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Swarmonomicon",
-    "Whispermind_Conduit": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Whispermind_Conduit",
-    "Omnispindle-cli-bridge": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Omnispindle-cli-bridge",
-    "EventGhost-Rust": "https://github.com/d-edens/madness_interactive/tree/main/projects/rust/EventGhost-Rust",
-    "DVTTestKit": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/dvtTestKit",
-    "Omnispindle": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/Omnispindle",
-    "FastMCP-Template": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/dans-fastmcp-server-template",
-    "Tinker": "https://github.com/d-edens/madness_interactive/tree/main/projects/rust/Tinker",
-    "RaidShadowMCP": "https://github.com/d-edens/madness_interactive/tree/main/projects/typescript/RaidShadowLegendsButItsMCP"
+    "SwarmDesk": "https://github.com/MadnessEngineering/SwarmDesk.git",
+    "Inventorium": "https://github.com/MadnessEngineering/Inventorium.git",
+    "Swarmonomicon": "https://github.com/MadnessEngineering/Swarmonomicon.git",
+    "Whispermind_Conduit": "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
+    "Omnispindle-cli-bridge": "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
+    "EventGhost-Rust": "https://github.com/DanEdens/EventGhost-Rust.git",
+    "DVTTestKit": "https://github.com/DanEdens/DVTTestKit.git",
+    "Omnispindle": "https://github.com/MadnessEngineering/Omnispindle.git",
+    "FastMCP-Template": "https://github.com/DanEdens/dans-fastmcp-server-template.git",
+    "Tinker": "https://github.com/DanEdens/Tinker.git",
+    "RaidShadowMCP": "https://github.com/MadnessEngineering/RaidShadowLegendsButItsMCP.git"
 };
 
 // MCP Toolkit data for the debugging wall
