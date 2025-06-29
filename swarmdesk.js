@@ -772,15 +772,23 @@ const particleColors = new Float32Array(particleCount * 3);
 
 for (let i = 0; i < particleCount * 3; i += 3)
 {
-    positions[i] = (Math.random() - 0.5) * 80;
-    positions[i + 1] = Math.random() * 25;
-    positions[i + 2] = (Math.random() - 0.5) * 80;
+    // 🚀 FIXED: Add NaN validation to prevent BufferGeometry errors
+    const x = (Math.random() - 0.5) * 80;
+    const y = Math.random() * 25;
+    const z = (Math.random() - 0.5) * 80;
+
+    // Validate positions and provide fallbacks to prevent NaN values
+    positions[i] = isFinite(x) ? x : (Math.random() - 0.5) * 60;
+    positions[i + 1] = isFinite(y) ? y : Math.random() * 20;
+    positions[i + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 60;
 
     // Cyan/green particle colors
     const intensity = 0.5 + Math.random() * 0.5;
-    particleColors[i] = 0.0 * intensity;
-    particleColors[i + 1] = 1.0 * intensity;
-    particleColors[i + 2] = 0.5 * intensity;
+    // 🚀 FIXED: Validate intensity to prevent NaN colors
+    const validIntensity = isFinite(intensity) ? intensity : 0.7;
+    particleColors[i] = 0.0 * validIntensity;
+    particleColors[i + 1] = 1.0 * validIntensity;
+    particleColors[i + 2] = 0.5 * validIntensity;
 }
 
 particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -1325,8 +1333,22 @@ function animate(currentTime)
     const positions = particles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3)
     {
-        positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
-        if (positions[i + 1] > 20) positions[i + 1] = 0;
+        // 🚀 FIXED: Add NaN validation to runtime particle animation
+        const currentY = positions[i + 1];
+        const currentX = positions[i];
+        const yUpdate = Math.sin(time + currentX * 0.01) * 0.02;
+
+        // Validate calculations and provide fallbacks
+        if (isFinite(yUpdate) && isFinite(currentY))
+        {
+            positions[i + 1] += yUpdate;
+            if (positions[i + 1] > 20) positions[i + 1] = 0;
+        }
+        else
+        {
+            // Reset to safe position if NaN detected
+            positions[i + 1] = Math.random() * 20;
+        }
     }
     particles.geometry.attributes.position.needsUpdate = true;
 
@@ -1457,14 +1479,18 @@ function animate(currentTime)
             const twinkleSpeed = 1 + (starIndex % 7) * 0.3;
             const twinkle = 0.7 + Math.sin(time * twinkleSpeed + starIndex) * 0.3;
 
+            // 🚀 FIXED: Validate twinkle calculation to prevent NaN
+            const validTwinkle = isFinite(twinkle) ? twinkle : 0.7;
+
             // Apply twinkling to each color component while preserving star color
             const baseR = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 1.0);
             const baseG = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 0.7);
             const baseB = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 0.7 : 0.7);
 
-            starColors[i] = baseR * twinkle;
-            starColors[i + 1] = baseG * twinkle;
-            starColors[i + 2] = baseB * twinkle;
+            // 🚀 FIXED: Validate final color values before assignment
+            starColors[i] = isFinite(baseR * validTwinkle) ? baseR * validTwinkle : baseR;
+            starColors[i + 1] = isFinite(baseG * validTwinkle) ? baseG * validTwinkle : baseG;
+            starColors[i + 2] = isFinite(baseB * validTwinkle) ? baseB * validTwinkle : baseB;
         }
         starField.geometry.attributes.color.needsUpdate = true;
     }

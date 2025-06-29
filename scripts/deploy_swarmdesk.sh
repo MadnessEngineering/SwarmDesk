@@ -48,7 +48,7 @@ print_status "Remote directory prepared"
 
 # Deploy files directly with rsync
 echo -e "${BLUE}📤 Deploying SwarmDesk files with rsync...${NC}"
-rsync -avz --progress \
+rsync -avzI --progress \
     --rsync-path="sudo rsync" \
     ./index.html ./swarmdesk.js ./README.md \
     $REMOTE_HOST:$REMOTE_PATH/
@@ -90,4 +90,4 @@ fi
 echo -e "${GREEN}🎉 SwarmDesk deployment completed successfully!${NC}"
 echo -e "${BLUE}📍 Access SwarmDesk at: https://madnessinteractive.cc/SwarmDesk/${NC}"
 echo -e "${BLUE}🎮 Use WASD to navigate, E to interact with agents${NC}"
-echo -e "${BLUE}🤖 Experience the Madness Interactive agent swarm!${NC}" 
+echo -e "${BLUE}🤖 Experience the Madness Interactive agent swarm!${NC}"
