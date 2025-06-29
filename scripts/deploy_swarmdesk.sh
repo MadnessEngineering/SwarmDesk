@@ -43,22 +43,20 @@ print_status "Found SwarmDesk files in current directory"
 
 # Create remote directory if it doesn't exist
 echo -e "${BLUE}📁 Setting up remote directory...${NC}"
-ssh $REMOTE_HOST "sudo mkdir -p $REMOTE_PATH"
+ssh $REMOTE_HOST "sudo mkdir -p $REMOTE_PATH && sudo chown -R www-data:www-data $REMOTE_PATH"
 print_status "Remote directory prepared"
 
-# Deploy files
-echo -e "${BLUE}📤 Deploying SwarmDesk files...${NC}"
-scp index.html swarmdesk.js README.md $REMOTE_HOST:~/
-print_status "Files uploaded to staging area"
+# Deploy files directly with rsync
+echo -e "${BLUE}📤 Deploying SwarmDesk files with rsync...${NC}"
+rsync -avz --progress \
+    --rsync-path="sudo rsync" \
+    ./index.html ./swarmdesk.js ./README.md \
+    $REMOTE_HOST:$REMOTE_PATH/
 
-# Move files to web directory with proper permissions
-echo -e "${BLUE}🔧 Setting up web directory...${NC}"
-ssh $REMOTE_HOST "
-    sudo mv ~/index.html ~/swarmdesk.js ~/README.md $REMOTE_PATH/ &&
-    sudo chown -R www-data:www-data $REMOTE_PATH &&
-    sudo chmod -R 755 $REMOTE_PATH
-"
-print_status "Files moved to web directory with proper permissions"
+# Set proper permissions after rsync
+echo -e "${BLUE}🔧 Setting file permissions...${NC}"
+ssh $REMOTE_HOST "sudo chown -R www-data:www-data $REMOTE_PATH && sudo chmod -R 755 $REMOTE_PATH && sudo chmod 644 $REMOTE_PATH/*.{html,js,md}"
+print_status "Files deployed directly to web directory with proper permissions"
 
 # Test deployment
 echo -e "${BLUE}🧪 Testing deployment...${NC}"
