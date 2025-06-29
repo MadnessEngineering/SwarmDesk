@@ -17,81 +17,92 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 // Project README data - the heart of our madness!
 const projectReadmes = {
     "SwarmDesk": {
-        title: "🎮 SwarmDesk Interactive",
+        title: "🎮 SwarmDesk",
         description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
         features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
         github: "https://github.com/MadnessEngineering/SwarmDesk.git",
-        status: "🔥 Active Development"
+        status: "🔥 Active Development",
+        visibility: "public"
     },
     "Inventorium": {
         title: "📦 Inventorium",
-        description: "Asset and inventory management system - organizing the beautiful chaos of digital and physical resources",
-        features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
+        description: "Todo Inventory management system - Keep up with Agents at speed, and edit their thoughts as they tinker",
+        features: ["📋 Task tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
         github: "https://github.com/MadnessEngineering/Inventorium.git",
-        status: "🚀 Active Development"
+        status: "🚀 Active Development (private repo)",
+        visibility: "private"
     },
     "Swarmonomicon": {
         title: "🐝 Swarmonomicon",
         description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
         features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
         github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
-        status: "✨ modularly functional"
+        status: "✨ modularly functional",
+        visibility: "public"
     },
     "Whispermind_Conduit": {
         title: "🌐 Whispermind Conduit",
         description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
         features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
         github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
-        status: "🔮 mostly conceptual"
+        status: "🔮 mostly conceptual (private repo)",
+        visibility: "private"
     },
     "Omnispindle-cli-bridge": {
         title: "🌀 Omnispindle CLI Bridge",
         description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
         features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
         github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
-        status: "🔄 Just in my gemini account lol"
+        status: "🔄 Just in my gemini account lol (private repo)",
+        visibility: "private"
     },
     "EventGhost-Rust": {
         title: "🎭 EventGhost-Rust",
         description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
         features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
         github: "https://github.com/DanEdens/EventGhost-Rust.git",
-        status: "🛠️ Rust-Powered Excellence"
+        status: "🛠️ Rust-Powered Excellence",
+        visibility: "public"
     },
     "DVTTestKit": {
         title: "🧪 DVT TestKit",
         description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
         features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
         github: "https://github.com/DanEdens/DVTTestKit.git",
-        status: "🔬 Testing Excellence"
+        status: "🔬 Testing Excellence",
+        visibility: "public"
     },
     "Omnispindle": {
         title: "🌀 Omnispindle MCP",
         description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
         features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
         github: "https://github.com/MadnessEngineering/Omnispindle.git",
-        status: "🔄 Continuous Evolution"
+        status: "🔄 Continuous Evolution",
+        visibility: "public"
     },
     "FastMCP-Template": {
         title: "⚡ FastMCP Server Template",
         description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
         features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
         github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
-        status: "🏗️ Foundation Ready"
+        status: "🏗️ Foundation Ready (but outdated)",
+        visibility: "public"
     },
     "Tinker": {
         title: "🔨 Tinker Rust",
         description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
         features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
         github: "https://github.com/DanEdens/Tinker.git",
-        status: "🔬 Experimental Forge"
+        status: "🔬 Experimental Forge",
+        visibility: "public"
     },
-    "RaidShadowMCP": {
-        title: "⚔️ Raid Shadow MCP",
-        description: "TypeScript MCP project with gaming integration - where epic adventures meet protocol magic",
-        features: ["🎮 Gaming integration", "⚔️ Epic quests", "🔮 MCP protocols", "🌟 TypeScript power"],
-        github: "https://github.com/MadnessEngineering/RaidShadowLegendsButItsMCP.git",
-        status: "🎮 Gaming the System"
+    "Cogwyrm": {
+        title: "🐉 Cogwyrm Mobile",
+        description: "Advanced Android mobile application - the digital dragon that lives in your pocket, bringing AI intelligence to mobile interfaces",
+        features: ["📱 Native Android development", "🤖 AI-powered mobile interfaces", "🐉 Dragon-themed user experience", "⚡ High-performance mobile optimization"],
+        github: "https://github.com/MadnessEngineering/Cogwyrm.git",
+        status: "🔥 Mobile Madness in Development",
+        visibility: "public"
     }
 };
 
@@ -107,7 +118,7 @@ const projectRepositories = {
     "Omnispindle": "https://github.com/MadnessEngineering/Omnispindle.git",
     "FastMCP-Template": "https://github.com/DanEdens/dans-fastmcp-server-template.git",
     "Tinker": "https://github.com/DanEdens/Tinker.git",
-    "RaidShadowMCP": "https://github.com/MadnessEngineering/RaidShadowLegendsButItsMCP.git"
+    "Cogwyrm": "https://github.com/MadnessEngineering/Cogwyrm.git"
 };
 
 // MCP Toolkit data for the debugging wall
@@ -413,6 +424,11 @@ function createReadmePanel(projectName, agentType)
         ctx.fillStyle = '#ff6b35';
         ctx.font = 'bold 16px Courier New';
         ctx.fillText(`STATUS: ${readmeData.status}`, 30, y + 200);
+
+        // Visibility
+        ctx.fillStyle = '#a0a0a0';
+        ctx.font = '14px Courier New';
+        ctx.fillText(`Visibility: ${readmeData.visibility}`, 30, y + 230);
 
         // Interactive hint
         ctx.fillStyle = '#ffff00';
@@ -794,7 +810,7 @@ for (let i = 0; i < pixelStarCount; i++)
 
     // Close-range pixely stars (10-50 units from player)
     const x = (Math.random() - 0.5) * 100;     // X: -50 to 50
-    const y = Math.random() * 30 + 5;          // Y: 5 to 35 
+    const y = Math.random() * 30 + 5;          // Y: 5 to 35
     const z = (Math.random() - 0.5) * 100;     // Z: -50 to 50
 
     // 🚀 FIXED: Validate positions to prevent NaN values
@@ -818,7 +834,7 @@ for (let i = 0; i < pixelStarCount; i++)
         pixelColors[i3 + 2] = 1.0;
     } else if (pixelType < 0.7)
     {
-        // Neon cyan pixels  
+        // Neon cyan pixels
         pixelColors[i3] = 0.0;
         pixelColors[i3 + 1] = 1.0;
         pixelColors[i3 + 2] = 0.8;
@@ -856,6 +872,17 @@ const pixelStarMaterial = new THREE.PointsMaterial({
 
 const pixelStars = new THREE.Points(pixelStarGeometry, pixelStarMaterial);
 scene.add(pixelStars);
+
+// 🚀 FIXED: Add initialization tracking for pixely stars
+let pixelStarsInitialized = false;
+let animationFrameCount = 0;
+
+// Small delay to ensure full initialization
+setTimeout(() =>
+{
+    pixelStarsInitialized = true;
+    console.log('🌟 Pixely stars initialized and ready for animation!');
+}, 100);
 
 // 🌠 Shooting stars (occasional streaks)
 const shootingStars = [];
@@ -972,7 +999,12 @@ function updateInteractionPrompt()
         prompt.style.display = 'block';
     } else if (nearReadmePanel)
     {
-        prompt.innerHTML = `Press R to view ${nearReadmePanel.userData.projectName} README details<br>Press G to open GitHub repository`;
+        const projectData = projectReadmes[nearReadmePanel.userData.projectName];
+        const linkText = projectData.visibility === 'private'
+            ? 'Open Project Documentation'
+            : 'Open GitHub Repository';
+
+        prompt.innerHTML = `Press R to view ${nearReadmePanel.userData.projectName} README details<br>Press G to ${linkText}`;
         prompt.style.display = 'block';
     } else if (nearMCPWall)
     {
@@ -1020,6 +1052,10 @@ function showReadmeDetails(station)
             <strong>Current Status:</strong> ${readmeData.status}
         </div>
         
+        <div style="color: #a0a0a0; margin-bottom: 15px;">
+            <strong>Visibility:</strong> ${readmeData.visibility}
+        </div>
+        
         <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 20px;">
             💡 This project is part of the Madness Interactive ecosystem!
         </div>
@@ -1036,7 +1072,7 @@ function showReadmeDetails(station)
             📝 View Project Todos
         </div>
         <div class="dialogue-option" onclick="openProjectRepository('${station.userData.projectName}')">
-            🐙 Open GitHub Repository
+            🐙 ${readmeData.visibility === 'private' ? 'Open Project Documentation' : 'Open GitHub Repository'}
         </div>
     `;
 
@@ -1118,16 +1154,80 @@ function viewProjectTodos(projectName)
 // 🚀 NEW MADNESS: Open GitHub repository function
 function openProjectRepository(projectName)
 {
-    const repoUrl = projectRepositories[projectName];
+    console.log(`🔍 DEBUG: Attempting to open repository for project: "${projectName}"`);
+    const projectData = projectReadmes[projectName];
+
+    if (!projectData)
+    {
+        createFloatingText(`❌ No project data found for ${projectName}`, camera.position);
+        console.log(`❌ No project data found for project: "${projectName}"`);
+        return;
+    }
+
+    let repoUrl;
+    if (projectData.visibility === 'private')
+    {
+        // For private projects, link to a future public README in the main repo
+        repoUrl = `https://github.com/MadnessEngineering/madness_interactive/blob/main/docs/grimoire/projects/${projectName.toLowerCase()}.md`;
+        console.log(`🔒 Private project detected. Linking to documentation: ${repoUrl}`);
+    } else
+    {
+        // For public projects, use the direct repository link
+        repoUrl = projectRepositories[projectName];
+        console.log(`🌍 Public project detected. Linking to repository: ${repoUrl}`);
+    }
+
+    console.log(`🔍 DEBUG: Found URL: "${repoUrl}"`);
+
     if (repoUrl)
     {
         createFloatingText(`🐙 Opening ${projectName} on GitHub...`, camera.position);
-        window.open(repoUrl, '_blank');
-        console.log(`Opening GitHub repository: ${repoUrl}`);
+        console.log(`🚀 Opening GitHub repository: ${repoUrl}`);
+
+        // Try multiple methods to ensure the link opens
+        try
+        {
+            // Method 1: Direct window.open (most reliable for user-triggered events)
+            const newWindow = window.open(repoUrl, '_blank', 'noopener,noreferrer');
+
+            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined')
+            {
+                // Method 2: If popup blocked, create a temporary link and click it
+                console.log('🔄 Popup blocked, trying alternative method...');
+                const tempLink = document.createElement('a');
+                tempLink.href = repoUrl;
+                tempLink.target = '_blank';
+                tempLink.rel = 'noopener noreferrer';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                createFloatingText(`🔗 Link opened via alternative method`, camera.position);
+            } else
+            {
+                createFloatingText(`✅ GitHub opened successfully!`, camera.position);
+            }
+        } catch (error)
+        {
+            console.error('❌ Error opening repository:', error);
+            createFloatingText(`❌ Error opening repository: ${error.message}`, camera.position);
+
+            // Method 3: Fallback - copy to clipboard and show message
+            if (navigator.clipboard)
+            {
+                navigator.clipboard.writeText(repoUrl).then(() =>
+                {
+                    createFloatingText(`📋 URL copied to clipboard: ${repoUrl}`, camera.position);
+                }).catch(() =>
+                {
+                    createFloatingText(`🔗 Manual link: ${repoUrl}`, camera.position);
+                });
+            }
+        }
     } else
     {
         createFloatingText(`❌ No repository found for ${projectName}`, camera.position);
-        console.log(`No repository URL found for project: ${projectName}`);
+        console.log(`❌ No repository URL found for project: "${projectName}"`);
+        console.log(`Available projects: ${Object.keys(projectRepositories).join(', ')}`);
     }
 }
 
@@ -1178,6 +1278,9 @@ function animate(currentTime)
     requestAnimationFrame(animate);
 
     const time = currentTime * 0.001;
+
+    // 🚀 FIXED: Track animation frames for debugging
+    animationFrameCount++;
 
     // 🎪 NEW: Enhanced movement system (FIXED!)
     if (!currentAgent)
@@ -1411,15 +1514,21 @@ function animate(currentTime)
     }
 
     // 🌟 PIXELY STAR MADNESS - Close-range retro space vibes!
-    if (pixelStars && pixelStars.geometry.attributes.position)
+    if (pixelStarsInitialized && pixelStars && pixelStars.geometry && pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
     {
         const pixelPositions = pixelStars.geometry.attributes.position.array;
         const pixelColors = pixelStars.geometry.attributes.color.array;
-        
+
+        // 🚀 FIXED: Check arrays are properly initialized before animation
+        if (!pixelPositions || !pixelColors || pixelPositions.length === 0 || pixelColors.length === 0)
+        {
+            return; // Skip this frame if geometry isn't ready
+        }
+
         for (let i = 0; i < pixelPositions.length; i += 3)
         {
             const pixelIndex = i / 3;
-            
+
             // 🚀 FIXED: Validate current positions before calculations
             if (!isFinite(pixelPositions[i]) || !isFinite(pixelPositions[i + 1]) || !isFinite(pixelPositions[i + 2]))
             {
@@ -1427,6 +1536,12 @@ function animate(currentTime)
                 pixelPositions[i] = (Math.random() - 0.5) * 80;
                 pixelPositions[i + 1] = Math.random() * 25 + 10;
                 pixelPositions[i + 2] = (Math.random() - 0.5) * 80;
+            }
+
+            // 🚀 FIXED: Guard against undefined time value
+            if (!isFinite(time))
+            {
+                continue; // Skip this pixel if time is invalid
             }
 
             // Gentle floating motion - different for each pixel
@@ -1439,7 +1554,7 @@ function animate(currentTime)
             {
                 pixelPositions[i + 1] += floatDelta;
             }
-            
+
             // Subtle sideways drift
             const driftX = Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
             const driftZ = Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
@@ -1447,21 +1562,27 @@ function animate(currentTime)
             // 🚀 FIXED: Validate drift before applying
             if (isFinite(driftX)) pixelPositions[i] += driftX;
             if (isFinite(driftZ)) pixelPositions[i + 2] += driftZ;
-            
+
             // Wrap around if they drift too far
             if (pixelPositions[i] > 50) pixelPositions[i] = -50;
             if (pixelPositions[i] < -50) pixelPositions[i] = 50;
             if (pixelPositions[i + 2] > 50) pixelPositions[i + 2] = -50;
             if (pixelPositions[i + 2] < -50) pixelPositions[i + 2] = 50;
-            
+
             // Reset if they fall too low or go too high
             if (pixelPositions[i + 1] < 5) pixelPositions[i + 1] = 35;
             if (pixelPositions[i + 1] > 35) pixelPositions[i + 1] = 5;
-            
+
+            // 🚀 FIXED: Check bounds before accessing color array
+            if (i + 2 >= pixelColors.length)
+            {
+                break; // Prevent array bounds overflow
+            }
+
             // Retro blinking/pulsing effect
             const blinkSpeed = 2 + (pixelIndex % 4) * 0.5;
             const blinkIntensity = 0.7 + Math.sin(time * blinkSpeed + pixelIndex) * 0.3;
-            
+
             // 🚀 FIXED: Validate colors and blink intensity
             if (isFinite(blinkIntensity) && pixelColors[i] !== undefined && pixelColors[i + 1] !== undefined && pixelColors[i + 2] !== undefined)
             {
@@ -1480,10 +1601,14 @@ function animate(currentTime)
                 pixelColors[i + 2] = isFinite(newB) ? newB : baseB;
             }
         }
-        
-        pixelStars.geometry.attributes.position.needsUpdate = true;
-        pixelStars.geometry.attributes.color.needsUpdate = true;
-        
+
+        // 🚀 FIXED: Only update geometry if we have valid data
+        if (pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
+        {
+            pixelStars.geometry.attributes.position.needsUpdate = true;
+            pixelStars.geometry.attributes.color.needsUpdate = true;
+        }
+
         // Overall pixely star system rotation for extra dynamism
         pixelStars.rotation.y += 0.001;
     }
@@ -1513,6 +1638,7 @@ setTimeout(() =>
     🖱️  Mouse - Look around (click to lock pointer)
     ⌨️  E - Interface with agents
     📖 R - View project README details  
+    🐙 G - Open GitHub/Docs (when near workstation)
     🛠️  M - Access MCP debugging toolkit
     🎵 SPACE - Toggle chaos dance mode
     🚪 ESC - Close dialogues/unlock pointer
