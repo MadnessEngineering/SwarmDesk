@@ -781,6 +781,76 @@ const particleMaterial = new THREE.PointsMaterial({
 const particles = new THREE.Points(particleGeometry, particleMaterial);
 scene.add(particles);
 
+// 🌟 NEW MADNESS: Close-range pixely star particles for that retro space feel!
+const pixelStarGeometry = new THREE.BufferGeometry();
+const pixelStarCount = 80;
+const pixelPositions = new Float32Array(pixelStarCount * 3);
+const pixelColors = new Float32Array(pixelStarCount * 3);
+const pixelSizes = new Float32Array(pixelStarCount);
+
+for (let i = 0; i < pixelStarCount; i++)
+{
+    const i3 = i * 3;
+
+    // Close-range pixely stars (10-50 units from player)
+    pixelPositions[i3] = (Math.random() - 0.5) * 100;     // X: -50 to 50
+    pixelPositions[i3 + 1] = Math.random() * 30 + 5;      // Y: 5 to 35 
+    pixelPositions[i3 + 2] = (Math.random() - 0.5) * 100; // Z: -50 to 50
+
+    // Bright pixely colors - classic space game palette!
+    const pixelType = Math.random();
+    if (pixelType < 0.3)
+    {
+        // Bright white pixels
+        pixelColors[i3] = 1.0;
+        pixelColors[i3 + 1] = 1.0;
+        pixelColors[i3 + 2] = 1.0;
+    } else if (pixelType < 0.5)
+    {
+        // Electric blue pixels
+        pixelColors[i3] = 0.2;
+        pixelColors[i3 + 1] = 0.8;
+        pixelColors[i3 + 2] = 1.0;
+    } else if (pixelType < 0.7)
+    {
+        // Neon cyan pixels  
+        pixelColors[i3] = 0.0;
+        pixelColors[i3 + 1] = 1.0;
+        pixelColors[i3 + 2] = 0.8;
+    } else if (pixelType < 0.85)
+    {
+        // Hot pink pixels
+        pixelColors[i3] = 1.0;
+        pixelColors[i3 + 1] = 0.2;
+        pixelColors[i3 + 2] = 0.8;
+    } else
+    {
+        // Gold pixels
+        pixelColors[i3] = 1.0;
+        pixelColors[i3 + 1] = 0.8;
+        pixelColors[i3 + 2] = 0.0;
+    }
+
+    // Varied sizes for pixely effect
+    pixelSizes[i] = Math.random() * 2 + 0.5; // 0.5 to 2.5
+}
+
+pixelStarGeometry.setAttribute('position', new THREE.BufferAttribute(pixelPositions, 3));
+pixelStarGeometry.setAttribute('color', new THREE.BufferAttribute(pixelColors, 3));
+pixelStarGeometry.setAttribute('size', new THREE.BufferAttribute(pixelSizes, 1));
+
+const pixelStarMaterial = new THREE.PointsMaterial({
+    vertexColors: true,
+    size: 3.0, // Bigger for that chunky pixel feel
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending
+});
+
+const pixelStars = new THREE.Points(pixelStarGeometry, pixelStarMaterial);
+scene.add(pixelStars);
+
 // 🌠 Shooting stars (occasional streaks)
 const shootingStars = [];
 function createShootingStar()
@@ -1332,6 +1402,56 @@ function animate(currentTime)
             star.material.dispose();
             shootingStars.splice(i, 1);
         }
+    }
+
+    // 🌟 PIXELY STAR MADNESS - Close-range retro space vibes!
+    if (pixelStars && pixelStars.geometry.attributes.position)
+    {
+        const pixelPositions = pixelStars.geometry.attributes.position.array;
+        const pixelColors = pixelStars.geometry.attributes.color.array;
+        
+        for (let i = 0; i < pixelPositions.length; i += 3)
+        {
+            const pixelIndex = i / 3;
+            
+            // Gentle floating motion - different for each pixel
+            const floatSpeed = 0.5 + (pixelIndex % 3) * 0.2;
+            const floatAmount = 0.05 + (pixelIndex % 5) * 0.01;
+            pixelPositions[i + 1] += Math.sin(time * floatSpeed + pixelIndex) * floatAmount;
+            
+            // Subtle sideways drift
+            pixelPositions[i] += Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
+            pixelPositions[i + 2] += Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
+            
+            // Wrap around if they drift too far
+            if (pixelPositions[i] > 50) pixelPositions[i] = -50;
+            if (pixelPositions[i] < -50) pixelPositions[i] = 50;
+            if (pixelPositions[i + 2] > 50) pixelPositions[i + 2] = -50;
+            if (pixelPositions[i + 2] < -50) pixelPositions[i + 2] = 50;
+            
+            // Reset if they fall too low or go too high
+            if (pixelPositions[i + 1] < 5) pixelPositions[i + 1] = 35;
+            if (pixelPositions[i + 1] > 35) pixelPositions[i + 1] = 5;
+            
+            // Retro blinking/pulsing effect
+            const blinkSpeed = 2 + (pixelIndex % 4) * 0.5;
+            const blinkIntensity = 0.7 + Math.sin(time * blinkSpeed + pixelIndex) * 0.3;
+            
+            // Apply blinking to color while preserving hue
+            const baseR = pixelColors[i] > 0.8 ? 1.0 : pixelColors[i];
+            const baseG = pixelColors[i + 1] > 0.8 ? 1.0 : pixelColors[i + 1]; 
+            const baseB = pixelColors[i + 2] > 0.8 ? 1.0 : pixelColors[i + 2];
+            
+            pixelColors[i] = baseR * blinkIntensity;
+            pixelColors[i + 1] = baseG * blinkIntensity;
+            pixelColors[i + 2] = baseB * blinkIntensity;
+        }
+        
+        pixelStars.geometry.attributes.position.needsUpdate = true;
+        pixelStars.geometry.attributes.color.needsUpdate = true;
+        
+        // Overall pixely star system rotation for extra dynamism
+        pixelStars.rotation.y += 0.001;
     }
 
     renderer.render(scene, camera);
