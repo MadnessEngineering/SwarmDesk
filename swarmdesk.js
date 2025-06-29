@@ -20,66 +20,77 @@ const projectReadmes = {
         title: "🎮 SwarmDesk Interactive",
         description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
         features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
+        github: "https://github.com/MadnessEngineering/SwarmDesk.git",
         status: "🔥 Active Development"
     },
     "Inventorium": {
         title: "📦 Inventorium",
         description: "Asset and inventory management system - organizing the beautiful chaos of digital and physical resources",
         features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
-        status: "🚀 Production Ready"
+        github: "https://github.com/MadnessEngineering/Inventorium.git",
+        status: "🚀 Active Development"
     },
     "Swarmonomicon": {
         title: "🐝 Swarmonomicon",
         description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
         features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
-        status: "✨ Experimental Madness"
+        github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
+        status: "✨ modularly functional"
     },
     "Whispermind_Conduit": {
         title: "🌐 Whispermind Conduit",
         description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
         features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
-        status: "🔮 Mystical Development"
+        github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
+        status: "🔮 mostly conceptual"
     },
     "Omnispindle-cli-bridge": {
         title: "🌀 Omnispindle CLI Bridge",
         description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
         features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
-        status: "🔄 Bridging Realities"
+        github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
+        status: "🔄 Just in my gemini account lol"
     },
     "EventGhost-Rust": {
         title: "🎭 EventGhost-Rust",
         description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
         features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
+        github: "https://github.com/DanEdens/EventGhost-Rust.git",
         status: "🛠️ Rust-Powered Excellence"
     },
     "DVTTestKit": {
         title: "🧪 DVT TestKit",
         description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
         features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
+        github: "https://github.com/DanEdens/DVTTestKit.git",
         status: "🔬 Testing Excellence"
     },
     "Omnispindle": {
         title: "🌀 Omnispindle MCP",
         description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
         features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
+        github: "https://github.com/MadnessEngineering/Omnispindle.git",
         status: "🔄 Continuous Evolution"
     },
     "FastMCP-Template": {
         title: "⚡ FastMCP Server Template",
         description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
         features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
+        github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
         status: "🏗️ Foundation Ready"
     },
     "Tinker": {
         title: "🔨 Tinker Rust",
         description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
         features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
+        github: "https://github.com/DanEdens/Tinker.git",
         status: "🔬 Experimental Forge"
     },
     "RaidShadowMCP": {
         title: "⚔️ Raid Shadow MCP",
         description: "TypeScript MCP project with gaming integration - where epic adventures meet protocol magic",
         features: ["🎮 Gaming integration", "⚔️ Epic quests", "🔮 MCP protocols", "🌟 TypeScript power"],
+        github: "https://github.com/MadnessEngineering/RaidShadowLegendsButItsMCP.git",
         status: "🎮 Gaming the System"
     }
 };
@@ -661,29 +672,140 @@ const projectAgent = createAgent('Project Manager', 'System Architect', 15, -8, 
 
 scene.add(daneAgent, gitAgent, browserAgent, haikuAgent, greeterAgent, projectAgent);
 
-// Floating particles for ambience
+// 🌟 ENHANCED COSMIC STARFIELD for maximum space vibes!
+// Distant starfield background
+const starFieldGeometry = new THREE.BufferGeometry();
+const starCount = 1500;
+const starPositions = new Float32Array(starCount * 3);
+const starColors = new Float32Array(starCount * 3);
+const starSizes = new Float32Array(starCount);
+
+for (let i = 0; i < starCount; i++)
+{
+    const i3 = i * 3;
+
+    // Distribute stars in a sphere around the scene
+    const radius = 300 + Math.random() * 200;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+
+    starPositions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+    starPositions[i3 + 1] = radius * Math.cos(phi);
+    starPositions[i3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+
+    // Varied star colors (white, blue, yellow, red)
+    const starType = Math.random();
+    if (starType < 0.7)
+    {
+        // White stars
+        starColors[i3] = 1.0;
+        starColors[i3 + 1] = 1.0;
+        starColors[i3 + 2] = 1.0;
+    } else if (starType < 0.85)
+    {
+        // Blue stars
+        starColors[i3] = 0.7;
+        starColors[i3 + 1] = 0.8;
+        starColors[i3 + 2] = 1.0;
+    } else if (starType < 0.95)
+    {
+        // Yellow stars
+        starColors[i3] = 1.0;
+        starColors[i3 + 1] = 1.0;
+        starColors[i3 + 2] = 0.7;
+    } else
+    {
+        // Red stars
+        starColors[i3] = 1.0;
+        starColors[i3 + 1] = 0.7;
+        starColors[i3 + 2] = 0.7;
+    }
+
+    // Varied star sizes
+    starSizes[i] = Math.random() * 2 + 0.5;
+}
+
+starFieldGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+starFieldGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+starFieldGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+
+const starFieldMaterial = new THREE.PointsMaterial({
+    vertexColors: true,
+    size: 1.5,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+});
+
+const starField = new THREE.Points(starFieldGeometry, starFieldMaterial);
+scene.add(starField);
+
+// 🌟 Floating particles for close ambience
 const particleGeometry = new THREE.BufferGeometry();
-const particleCount = 200;
+const particleCount = 150;
 const positions = new Float32Array(particleCount * 3);
+const particleColors = new Float32Array(particleCount * 3);
 
 for (let i = 0; i < particleCount * 3; i += 3)
 {
-    positions[i] = (Math.random() - 0.5) * 100;
-    positions[i + 1] = Math.random() * 20;
-    positions[i + 2] = (Math.random() - 0.5) * 100;
+    positions[i] = (Math.random() - 0.5) * 80;
+    positions[i + 1] = Math.random() * 25;
+    positions[i + 2] = (Math.random() - 0.5) * 80;
+
+    // Cyan/green particle colors
+    const intensity = 0.5 + Math.random() * 0.5;
+    particleColors[i] = 0.0 * intensity;
+    particleColors[i + 1] = 1.0 * intensity;
+    particleColors[i + 2] = 0.5 * intensity;
 }
 
 particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
 const particleMaterial = new THREE.PointsMaterial({
-    color: 0x00ff88,
-    size: 0.1,
+    vertexColors: true,
+    size: 0.15,
     transparent: true,
-    opacity: 0.6
+    opacity: 0.7,
+    blending: THREE.AdditiveBlending
 });
 
 const particles = new THREE.Points(particleGeometry, particleMaterial);
 scene.add(particles);
+
+// 🌠 Shooting stars (occasional streaks)
+const shootingStars = [];
+function createShootingStar()
+{
+    const geometry = new THREE.BufferGeometry();
+    const material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+    });
+
+    const points = [];
+    const startX = (Math.random() - 0.5) * 200;
+    const startY = 20 + Math.random() * 30;
+    const startZ = (Math.random() - 0.5) * 200;
+
+    points.push(new THREE.Vector3(startX, startY, startZ));
+    points.push(new THREE.Vector3(startX - 5, startY - 2, startZ - 5));
+
+    geometry.setFromPoints(points);
+    const line = new THREE.Line(geometry, material);
+
+    line.userData = {
+        velocity: new THREE.Vector3(-0.5, -0.1, -0.3),
+        life: 100,
+        maxLife: 100
+    };
+
+    scene.add(line);
+    shootingStars.push(line);
+}
 
 // Enhanced interaction system variables
 let nearReadmePanel = null;
@@ -1122,6 +1244,73 @@ function animate(currentTime)
             }
         });
     });
+
+    // 🌟 COSMIC STARFIELD ANIMATIONS - The epic space vibes!
+    // Twinkling stars effect
+    if (starField && starField.geometry.attributes.color)
+    {
+        const starColors = starField.geometry.attributes.color.array;
+        for (let i = 0; i < starColors.length; i += 3)
+        {
+            const starIndex = i / 3;
+            const twinkleSpeed = 1 + (starIndex % 7) * 0.3;
+            const twinkle = 0.7 + Math.sin(time * twinkleSpeed + starIndex) * 0.3;
+
+            // Apply twinkling to each color component while preserving star color
+            const baseR = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 1.0);
+            const baseG = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 0.7);
+            const baseB = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 0.7 : 0.7);
+
+            starColors[i] = baseR * twinkle;
+            starColors[i + 1] = baseG * twinkle;
+            starColors[i + 2] = baseB * twinkle;
+        }
+        starField.geometry.attributes.color.needsUpdate = true;
+    }
+
+    // Slow rotation of the entire starfield for cosmic drift
+    if (starField)
+    {
+        starField.rotation.y += 0.0003;
+        starField.rotation.x += 0.0001;
+    }
+
+    // 🌠 Shooting stars management
+    // Occasionally create new shooting stars
+    if (Math.random() < 0.002 && shootingStars.length < 3)
+    {
+        createShootingStar();
+    }
+
+    // Update existing shooting stars
+    for (let i = shootingStars.length - 1; i >= 0; i--)
+    {
+        const star = shootingStars[i];
+        const starData = star.userData;
+
+        // Move the shooting star
+        const positions = star.geometry.attributes.position.array;
+        for (let j = 0; j < positions.length; j += 3)
+        {
+            positions[j] += starData.velocity.x;
+            positions[j + 1] += starData.velocity.y;
+            positions[j + 2] += starData.velocity.z;
+        }
+        star.geometry.attributes.position.needsUpdate = true;
+
+        // Fade out over time
+        starData.life--;
+        star.material.opacity = starData.life / starData.maxLife;
+
+        // Remove expired shooting stars
+        if (starData.life <= 0)
+        {
+            scene.remove(star);
+            star.geometry.dispose();
+            star.material.dispose();
+            shootingStars.splice(i, 1);
+        }
+    }
 
     renderer.render(scene, camera);
 }
