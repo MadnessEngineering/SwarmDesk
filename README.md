@@ -225,3 +225,4 @@ This project is part of the Madness Interactive ecosystem. See the main reposito
 ---
 
 **Embrace the Madness. Control the Swarm. Create the Future.** 🚀🤖🎨
+# Git hook permissions fixed - auto-deployment enabled! 🚀
