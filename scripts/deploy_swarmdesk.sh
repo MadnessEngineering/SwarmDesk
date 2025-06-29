@@ -68,6 +68,19 @@ else
     print_warning "SwarmDesk deployment test inconclusive - check manually"
 fi
 
+# Cache busting for immediate visibility
+echo -e "${BLUE}🔄 Clearing CloudFlare cache...${NC}"
+TIMESTAMP=$(date +%s)
+print_status "Testing with cache buster: https://madnessinteractive.cc/SwarmDesk/?v=$TIMESTAMP"
+
+# Check if CloudFlare CLI is available for cache purging
+if command -v cf &> /dev/null; then
+    echo -e "${BLUE}⚡ Purging CloudFlare cache...${NC}"
+    cf cache purge "https://madnessinteractive.cc/SwarmDesk/*" 2>/dev/null || print_warning "CloudFlare cache purge failed - manual refresh required"
+else
+    print_warning "CloudFlare CLI not found - cache may need manual clearing"
+fi
+
 # Integration with backend (if running)
 echo -e "${BLUE}🔗 Checking backend integration...${NC}"
 if curl -s --head "https://madnessinteractive.cc/api/health" | head -n 1 | grep -q "200 OK"; then
