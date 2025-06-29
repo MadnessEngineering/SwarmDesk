@@ -16,66 +16,100 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 
 // Project README data - the heart of our madness!
 const projectReadmes = {
-    "EventGhost": {
-        title: "🎭 EventGhost-Rust",
-        description: "Automation system rewritten in Rust for maximum performance and madness",
-        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation"],
+    "SwarmDesk": {
+        title: "🎮 SwarmDesk Interactive",
+        description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
+        features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
         status: "🔥 Active Development"
-    },
-    "DVTTestKit": {
-        title: "🧪 DVT TestKit",
-        description: "Design Verification Testing framework for ensuring quality chaos",
-        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection"],
-        status: "🛠️ Maintenance Mode"
     },
     "Inventorium": {
         title: "📦 Inventorium",
-        description: "Asset and inventory management system - organizing the beautiful chaos",
-        features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard"],
+        description: "Asset and inventory management system - organizing the beautiful chaos of digital and physical resources",
+        features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
         status: "🚀 Production Ready"
-    },
-    "Omnispindle": {
-        title: "🌀 Omnispindle",
-        description: "MCP server for todo management - the spinning wheel of productivity",
-        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination"],
-        status: "🔄 Continuous Evolution"
     },
     "Swarmonomicon": {
         title: "🐝 Swarmonomicon",
-        description: "AI agent swarm coordination system - the book of digital bees",
-        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces"],
+        description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
+        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
         status: "✨ Experimental Madness"
     },
-    "MadnessCore": {
-        title: "🧠 MadnessCore",
-        description: "System architecture foundation - the beating heart of chaos",
-        features: ["🏗️ Core infrastructure", "🔌 Plugin system", "⚡ High performance"],
-        status: "🏛️ Foundational"
+    "Whispermind_Conduit": {
+        title: "🌐 Whispermind Conduit",
+        description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
+        features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
+        status: "🔮 Mystical Development"
+    },
+    "Omnispindle-cli-bridge": {
+        title: "🌀 Omnispindle CLI Bridge",
+        description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
+        features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
+        status: "🔄 Bridging Realities"
+    },
+    "EventGhost-Rust": {
+        title: "🎭 EventGhost-Rust",
+        description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
+        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
+        status: "🛠️ Rust-Powered Excellence"
+    },
+    "DVTTestKit": {
+        title: "🧪 DVT TestKit",
+        description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
+        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
+        status: "🔬 Testing Excellence"
+    },
+    "Omnispindle": {
+        title: "🌀 Omnispindle MCP",
+        description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
+        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
+        status: "🔄 Continuous Evolution"
+    },
+    "FastMCP-Template": {
+        title: "⚡ FastMCP Server Template",
+        description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
+        features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
+        status: "🏗️ Foundation Ready"
+    },
+    "Tinker": {
+        title: "🔨 Tinker Rust",
+        description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
+        features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
+        status: "🔬 Experimental Forge"
+    },
+    "RaidShadowMCP": {
+        title: "⚔️ Raid Shadow MCP",
+        description: "TypeScript MCP project with gaming integration - where epic adventures meet protocol magic",
+        features: ["🎮 Gaming integration", "⚔️ Epic quests", "🔮 MCP protocols", "🌟 TypeScript power"],
+        status: "🎮 Gaming the System"
     }
 };
 
 // MCP Toolkit data for the debugging wall
 const mcpToolkit = {
-    "Todo Management": [
-        "📝 add_todo_tool - Create new todos",
-        "📋 list_todos_by_status - View todos by status",
-        "✅ mark_todo_complete - Complete todos",
-        "🔍 query_todos - Search and filter todos"
+    "Todo & Project Management": [
+        "📝 add_todo_tool - Create new todos with project validation",
+        "📋 query_todos_tool - Search and filter todos",
+        "✅ mark_todo_complete_tool - Complete todos with comments",
+        "📂 list_projects_tool - Get all valid projects",
+        "📊 list_project_todos_tool - Project-specific todo lists"
     ],
-    "Project Management": [
-        "📂 list_projects - Get all projects",
-        "📊 list_project_todos - Project-specific todos",
-        "📈 query_todo_logs - Track project activity"
+    "Knowledge Management": [
+        "🧠 add_lesson_tool - Store learning experiences",
+        "📚 search_lessons_tool - Find knowledge by topic",
+        "💡 list_lessons_tool - Browse all stored lessons",
+        "🔍 grep_lessons_tool - Pattern search in lessons"
     ],
-    "Knowledge Base": [
-        "🧠 add_lesson - Store learning",
-        "📚 search_lessons - Find knowledge",
-        "💡 list_lessons - Browse all lessons"
+    "Development Tools": [
+        "⚡ FastMCP Server Template - Rapid MCP deployment",
+        "🌀 Omnispindle MCP Server - Todo management backend",
+        "🔧 Personal JIRA Integration - Issue tracking bridge",
+        "📡 Balena CLI Integration - IoT deployment tools"
     ],
     "System Integration": [
-        "🔧 Real-time status updates",
-        "🌐 Cross-project coordination",
-        "🎯 Intelligent task routing"
+        "🔄 Real-time project synchronization",
+        "🌐 Cross-agent communication protocols",
+        "🎯 Intelligent task routing and assignment",
+        "📈 Performance monitoring and analytics"
     ]
 };
 
@@ -473,12 +507,12 @@ function createMCPDebuggingWall()
 
 // Create workstations for different projects
 const workstations = [
-    createWorkstation(-15, -15, "EventGhost", "automation"),
-    createWorkstation(0, -15, "DVTTestKit", "git"),
-    createWorkstation(15, -15, "Inventorium", "project"),
-    createWorkstation(-15, 0, "Omnispindle", "browser"),
-    createWorkstation(0, 0, "Swarmonomicon", "haiku"),
-    createWorkstation(15, 0, "MadnessCore", "git"),
+    createWorkstation(-15, -15, "SwarmDesk", "project"),
+    createWorkstation(0, -15, "Inventorium", "git"),
+    createWorkstation(15, -15, "Swarmonomicon", "haiku"),
+    createWorkstation(-15, 0, "Whispermind_Conduit", "browser"),
+    createWorkstation(0, 0, "Omnispindle-cli-bridge", "automation"),
+    createWorkstation(15, 0, "EventGhost-Rust", "git"),
 ];
 
 workstations.forEach(station => scene.add(station));
