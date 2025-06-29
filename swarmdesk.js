@@ -785,6 +785,13 @@ function showReadmeDetails(station)
     const readmeData = station.userData.readmeData;
     if (!readmeData) return;
 
+    // 🎯 UX IMPROVEMENT: Exit pointer lock when opening dialogue
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+    }
+
     // Create enhanced dialogue for README
     const dialogueBox = document.getElementById('dialogue-box');
     const dialogueName = document.getElementById('dialogue-name');
@@ -834,6 +841,13 @@ function showReadmeDetails(station)
 // 🔧 NEW MADNESS: Show MCP debugging interface
 function showMCPDebugging()
 {
+    // 🎯 UX IMPROVEMENT: Exit pointer lock when opening dialogue
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+    }
+
     const dialogueBox = document.getElementById('dialogue-box');
     const dialogueName = document.getElementById('dialogue-name');
     const dialogueContent = document.getElementById('dialogue-content');
