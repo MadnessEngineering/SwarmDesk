@@ -1668,6 +1668,10 @@ setTimeout(() =>
     🛠️  M - Access MCP debugging toolkit
     🎵 SPACE - Toggle chaos dance mode
     🚪 ESC - Close dialogues/unlock pointer
+    
+    🎛️  NEW HOTKEYS:
+    📋 TAB - Toggle Control Center panel
+    🤖 = - Toggle Swarm Status panel
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     💡 Explore, interact, and embrace the madness!
     `);
@@ -1684,6 +1688,21 @@ document.addEventListener('keydown', (e) =>
         {
             closeDialogue();
         }
+        return;
+    }
+
+    // 🎛️ NEW HOTKEYS: Panel Toggle Controls
+    if (e.key === 'Tab')
+    {
+        e.preventDefault();
+        toggleControlCenter();
+        return;
+    }
+
+    if (e.key === '=')
+    {
+        e.preventDefault();
+        toggleSwarmStatus();
         return;
     }
 
@@ -2046,3 +2065,28 @@ document.getElementById('custom-question-input').addEventListener('keypress', (e
         }
     }
 });
+
+// 🔧 NEW MADNESS: UI Panel Toggle Functions
+function toggleControlCenter()
+{
+    const controlCenter = document.getElementById('ui-overlay');
+    const isVisible = controlCenter.style.display !== 'none';
+
+    controlCenter.style.display = isVisible ? 'none' : 'block';
+
+    const statusText = isVisible ? 'hidden' : 'visible';
+    createFloatingText(`📋 Control Center ${statusText}`, camera.position);
+    console.log(`🎮 Control Center ${statusText}`);
+}
+
+function toggleSwarmStatus()
+{
+    const swarmStatus = document.querySelector('.agent-status');
+    const isVisible = swarmStatus.style.display !== 'none';
+
+    swarmStatus.style.display = isVisible ? 'none' : 'block';
+
+    const statusText = isVisible ? 'hidden' : 'visible';
+    createFloatingText(`🤖 Swarm Status ${statusText}`, camera.position);
+    console.log(`🤖 Swarm Status ${statusText}`);
+}
