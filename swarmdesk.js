@@ -84,6 +84,21 @@ const projectReadmes = {
     }
 };
 
+// GitHub repository mapping for each project
+const projectRepositories = {
+    "SwarmDesk": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/SwarmDesk",
+    "Inventorium": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Inventorium",
+    "Swarmonomicon": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Swarmonomicon",
+    "Whispermind_Conduit": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Whispermind_Conduit",
+    "Omnispindle-cli-bridge": "https://github.com/d-edens/madness_interactive/tree/main/projects/common/Omnispindle-cli-bridge",
+    "EventGhost-Rust": "https://github.com/d-edens/madness_interactive/tree/main/projects/rust/EventGhost-Rust",
+    "DVTTestKit": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/dvtTestKit",
+    "Omnispindle": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/Omnispindle",
+    "FastMCP-Template": "https://github.com/d-edens/madness_interactive/tree/main/projects/python/dans-fastmcp-server-template",
+    "Tinker": "https://github.com/d-edens/madness_interactive/tree/main/projects/rust/Tinker",
+    "RaidShadowMCP": "https://github.com/d-edens/madness_interactive/tree/main/projects/typescript/RaidShadowLegendsButItsMCP"
+};
+
 // MCP Toolkit data for the debugging wall
 const mcpToolkit = {
     "Todo & Project Management": [
@@ -752,7 +767,7 @@ function updateInteractionPrompt()
         prompt.style.display = 'block';
     } else if (nearReadmePanel)
     {
-        prompt.textContent = `Press R to view ${nearReadmePanel.userData.projectName} README details`;
+        prompt.innerHTML = `Press R to view ${nearReadmePanel.userData.projectName} README details<br>Press G to open GitHub repository`;
         prompt.style.display = 'block';
     } else if (nearMCPWall)
     {
@@ -807,6 +822,9 @@ function showReadmeDetails(station)
         </div>
         <div class="dialogue-option" onclick="viewProjectTodos('${station.userData.projectName}')">
             📝 View Project Todos
+        </div>
+        <div class="dialogue-option" onclick="openProjectRepository('${station.userData.projectName}')">
+            🐙 Open GitHub Repository
         </div>
     `;
 
@@ -876,6 +894,22 @@ function viewProjectTodos(projectName)
     createFloatingText(`📝 Loading ${projectName} todos...`, camera.position);
     console.log(`Viewing todos for: ${projectName}`);
     // TODO: Integrate with actual MCP todo system
+}
+
+// 🚀 NEW MADNESS: Open GitHub repository function
+function openProjectRepository(projectName)
+{
+    const repoUrl = projectRepositories[projectName];
+    if (repoUrl)
+    {
+        createFloatingText(`🐙 Opening ${projectName} on GitHub...`, camera.position);
+        window.open(repoUrl, '_blank');
+        console.log(`Opening GitHub repository: ${repoUrl}`);
+    } else
+    {
+        createFloatingText(`❌ No repository found for ${projectName}`, camera.position);
+        console.log(`No repository URL found for project: ${projectName}`);
+    }
 }
 
 function runMCPCommand(command)
@@ -1147,6 +1181,13 @@ document.addEventListener('keydown', (e) =>
     {
         e.preventDefault();
         showMCPDebugging();
+    }
+
+    // 🐙 NEW: GitHub repository interaction
+    if (e.key.toLowerCase() === 'g' && nearReadmePanel && !currentAgent)
+    {
+        e.preventDefault();
+        openProjectRepository(nearReadmePanel.userData.projectName);
     }
 
     if (e.key === ' ')
