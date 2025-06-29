@@ -2,9 +2,9 @@
 // Scene setup with cyber-punk aesthetic
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000511);
-scene.fog = new THREE.Fog(0x000511, 20, 100);
+scene.fog = new THREE.Fog(0x000511, 20, 800);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(0, 1.6, 8);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -684,14 +684,20 @@ for (let i = 0; i < starCount; i++)
 {
     const i3 = i * 3;
 
-    // Distribute stars in a sphere around the scene
-    const radius = 300 + Math.random() * 200;
+    // 🌟 FIXED: Distribute stars in visible range (closer for better visibility)
+    const radius = 150 + Math.random() * 250; // Now 150-400 units instead of 300-500
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.random() * Math.PI;
 
-    starPositions[i3] = radius * Math.sin(phi) * Math.cos(theta);
-    starPositions[i3 + 1] = radius * Math.cos(phi);
-    starPositions[i3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+    // 🚀 FIXED: Add validation to prevent NaN values
+    const x = radius * Math.sin(phi) * Math.cos(theta);
+    const y = radius * Math.cos(phi);
+    const z = radius * Math.sin(phi) * Math.sin(theta);
+
+    // Validate positions and provide fallbacks
+    starPositions[i3] = isFinite(x) ? x : (Math.random() - 0.5) * 200;
+    starPositions[i3 + 1] = isFinite(y) ? y : Math.random() * 100 + 50;
+    starPositions[i3 + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 200;
 
     // Varied star colors (white, blue, yellow, red)
     const starType = Math.random();
@@ -721,8 +727,9 @@ for (let i = 0; i < starCount; i++)
         starColors[i3 + 2] = 0.7;
     }
 
-    // Varied star sizes
-    starSizes[i] = Math.random() * 2 + 0.5;
+    // 🌟 FIXED: Bigger, brighter stars for better visibility
+    const starSize = Math.random() * 3 + 1.0; // Increased from 0.5-2.5 to 1.0-4.0
+    starSizes[i] = isFinite(starSize) ? starSize : 2.0; // Fallback size
 }
 
 starFieldGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
@@ -731,10 +738,10 @@ starFieldGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
 
 const starFieldMaterial = new THREE.PointsMaterial({
     vertexColors: true,
-    size: 1.5,
+    size: 2.5, // Increased from 1.5 to 2.5
     sizeAttenuation: true,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.9, // Increased from 0.8 to 0.9
     blending: THREE.AdditiveBlending
 });
 
@@ -1058,7 +1065,22 @@ function runMCPCommand(command)
 // Floating text effect
 function createFloatingText(text, worldPos)
 {
-    const screenPos = worldPos.clone();
+    // 🚀 FIXED: Handle both THREE.Vector3 and plain objects
+    let screenPos;
+    if (worldPos && typeof worldPos.clone === 'function')
+    {
+        // It's a THREE.Vector3
+        screenPos = worldPos.clone();
+    } else if (worldPos && typeof worldPos === 'object')
+    {
+        // It's a plain object like {x: 0, y: 5, z: 0}
+        screenPos = new THREE.Vector3(worldPos.x || 0, worldPos.y || 0, worldPos.z || 0);
+    } else
+    {
+        // Fallback to camera position
+        screenPos = camera.position.clone();
+    }
+
     screenPos.project(camera);
 
     const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
