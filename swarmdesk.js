@@ -793,9 +793,14 @@ for (let i = 0; i < pixelStarCount; i++)
     const i3 = i * 3;
 
     // Close-range pixely stars (10-50 units from player)
-    pixelPositions[i3] = (Math.random() - 0.5) * 100;     // X: -50 to 50
-    pixelPositions[i3 + 1] = Math.random() * 30 + 5;      // Y: 5 to 35 
-    pixelPositions[i3 + 2] = (Math.random() - 0.5) * 100; // Z: -50 to 50
+    const x = (Math.random() - 0.5) * 100;     // X: -50 to 50
+    const y = Math.random() * 30 + 5;          // Y: 5 to 35 
+    const z = (Math.random() - 0.5) * 100;     // Z: -50 to 50
+
+    // 🚀 FIXED: Validate positions to prevent NaN values
+    pixelPositions[i3] = isFinite(x) ? x : (Math.random() - 0.5) * 80;
+    pixelPositions[i3 + 1] = isFinite(y) ? y : Math.random() * 25 + 10;
+    pixelPositions[i3 + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 80;
 
     // Bright pixely colors - classic space game palette!
     const pixelType = Math.random();
@@ -831,8 +836,9 @@ for (let i = 0; i < pixelStarCount; i++)
         pixelColors[i3 + 2] = 0.0;
     }
 
-    // Varied sizes for pixely effect
-    pixelSizes[i] = Math.random() * 2 + 0.5; // 0.5 to 2.5
+    // 🚀 FIXED: Validate sizes to prevent NaN values
+    const pixelSize = Math.random() * 2 + 0.5; // 0.5 to 2.5
+    pixelSizes[i] = isFinite(pixelSize) ? pixelSize : 1.5; // Fallback size
 }
 
 pixelStarGeometry.setAttribute('position', new THREE.BufferAttribute(pixelPositions, 3));
@@ -1414,14 +1420,33 @@ function animate(currentTime)
         {
             const pixelIndex = i / 3;
             
+            // 🚀 FIXED: Validate current positions before calculations
+            if (!isFinite(pixelPositions[i]) || !isFinite(pixelPositions[i + 1]) || !isFinite(pixelPositions[i + 2]))
+            {
+                // Reset invalid positions to safe defaults
+                pixelPositions[i] = (Math.random() - 0.5) * 80;
+                pixelPositions[i + 1] = Math.random() * 25 + 10;
+                pixelPositions[i + 2] = (Math.random() - 0.5) * 80;
+            }
+
             // Gentle floating motion - different for each pixel
             const floatSpeed = 0.5 + (pixelIndex % 3) * 0.2;
             const floatAmount = 0.05 + (pixelIndex % 5) * 0.01;
-            pixelPositions[i + 1] += Math.sin(time * floatSpeed + pixelIndex) * floatAmount;
+            const floatDelta = Math.sin(time * floatSpeed + pixelIndex) * floatAmount;
+
+            // 🚀 FIXED: Validate float delta before applying
+            if (isFinite(floatDelta))
+            {
+                pixelPositions[i + 1] += floatDelta;
+            }
             
             // Subtle sideways drift
-            pixelPositions[i] += Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
-            pixelPositions[i + 2] += Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
+            const driftX = Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
+            const driftZ = Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
+
+            // 🚀 FIXED: Validate drift before applying
+            if (isFinite(driftX)) pixelPositions[i] += driftX;
+            if (isFinite(driftZ)) pixelPositions[i + 2] += driftZ;
             
             // Wrap around if they drift too far
             if (pixelPositions[i] > 50) pixelPositions[i] = -50;
@@ -1437,14 +1462,23 @@ function animate(currentTime)
             const blinkSpeed = 2 + (pixelIndex % 4) * 0.5;
             const blinkIntensity = 0.7 + Math.sin(time * blinkSpeed + pixelIndex) * 0.3;
             
-            // Apply blinking to color while preserving hue
-            const baseR = pixelColors[i] > 0.8 ? 1.0 : pixelColors[i];
-            const baseG = pixelColors[i + 1] > 0.8 ? 1.0 : pixelColors[i + 1]; 
-            const baseB = pixelColors[i + 2] > 0.8 ? 1.0 : pixelColors[i + 2];
-            
-            pixelColors[i] = baseR * blinkIntensity;
-            pixelColors[i + 1] = baseG * blinkIntensity;
-            pixelColors[i + 2] = baseB * blinkIntensity;
+            // 🚀 FIXED: Validate colors and blink intensity
+            if (isFinite(blinkIntensity) && pixelColors[i] !== undefined && pixelColors[i + 1] !== undefined && pixelColors[i + 2] !== undefined)
+            {
+                // Apply blinking to color while preserving hue
+                const baseR = pixelColors[i] > 0.8 ? 1.0 : pixelColors[i];
+                const baseG = pixelColors[i + 1] > 0.8 ? 1.0 : pixelColors[i + 1];
+                const baseB = pixelColors[i + 2] > 0.8 ? 1.0 : pixelColors[i + 2];
+
+                const newR = baseR * blinkIntensity;
+                const newG = baseG * blinkIntensity;
+                const newB = baseB * blinkIntensity;
+
+                // Final validation before assignment
+                pixelColors[i] = isFinite(newR) ? newR : baseR;
+                pixelColors[i + 1] = isFinite(newG) ? newG : baseG;
+                pixelColors[i + 2] = isFinite(newB) ? newB : baseB;
+            }
         }
         
         pixelStars.geometry.attributes.position.needsUpdate = true;
