@@ -1808,27 +1808,29 @@ renderer.domElement.addEventListener('click', () =>
 function handleArrowKeys(key)
 {
     const rotationSpeed = 0.1; // Made more responsive
-    const currentEuler = new THREE.Euler().setFromQuaternion(camera.quaternion);
+
+    // Use the same persistent euler object as mouse controls instead of creating new one
+    euler.setFromQuaternion(camera.quaternion);
 
     switch (key)
     {
         case 'ArrowLeft':
-            currentEuler.y += rotationSpeed;
+            euler.y += rotationSpeed;
             break;
         case 'ArrowRight':
-            currentEuler.y -= rotationSpeed;
+            euler.y -= rotationSpeed;
             break;
         case 'ArrowUp':
-            currentEuler.x += rotationSpeed;
-            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
+            euler.x += rotationSpeed;
+            euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
             break;
         case 'ArrowDown':
-            currentEuler.x -= rotationSpeed;
-            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
+            euler.x -= rotationSpeed;
+            euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
             break;
     }
 
-    camera.quaternion.setFromEuler(currentEuler);
+    camera.quaternion.setFromEuler(euler);
 }
 
 // Dialogue system functions (preserved and enhanced)
