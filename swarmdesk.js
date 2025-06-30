@@ -846,28 +846,52 @@ function viewProjectTodos(projectName)
 
 function runMCPCommand(command)
 {
-    createFloatingText(`🛠️ Running MCP: ${command}`, camera.position);
-    console.log(`MCP Command: ${command}`);
-    // TODO: Integrate with actual MCP system
+    // Simulate running the command and getting a result
+    const result = `> ${command}\n...SUCCESS`;
+    const worldPos = new THREE.Vector3(0, 5, -15); // Ensure this is a Vector3
+    createFloatingText(result, worldPos);
+
+    logActivity('MCP', `Executed command: ${command}`);
+
+    // Dashboard integration
+    if (typeof SwarmDeskDashboard !== 'undefined')
+    {
+        SwarmDeskDashboard.executeMCPTool(command, { status: 'success', result: result });
+    }
 }
 
-// Floating text effect
+// Create floating text that rises and fades
 function createFloatingText(text, worldPos)
 {
-    const screenPos = worldPos.clone();
-    screenPos.project(camera);
+    // Defensive check: ensure worldPos is a THREE.Vector3
+    if (!(worldPos instanceof THREE.Vector3))
+    {
+        console.warn('createFloatingText: worldPos was not a Vector3. Converting.');
+        worldPos = new THREE.Vector3(worldPos.x || 0, worldPos.y || 0, worldPos.z || 0);
+    }
 
-    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 512;
+    canvas.height = 128;
+    context.fillStyle = 'black';
+    context.fillRect(0, 0, 512, 128);
+    context.fillStyle = 'white';
+    context.font = 'bold 32px Courier New';
+    context.textAlign = 'center';
+    context.fillText(text, 256, 64);
 
-    const div = document.createElement('div');
-    div.className = 'floating-text';
-    div.textContent = text;
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
-    document.body.appendChild(div);
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const textMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), material);
+    textMesh.position.set(worldPos.x, worldPos.y, worldPos.z);
+    scene.add(textMesh);
 
-    setTimeout(() => div.remove(), 2000);
+    setTimeout(() =>
+    {
+        textMesh.visible = false;
+        textMesh.material.dispose();
+    }, 2000);
 }
 
 // 🚀 MADNESS ENHANCED: Animation loop with interactive features

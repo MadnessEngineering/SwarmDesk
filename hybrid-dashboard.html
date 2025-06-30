@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madness Interactive - Hybrid Dashboard</title>
+    <style>
+        /* 🎪 HYBRID MADNESS - Base and Sidebar Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+        }
+
+        .dashboard-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebars */
+        .left-sidebar {
+            width: 350px;
+            background: linear-gradient(135deg, #001122 0%, #002244 100%);
+            border-right: 2px solid #00ff88;
+            box-shadow: 2px 0 20px rgba(0, 255, 136, 0.3);
+            overflow-y: auto;
+            transition: width 0.3s ease, margin-left 0.3s ease;
+            z-index: 2000;
+        }
+
+        .left-sidebar.collapsed {
+            width: 60px;
+            margin-left: -290px;
+        }
+
+        .right-sidebar {
+            width: 350px;
+            background: linear-gradient(135deg, #220011 0%, #440022 100%);
+            border-left: 2px solid #ff6b35;
+            box-shadow: -2px 0 20px rgba(255, 107, 53, 0.3);
+            overflow-y: auto;
+            transition: width 0.3s ease, margin-right 0.3s ease;
+            z-index: 2000;
+        }
+
+        .right-sidebar.collapsed {
+            width: 60px;
+            margin-right: -290px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 2001;
+        }
+
+        .left-toggle { right: -20px; border-color: #00ff88; color: #00ff88; }
+        .right-toggle { left: -20px; border-color: #ff6b35; color: #ff6b35; }
+
+        .sidebar-section { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-section h3 { margin: 0 0 15px 0; text-shadow: 0 0 10px currentColor; font-size: 18px; }
+        
+        /* 🎮 CENTRAL CONTAINER */
+        .swarmdesk-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden; /* Important for containing floating panels */
+        }
+        
+        #swarmdesk-workspace {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #000511;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* 🏷️ FLOATING PANEL SYSTEM STYLES */
+        .floating-panel {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.95) 0%, rgba(0, 40, 80, 0.95) 100%);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(20px);
+            min-width: 300px;
+            min-height: 200px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .floating-panel.active { border-color: #ff6b35; z-index: 1001; }
+        .floating-panel.docked { border-radius: 8px; transition: all 0.5s ease; }
+
+        .panel-header {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 136, 255, 0.2) 100%);
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 0 0;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* ... Other floating panel styles from floating-panels-dashboard.html ... */
+        .panel-title { font-size: 14px; font-weight: bold; color: #00ff88; }
+        .panel-controls { display: flex; gap: 8px; }
+        .panel-control-btn { width: 20px; height: 20px; border: 1px solid; border-radius: 50%; background: rgba(0,0,0,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .minimize-btn { border-color: #ffaa00; color: #ffaa00; }
+        .close-btn { border-color: #ff4444; color: #ff4444; }
+        .dock-btn { border-color: #0088ff; color: #0088ff; }
+
+        .panel-tabs { display: flex; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .panel-tab { padding: 8px 16px; border: none; border-bottom: 2px solid transparent; color: #888; cursor: pointer; font-size: 12px; }
+        .panel-tab.active { color: #00ff88; border-bottom-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+        .panel-tab.context-tab { background: linear-gradient(45deg, rgba(255, 107, 53, 0.1), rgba(255, 170, 0, 0.1)); }
+
+        .panel-content { height: calc(100% - 100px); overflow-y: auto; padding: 15px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .dock-zone { position: absolute; background: rgba(0,255,136,0.1); border: 2px dashed #00ff88; border-radius: 8px; opacity: 0; transition: all 0.3s ease; pointer-events: none; display: flex; align-items: center; justify-content: center; color: #00ff88; }
+        .dock-zone.active { opacity: 0.8; }
+        .dock-zone.highlight { background: rgba(0,255,136,0.3); box-shadow: 0 0 20px rgba(0,255,136,0.5); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 📋 LEFT SIDEBAR -->
+        <div class="left-sidebar" id="leftSidebar">
+            <div class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')"><span id="leftToggleIcon">◀</span></div>
+            <!-- 🎯 PROJECTS SECTION -->
+            <div class="sidebar-section projects">
+                <h3 style="color: #00ff88;">🚀 Projects</h3>
+                <div class="project-card" onclick="selectProject('EventGhost')">
+                    <h4>🎭 EventGhost-Rust</h4>
+                </div>
+                <div class="project-card" onclick="selectProject('DVTTestKit')">
+                    <h4>🧪 DVT TestKit</h4>
+                </div>
+                <div class="project-card" onclick="selectProject('Inventorium')">
+                    <h4>📦 Inventorium</h4>
+                </div>
+            </div>
+            <!-- 🛠️ MCP TOOLS SECTION -->
+            <div class="sidebar-section mcp">
+                <h3 style="color: #0088ff;">🔧 MCP Tools</h3>
+                <div class="mcp-tool" onclick="runMCPTool('list_projects')">📂 List Projects</div>
+                <div class="mcp-tool" onclick="runMCPTool('add_todo')">📝 Add Todo</div>
+            </div>
+        </div>
+
+        <!-- 🎮 CENTRAL CONTAINER (FOR SWARMDESK & FLOATING PANELS) -->
+        <div class="swarmdesk-container">
+            <div id="swarmdesk-workspace">
+                <div id="canvas-container"></div>
+                <!-- SwarmDesk UI Overlays -->
+                <div class="swarmdesk-overlay" style="z-index: 999;">
+                    <h2 style="margin: 0 0 10px 0; color: #ff6b35;">🚀 SwarmDesk Hybrid</h2>
+                    <p style="margin: 3px 0; font-size: 11px; color: #ffaa00;">🏷️ Click workstations for contextual panels</p>
+                    <p style="margin: 3px 0; font-size: 11px;">⌨️ F1/F2 - Toggle Sidebars</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💬 RIGHT SIDEBAR -->
+        <div class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-toggle right-toggle" onclick="toggleSidebar('right')"><span id="rightToggleIcon">▶</span></div>
+            <!-- 💬 CHAT ASSISTANT -->
+            <div class="sidebar-section chat">
+                <h3 style="color: #ff6b35;">💬 AI Chat Assistant</h3>
+                <div class="chat-container" id="chatContainer"></div>
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything...">
+            </div>
+            <!-- 📊 ANALYTICS DASHBOARD -->
+            <div class="sidebar-section analytics">
+                <h3 style="color: #ffaa00;">📊 Analytics</h3>
+                <div class="analytics-item">
+                    <span class="analytics-label">Active Panels:</span>
+                    <span class="analytics-value" id="activePanels">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- DOCK ZONES & TEMPLATES (position:absolute will respect the body or nearest relative container) -->
+    <div class="dock-zone dock-left" id="dock-left">📋 Left Dock</div>
+    <div class="dock-zone dock-right" id="dock-right">💬 Right Dock</div>
+    <div class="dock-zone dock-bottom" id="dock-bottom">📊 Bottom Dock</div>
+    <div class="dock-zone dock-top" id="dock-top">🔧 Top Dock</div>
+
+    <template id="panel-template">
+        <div class="floating-panel">
+            <div class="panel-header">
+                <span class="panel-title">Panel Title</span>
+                <div class="panel-controls">
+                    <div class="panel-control-btn dock-btn" title="Toggle Dock">⚓</div>
+                    <div class="panel-control-btn minimize-btn" title="Minimize">−</div>
+                    <div class="panel-control-btn close-btn" title="Close">×</div>
+                </div>
+            </div>
+            <div class="panel-tabs"></div>
+            <div class="panel-content"></div>
+        </div>
+    </template>
+
+    <!-- 🎪 SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="swarmdesk.js"></script>
+    <script src="swarmdesk-dashboard-hooks.js"></script>
+    <script src="floating-panel-system.js"></script>
+    <script src="floating-panel-advanced.js"></script>
+    
+    <script>
+        // 🚀 HYBRID INITIALIZATION
+        window.addEventListener('load', () => {
+            // Initialize Sidebar Logic
+            initializeSidebarDashboard();
+            
+            // Initialize Floating Panel System
+            window.panelSystem = new FloatingPanelSystem();
+            console.log('🎪 Floating Panel Madness initialized!');
+            
+            // Initialize Advanced Panel Features
+            setTimeout(() => {
+                if (window.panelSystem) {
+                    window.advancedPanelFeatures = new AdvancedPanelFeatures(window.panelSystem);
+                }
+            }, 1000);
+        });
+
+        function initializeSidebarDashboard() {
+            // Merged and adapted from dashboard-integrated.html
+            console.log('🚀 Sidebar system initialized!');
+        }
+
+        // Sidebar Toggle Functionality
+        function toggleSidebar(side) {
+            const isLeft = side === 'left';
+            const sidebar = document.getElementById(side + 'Sidebar');
+            const toggleIcon = document.getElementById(side + 'ToggleIcon');
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            
+            if (isLeft) {
+                toggleIcon.textContent = isCollapsed ? '▶' : '◀';
+            } else {
+                toggleIcon.textContent = isCollapsed ? '◀' : '▶';
+            }
+            
+            // Resize SwarmDesk canvas
+            setTimeout(() => {
+                if (typeof renderer !== 'undefined' && renderer) {
+                    const container = document.getElementById('canvas-container');
+                    const rect = container.getBoundingClientRect();
+                    renderer.setSize(rect.width, rect.height);
+                    if (typeof camera !== 'undefined' && camera) {
+                        camera.aspect = rect.width / rect.height;
+                        camera.updateProjectionMatrix();
+                    }
+                }
+            }, 300);
+        }
+
+        // Keyboard Shortcuts (F1/F2 for sidebars)
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (document.getElementById('dialogue-box')?.style.display === 'block') return;
+            
+            switch(e.key) {
+                case 'F1': e.preventDefault(); toggleSidebar('left'); break;
+                case 'F2': e.preventDefault(); toggleSidebar('right'); break;
+            }
+        });
+    </script>
+</body>
+</html> 
