@@ -1723,6 +1723,14 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
+    // Floating Panel Hotkeys - Forward to the singleton instance
+    if (window.panelSystem && ['F3', 'F4', 'F5', 'F6', 'F7'].includes(e.key))
+    {
+        e.preventDefault();
+        window.panelSystem.handleKeyboard(e);
+        return;
+    }
+
     // 🎛️ NEW HOTKEYS: Panel Toggle Controls
     if (e.key === 'Tab')
     {

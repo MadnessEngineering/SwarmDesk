@@ -5,6 +5,12 @@ class FloatingPanelSystem
 {
     constructor()
     {
+        // Singleton pattern: Ensure only one instance exists
+        if (FloatingPanelSystem.instance)
+        {
+            return FloatingPanelSystem.instance;
+        }
+
         this.panels = new Map();
         this.activePanelId = null;
         this.dragState = {
@@ -18,6 +24,7 @@ class FloatingPanelSystem
         this.panelIdCounter = 0;
 
         this.init();
+        FloatingPanelSystem.instance = this;
     }
 
     // 🚀 INITIALIZATION
@@ -25,8 +32,7 @@ class FloatingPanelSystem
     {
         this.setupDockingZones();
         this.setupEventListeners();
-        // Don't create initial panels - let user open them with hotkeys
-        // this.createInitialPanels();
+        this.createInitialPanels();
         this.setupSwarmDeskIntegration();
 
         console.log('🎪 Floating Panel System initialized!');
@@ -70,9 +76,6 @@ class FloatingPanelSystem
         // Global mouse events for dragging
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
@@ -566,44 +569,6 @@ class FloatingPanelSystem
         };
     }
 
-    // ⌨️ HANDLE KEYBOARD
-    handleKeyboard(event)
-    {
-        // Don't interfere with SwarmDesk or input fields
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
-        if (document.getElementById('dialogue-box').style.display === 'block') return;
-
-        switch (event.key)
-        {
-            case 'F3':
-                event.preventDefault();
-                this.createContextualPanel('welcome');
-                break;
-            case 'F4':
-                event.preventDefault();
-                this.createContextualPanel('project');
-                break;
-            case 'F5':
-                event.preventDefault();
-                this.createContextualPanel('agent');
-                break;
-            case 'F6':
-                event.preventDefault();
-                this.createContextualPanel('mcp');
-                break;
-            case 'F7':
-                event.preventDefault();
-                this.createContextualPanel('analytics');
-                break;
-            case 'Escape':
-                if (this.dragState.isDragging)
-                {
-                    this.cancelDrag();
-                }
-                break;
-        }
-    }
-
     // 🚫 CANCEL DRAG
     cancelDrag()
     {
@@ -649,26 +614,8 @@ class FloatingPanelSystem
     // 🎪 CREATE INITIAL PANELS
     createInitialPanels()
     {
-        // Welcome panel
-        this.createPanel({
-            title: '🎪 Welcome to Floating Madness!',
-            type: 'project-panel',
-            position: { x: 50, y: 50 },
-            width: 400,
-            height: 300,
-            tabs: [
-                {
-                    id: 'welcome',
-                    title: '🚀 Welcome',
-                    content: this.generateWelcomeContent()
-                },
-                {
-                    id: 'shortcuts',
-                    title: '⌨️ Shortcuts',
-                    content: this.generateShortcutsContent()
-                }
-            ]
-        });
+        // Always create the welcome panel, but as a singleton
+        this.createContextualPanel('welcome');
     }
 
     // 🎮 SWARMDESK INTEGRATION
@@ -1201,38 +1148,7 @@ class FloatingPanelSystem
     }
 }
 
-// 🚀 INITIALIZE FLOATING PANEL SYSTEM
-window.addEventListener('load', () =>
-{
-    // Prevent multiple initialization
-    if (window.panelSystem)
-    {
-        console.log('⚠️ FloatingPanelSystem already initialized, skipping...');
-        return;
-    }
-
-    window.panelSystem = new FloatingPanelSystem();
-    console.log('🎪 Floating Panel Madness initialized!');
-});
-
-// 🎮 INTEGRATION WITH SWARMDESK
-if (typeof SwarmDeskDashboard !== 'undefined')
-{
-    // Enhanced project selection
-    const originalSelectProject = SwarmDeskDashboard.selectProject;
-    SwarmDeskDashboard.selectProject = function (projectName)
-    {
-        originalSelectProject.call(this, projectName);
-
-        // Create contextual panel if system is ready
-        if (window.panelSystem)
-        {
-            setTimeout(() =>
-            {
-                window.panelSystem.createContextualProjectPanel(projectName, projectReadmes[projectName]);
-            }, 100);
-        }
-    };
-}
+// Initialize the single instance of the floating panel system
+window.panelSystem = new FloatingPanelSystem();
 
 console.log('🎪 Floating Panel System loaded successfully!'); 
