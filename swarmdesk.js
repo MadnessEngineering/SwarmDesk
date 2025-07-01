@@ -358,7 +358,7 @@ function createReadmePanel(projectName, agentType)
         ctx.fillStyle = '#ffff00';
         ctx.font = '12px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText('💡 Press R near workstation for details', 256, 720);
+        ctx.fillText('💡 Press E near workstation for details', 256, 720);
 
         const texture = new THREE.CanvasTexture(canvas);
         const displayMaterial = new THREE.MeshBasicMaterial({
@@ -671,6 +671,8 @@ let pointerLocked = false;
 // Current agent being interacted with
 let currentAgent = null;
 let nearAgent = null;
+let dialogueOpen = false; // NEW: Unified state for any dialogue/panel
+let activePanelType = null; // NEW: Tracks the type of open panel ('agent', 'readme', 'mcp')
 
 // Starfield toggle setting
 let starfieldEnabled = true;
@@ -749,7 +751,7 @@ function updateInteractionPrompt()
         prompt.style.display = 'block';
     } else if (nearReadmePanel)
     {
-        prompt.textContent = `Press R to view ${nearReadmePanel.userData.projectName} README details`;
+        prompt.textContent = `Press E to view ${nearReadmePanel.userData.projectName} README details`;
         prompt.style.display = 'block';
     } else if (nearMCPWall)
     {
@@ -766,6 +768,8 @@ function showReadmeDetails(station)
 {
     const readmeData = station.userData.readmeData;
     if (!readmeData) return;
+    dialogueOpen = true; // Halt movement
+    activePanelType = 'readme'; // Set panel type
 
     // Create enhanced dialogue for README
     const dialogueBox = document.getElementById('dialogue-box');
@@ -813,6 +817,8 @@ function showReadmeDetails(station)
 // 🔧 NEW MADNESS: Show MCP debugging interface
 function showMCPDebugging()
 {
+    dialogueOpen = true; // Halt movement
+    activePanelType = 'mcp'; // Set panel type
     const dialogueBox = document.getElementById('dialogue-box');
     const dialogueName = document.getElementById('dialogue-name');
     const dialogueContent = document.getElementById('dialogue-content');
@@ -885,24 +891,36 @@ function runMCPCommand(command)
 // Floating text effect
 function createFloatingText(text, worldPos)
 {
-    if (!worldPos || typeof worldPos.clone !== 'function')
-    {
-        console.warn('[createFloatingText] worldPos is not a THREE.Vector3. Skipping floating text.');
-        return;
-    }
-    const screenPos = worldPos.clone();
-    screenPos.project(camera);
-
-    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-
     const div = document.createElement('div');
-    div.className = 'floating-text';
+    div.className = 'floating-text'; // Use a class for styling
     div.textContent = text;
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
     document.body.appendChild(div);
 
+    if (worldPos && typeof worldPos.clone === 'function')
+    {
+        // Positioned in 3D space
+        const screenPos = worldPos.clone();
+        screenPos.project(camera);
+        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+        div.style.left = x + 'px';
+        div.style.top = y + 'px';
+        div.style.transform = 'translate(-50%, -50%)'; // Center on the coordinate
+    } else
+    {
+        // Default to center of screen if no worldPos
+        console.warn(`[createFloatingText] No worldPos provided for "${text}". Defaulting to screen center.`);
+        div.style.left = '50%';
+        div.style.top = '50%';
+        div.style.transform = 'translate(-50%, -50%)';
+    }
+
+    // Animate and remove
+    setTimeout(() =>
+    {
+        div.style.opacity = '0';
+        div.style.transform += ' translateY(-20px)';
+    }, 1800);
     setTimeout(() => div.remove(), 2000);
 }
 
@@ -914,7 +932,7 @@ function animate(currentTime)
     const time = currentTime * 0.001;
 
     // 🎪 NEW: Enhanced movement system (FIXED!)
-    if (!currentAgent)
+    if (!dialogueOpen) // Use unified dialogue state to halt movement
     {
         // Reset direction
         direction.set(0, 0, 0);
@@ -1137,25 +1155,47 @@ document.addEventListener('keydown', (e) =>
         controls[keys[e.code]] = true;
     }
 
-    // Enhanced interaction controls
-    if (e.key.toLowerCase() === 'e' && nearAgent && !currentAgent)
+    // Unified interaction controls with toggle functionality
+    if (e.key.toLowerCase() === 'e')
     {
         e.preventDefault();
-        openDialogue(nearAgent);
+        const targetType = nearAgent ? 'agent' : nearReadmePanel ? 'readme' : null;
+
+        if (dialogueOpen)
+        {
+            if (activePanelType === targetType && targetType !== null)
+            {
+                closeDialogue();
+            }
+        } else if (targetType)
+        {
+            if (targetType === 'agent')
+            {
+                openDialogue(nearAgent);
+            } else if (targetType === 'readme')
+            {
+                showReadmeDetails(nearReadmePanel);
+            }
+        }
     }
 
-    // 🚀 NEW: README panel interaction
-    if (e.key.toLowerCase() === 'r' && nearReadmePanel && !currentAgent)
+    if (e.key.toLowerCase() === 'm')
     {
-        e.preventDefault();
-        showReadmeDetails(nearReadmePanel);
-    }
-
-    // 🛠️ NEW: MCP debugging wall interaction
-    if (e.key.toLowerCase() === 'm' && nearMCPWall && !currentAgent)
-    {
-        e.preventDefault();
-        showMCPDebugging();
+        if (nearMCPWall)
+        {
+            e.preventDefault();
+            const targetType = 'mcp';
+            if (dialogueOpen)
+            {
+                if (activePanelType === targetType)
+                {
+                    closeDialogue();
+                }
+            } else
+            {
+                showMCPDebugging();
+            }
+        }
     }
 
     if (e.key === ' ')
@@ -1198,8 +1238,8 @@ document.addEventListener('keydown', (e) =>
 // Enhanced mouse controls
 document.addEventListener('mousemove', (e) =>
 {
-    if (document.pointerLockElement === renderer.domElement && !currentAgent)
-    {
+    if (document.pointerLockElement === renderer.domElement && !dialogueOpen)
+    { // Check unified state
         const sensitivity = 0.002;
 
         euler.setFromQuaternion(camera.quaternion);
@@ -1253,6 +1293,8 @@ function handleArrowKeys(key)
 function openDialogue(agent)
 {
     currentAgent = agent;
+    dialogueOpen = true; // Halt movement
+    activePanelType = 'agent'; // Set panel type
     const dialogueBox = document.getElementById('dialogue-box');
     const dialogueName = document.getElementById('dialogue-name');
     const dialogueContent = document.getElementById('dialogue-content');
@@ -1438,6 +1480,8 @@ function closeDialogue()
     const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox.style.display = 'none';
     currentAgent = null;
+    dialogueOpen = false; // Re-enable movement
+    activePanelType = null; // Clear panel type
 }
 
 function updateAgentStatus(agentType, status)

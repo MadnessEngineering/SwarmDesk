@@ -724,55 +724,121 @@ class FloatingPanelSystem
         }
     }
 
-    // 🎯 CONTEXTUAL PROJECT PANEL
+    // 🎯 CONTEXTUAL PROJECT PANEL (REFACTORED for single-state)
     createContextualProjectPanel(projectName, projectData)
     {
-        // Prevent duplicate contextual project panels
-        const existingPanel = Array.from(this.panels.values()).find(
-            p => p.config && p.config.title === `📋 ${projectName}` && p.config.type === 'project-panel'
-        );
-        if (existingPanel)
+        const PANEL_ID = 'singleton-project-panel';
+        const PANEL_TITLE = '📋 Project Management';
+        const existingPanel = this.panels.get(PANEL_ID);
+
+        // If the panel exists and is for the same project, close it (toggle off).
+        if (existingPanel && existingPanel.config.projectName === projectName)
         {
-            this.setActivePanel(existingPanel.element.id);
-            console.warn(`[FloatingPanelSystem] Contextual panel for project '${projectName}' already exists. Focusing.`);
+            this.closePanel(PANEL_ID);
             return;
         }
-        if (!projectName)
+
+        // If the panel doesn't exist, create it.
+        if (!existingPanel)
         {
-            console.warn('[FloatingPanelSystem] No projectName provided to createContextualProjectPanel.');
-            return;
+            const panelConfig = {
+                id: PANEL_ID,
+                title: PANEL_TITLE,
+                type: 'project-management-panel', // New, consistent type
+                x: window.innerWidth - 520,
+                y: 60,
+                width: 450,
+                height: 500,
+                tabs: [], // Tabs will be populated by the update function
+                projectName: projectName // Store current project
+            };
+            this.createPanel(panelConfig);
         }
-        if (!projectData)
-        {
-            console.warn(`[FloatingPanelSystem] No projectData found for '${projectName}'. Creating panel with limited info.`);
-        }
-        this.createPanel({
-            title: `📋 ${projectName}`,
-            type: 'project-panel',
-            tabs: [
-                {
-                    id: 'details',
-                    title: '📄 Details',
-                    contextual: true,
-                    content: this.generateProjectDetailsContent(projectName, projectData)
-                },
-                {
-                    id: 'todos',
-                    title: '✅ Todos',
-                    contextual: true,
-                    content: this.generateProjectTodosContent(projectName)
-                },
-                {
-                    id: 'activity',
-                    title: '🚀 Activity',
-                    contextual: true,
-                    content: this.generateProjectActivityContent(projectName)
-                }
-            ]
-        });
+
+        // Update the content of the (now guaranteed to exist) panel
+        this.updateProjectPanelContent(PANEL_ID, projectName, projectData);
     }
 
-    // 🤖 CONTEXTUAL AGENT PANEL
+    updateProjectPanelContent(panelId, projectName, projectData)
+    {
+        const panel = this.panels.get(panelId);
+        if (!panel) return;
+
+        // Update the project associated with the panel
+        panel.config.projectName = projectName;
+        panel.config.title = `📋 ${projectName}`; // Update title to be specific
+        const titleEl = panel.element.querySelector('.panel-title');
+        if (titleEl) titleEl.textContent = panel.config.title;
+
+        // Define tab content
+        const overviewContent = `
+            <div class="tab-content-inner">
+                <h4>Project Overview</h4>
+                <p>${projectData.description || 'No description available.'}</p>
+                <hr>
+                <h5>Key Metrics</h5>
+                <p><strong>Active Projects:</strong> 5</p>
+                <p><strong>Pending Tasks:</strong> 23</p>
+                <p><strong>Completed Today:</strong> 7</p>
+                <div style="margin-top: 20px;">
+                    <button class="ui-button">View All Projects</button>
+                    <button class="ui-button primary">Add New Task</button>
+                </div>
+            </div>`;
+
+        const todosContent = `
+            <div class="tab-content-inner">
+                <h4>Active Todos for ${projectName}</h4>
+                <ul>
+                    ${(projectData.todos && projectData.todos.length > 0) ?
+                projectData.todos.map(todo => `<li>${todo}</li>`).join('') :
+                '<li>No active todos.</li>'}
+                </ul>
+            </div>`;
+
+        const filesContent = `
+            <div class="tab-content-inner">
+                <h4>Files for ${projectName}</h4>
+                <p>File browsing functionality coming soon...</p>
+            </div>`;
+
+        const tabs = [
+            { id: 'overview', title: '📊 Overview', content: overviewContent },
+            { id: 'todos', title: '✅ Todos', content: todosContent },
+            { id: 'files', title: '📁 Files', content: filesContent }
+        ];
+
+        // Set the tabs and activate the first one
+        this.setPanelTabs(panelId, tabs);
+        this.setActiveTab(panelId, 'overview');
+    }
+
+    createMCPToolPanel(toolName)
+    {
+        const toolConfig = {
+            'list_projects': { title: '📂 Project List', content: 'Displaying all projects...' },
+            'add_todo': { title: '📝 Add Todo', content: 'Enter the todo description...' },
+            'query_todos': { title: '🔍 Query Todos', content: 'Enter the todo description...' },
+            'get_analytics': { title: '📊 Get Analytics', content: 'Getting analytics...' },
+            'tools': { title: '🛠️ Tools', content: 'Displaying available tools...' },
+            'logs': { title: '📋 Logs', content: 'Displaying MCP logs...' },
+            'debug': { title: '🐛 Debug', content: 'Getting debug information...' }
+        };
+
+        const panelConfig = {
+            id: `mcp-${toolName}-panel`,
+            title: `🔧 MCP: ${toolName}`,
+            type: 'mcp-panel',
+            tabs: [
+                { id: 'result', title: '📤 Result', content: toolConfig[toolName].content },
+                { id: 'debug', title: '🐛 Debug', content: toolConfig[toolName].content }
+            ]
+        };
+
+        this.createPanel(panelConfig);
+    }
+
+    // 🎯 CONTEXTUAL AGENT PANEL
     createContextualAgentPanel(agentData)
     {
         this.createPanel({
@@ -798,24 +864,7 @@ class FloatingPanelSystem
     // 🔧 CONTEXTUAL MCP PANEL
     createContextualMCPPanel(toolName, result)
     {
-        this.createPanel({
-            title: `🔧 MCP: ${toolName}`,
-            type: 'mcp-panel',
-            tabs: [
-                {
-                    id: 'result',
-                    title: '📤 Result',
-                    contextual: true,
-                    content: this.generateMCPResultContent(toolName, result)
-                },
-                {
-                    id: 'debug',
-                    title: '🐛 Debug',
-                    contextual: true,
-                    content: this.generateMCPDebugContent(toolName, result)
-                }
-            ]
-        });
+        this.createMCPToolPanel(toolName);
     }
 
     // 📄 CONTENT GENERATORS
@@ -1025,51 +1074,6 @@ class FloatingPanelSystem
                 <p style="font-size: 12px;">Most used panel: Project Management</p>
                 <p style="font-size: 12px;">Peak activity: 14:00-15:00</p>
                 <p style="font-size: 12px;">Efficiency score: 87%</p>
-            </div>
-        `;
-    }
-
-    generateProjectDetailsContent(projectName, projectData)
-    {
-        return `
-            <div class="content-section">
-                <h3>📋 ${projectName} Details</h3>
-                <p><strong>Status:</strong> ${projectData?.status || 'Active Development'}</p>
-                <p><strong>Description:</strong> ${projectData?.description || 'Loading project information...'}</p>
-                <button class="action-button">📂 Open in SwarmDesk</button>
-                <button class="action-button">📝 Edit Details</button>
-            </div>
-        `;
-    }
-
-    generateProjectTodosContent(projectName)
-    {
-        return `
-            <div class="content-section">
-                <h3>✅ ${projectName} Todos</h3>
-                <div style="font-size: 12px;">
-                    <div style="padding: 6px; background: rgba(0,255,136,0.1); border-radius: 4px; margin: 4px 0;">
-                        🎪 Complete floating panel system
-                    </div>
-                    <div style="padding: 6px; background: rgba(255,170,0,0.1); border-radius: 4px; margin: 4px 0;">
-                        🔧 Add multi-monitor support
-                    </div>
-                </div>
-                <button class="action-button">➕ Add Todo</button>
-            </div>
-        `;
-    }
-
-    generateProjectActivityContent(projectName)
-    {
-        return `
-            <div class="content-section">
-                <h3>🚀 ${projectName} Activity</h3>
-                <div style="font-size: 11px; opacity: 0.9;">
-                    <p>15:30 - Workstation selected</p>
-                    <p>15:25 - Panel created</p>
-                    <p>15:20 - Project opened</p>
-                </div>
             </div>
         `;
     }

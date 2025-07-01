@@ -27,28 +27,29 @@
             border-right: 2px solid #00ff88;
             box-shadow: 2px 0 20px rgba(0, 255, 136, 0.3);
             overflow-y: auto;
-            transition: width 0.3s ease, margin-left 0.3s ease;
+            transition: transform 0.3s ease;
             z-index: 1000;
+            position: absolute;
+            height: 100%;
+        }
+        .left-sidebar {
+            left: 0;
         }
         .right-sidebar {
+            right: 0;
             background: linear-gradient(135deg, #220011 0%, #440022 100%);
             border-left: 2px solid #ff6b35;
             box-shadow: -2px 0 20px rgba(255, 107, 53, 0.3);
         }
-        .left-sidebar.collapsed, .right-sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            overflow: hidden !important;
+        .left-sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        .right-sidebar.collapsed {
+            transform: translateX(100%);
         }
         .sidebar-toggle {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid;
-            border-radius: 50%;
             width: 40px;
             height: 40px;
             cursor: pointer;
@@ -56,11 +57,27 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            transition: all 0.3s ease;
             z-index: 1001;
+            transition: all 0.3s ease;
         }
-        .left-toggle { right: -20px; border-color: #00ff88; color: #00ff88; }
-        .right-toggle { left: -20px; border-color: #ff6b35; color: #ff6b35; }
+        .left-toggle { 
+            left: 350px;
+            transform: translate(-50%, -50%);
+            border-color: #00ff88; 
+            color: #00ff88; 
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+        }
+        .right-toggle { 
+            right: 350px;
+            transform: translate(50%, -50%);
+            border-color: #ff6b35; 
+            color: #ff6b35; 
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+        }
         .sidebar-toggle:hover { box-shadow: 0 0 15px currentColor; transform: translateY(-50%) scale(1.1); }
         .sidebar-section { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-section h3 { margin: 0 0 15px 0; color: #ff6b35; text-shadow: 0 0 10px currentColor; font-size: 18px; }
@@ -118,15 +135,54 @@
         .dock-top { left: 50%; transform: translateX(-50%); top: 10px; width: calc(100vw - 40px); height: 150px; }
         /* Responsive for floating panels */
         @media (max-width: 768px) { .floating-panel { min-width: 280px; max-width: calc(100vw - 20px); } .dock-left, .dock-right { width: calc(100vw - 20px); height: 300px; } }
+
+        /* --- FLOATING TEXT STYLE --- */
+        .floating-text {
+            position: absolute;
+            color: #ff6b35;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #ff6b35;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-shadow: 0 0 8px #ff6b35;
+            z-index: 9999;
+            pointer-events: none;
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        }
+
+        /* --- GENERIC UI STYLES --- */
+        .ui-button {
+            background: rgba(0, 136, 255, 0.4);
+            border: 1px solid #0088ff;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 4px;
+            transition: all 0.3s ease;
+        }
+        .ui-button:hover {
+            background: rgba(0, 136, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 136, 255, 0.7);
+        }
+        .ui-button.primary {
+            background: rgba(0, 255, 136, 0.4);
+            border-color: #00ff88;
+        }
+        .ui-button.primary:hover {
+            background: rgba(0, 255, 136, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.7);
+        }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
         <!-- 📋 LEFT SIDEBAR: Project Management -->
         <div class="left-sidebar" id="leftSidebar">
-            <div class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')">
-                <span id="leftToggleIcon">◀</span>
-            </div>
             <!-- Sidebar content (projects, MCP tools, etc.) -->
             <div class="sidebar-section projects">
                 <h3>🚀 Projects</h3>
@@ -213,9 +269,6 @@
         </div>
         <!-- 💬 RIGHT SIDEBAR: Communication & Analytics -->
         <div class="right-sidebar" id="rightSidebar">
-            <div class="sidebar-toggle right-toggle" onclick="toggleSidebar('right')">
-                <span id="rightToggleIcon">▶</span>
-            </div>
             <div class="sidebar-section chat">
                 <h3>💬 AI Chat Assistant</h3>
                 <div class="chat-container" id="chatContainer">
@@ -236,6 +289,14 @@
                 <div id="activityLog" style="height:200px;overflow-y:auto;font-size:11px;"></div>
             </div>
         </div>
+
+        <!-- INDEPENDENT SIDEBAR TOGGLES -->
+        <div class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')">
+            <span id="leftToggleIcon">◀</span>
+        </div>
+        <div class="sidebar-toggle right-toggle" onclick="toggleSidebar('right')">
+            <span id="rightToggleIcon">▶</span>
+        </div>
     </div>
     <!-- 🎪 SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -247,15 +308,19 @@
     <script>
         function toggleSidebar(side) {
             const sidebar = document.getElementById(side === 'left' ? 'leftSidebar' : 'rightSidebar');
+            const toggle = document.querySelector(side === 'left' ? '.left-toggle' : '.right-toggle');
             const icon = document.getElementById(side === 'left' ? 'leftToggleIcon' : 'rightToggleIcon');
             const isCollapsed = sidebar.classList.toggle('collapsed');
+
             if (side === 'left') {
                 icon.textContent = isCollapsed ? '▶' : '◀';
+                toggle.style.left = isCollapsed ? '0px' : '350px';
             } else {
                 icon.textContent = isCollapsed ? '◀' : '▶';
+                toggle.style.right = isCollapsed ? '0px' : '350px';
             }
-            // Trigger resize for 3D canvas
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+            
+            // No resize trigger needed for transform-based animation
         }
     </script>
 </body>
