@@ -672,6 +672,37 @@ let pointerLocked = false;
 let currentAgent = null;
 let nearAgent = null;
 
+// Starfield toggle setting
+let starfieldEnabled = true;
+
+function toggleStarfield()
+{
+    starfieldEnabled = !starfieldEnabled;
+    particles.visible = starfieldEnabled;
+    const btn = document.getElementById('starfieldToggleBtn');
+    if (btn) btn.textContent = starfieldEnabled ? 'Disable Starfield' : 'Enable Starfield';
+}
+
+// Add a button to the DOM for toggling starfield
+window.addEventListener('DOMContentLoaded', () =>
+{
+    const btn = document.createElement('button');
+    btn.id = 'starfieldToggleBtn';
+    btn.textContent = 'Disable Starfield';
+    btn.style.position = 'fixed';
+    btn.style.top = '10px';
+    btn.style.right = '10px';
+    btn.style.zIndex = 9999;
+    btn.style.background = '#111';
+    btn.style.color = '#0f0';
+    btn.style.border = '2px solid #0f0';
+    btn.style.borderRadius = '8px';
+    btn.style.padding = '8px 16px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = toggleStarfield;
+    document.body.appendChild(btn);
+});
+
 // 🎪 NEW MADNESS: Enhanced interaction checking
 function checkInteractions()
 {
@@ -854,6 +885,11 @@ function runMCPCommand(command)
 // Floating text effect
 function createFloatingText(text, worldPos)
 {
+    if (!worldPos || typeof worldPos.clone !== 'function')
+    {
+        console.warn('[createFloatingText] worldPos is not a THREE.Vector3. Skipping floating text.');
+        return;
+    }
     const screenPos = worldPos.clone();
     screenPos.project(camera);
 
@@ -920,6 +956,13 @@ function animate(currentTime)
     const positions = particles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3)
     {
+        // Check for NaN and reset if needed
+        if (isNaN(positions[i]) || isNaN(positions[i + 1]) || isNaN(positions[i + 2]))
+        {
+            positions[i] = (Math.random() - 0.5) * 100;
+            positions[i + 1] = Math.random() * 20;
+            positions[i + 2] = (Math.random() - 0.5) * 100;
+        }
         positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
         if (positions[i + 1] > 20) positions[i + 1] = 0;
     }

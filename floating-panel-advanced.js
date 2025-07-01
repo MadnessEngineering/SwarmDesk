@@ -556,7 +556,13 @@ class PanelPerformanceOptimizer
     setupVirtualization()
     {
         // Virtualize large lists in panels
-        this.setupVirtualScrolling();
+        if (typeof this.setupVirtualScrolling === 'function')
+        {
+            this.setupVirtualScrolling();
+        } else
+        {
+            console.warn('[PanelPerformanceOptimizer] setupVirtualScrolling is not implemented. Skipping virtualization.');
+        }
     }
 
     setupMemoryManagement()
