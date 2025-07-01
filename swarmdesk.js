@@ -1723,12 +1723,32 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
-    // Floating Panel Hotkeys - Forward to the singleton instance
-    if (window.panelSystem && ['F3', 'F4', 'F5', 'F6', 'F7'].includes(e.key))
+    // --- Floating Panel Hotkeys (F3-F7) ---
+    if (window.panelSystem)
     {
-        e.preventDefault();
-        window.panelSystem.handleKeyboard(e);
-        return;
+        switch (e.key)
+        {
+            case 'F3':
+                e.preventDefault();
+                window.panelSystem.createContextualPanel('welcome');
+                return;
+            case 'F4':
+                e.preventDefault();
+                window.panelSystem.createContextualPanel('project');
+                return;
+            case 'F5':
+                e.preventDefault();
+                window.panelSystem.createContextualPanel('agent');
+                return;
+            case 'F6':
+                e.preventDefault();
+                window.panelSystem.createContextualPanel('mcp');
+                return;
+            case 'F7':
+                e.preventDefault();
+                window.panelSystem.createContextualPanel('analytics');
+                return;
+        }
     }
 
     // 🎛️ NEW HOTKEYS: Panel Toggle Controls
@@ -1841,39 +1861,6 @@ renderer.domElement.addEventListener('click', () =>
     {
         renderer.domElement.requestPointerLock();
         pointerLocked = true;
-    }
-});
-
-// 🎮 NEW: Auto-release pointer lock on window blur
-window.addEventListener('blur', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - window lost focus');
-    }
-});
-
-// 🎮 NEW: Auto-release pointer lock when any floating panel is created/shown
-window.addEventListener('panelCreated', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - panel opened');
-    }
-});
-
-// 🎮 NEW: Auto-release pointer lock when dialogue opens
-window.addEventListener('dialogueOpened', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - dialogue opened');
     }
 });
 
@@ -2168,3 +2155,36 @@ function toggleSwarmStatus()
     createFloatingText(`🤖 Swarm Status ${statusText}`, camera.position);
     console.log(`🤖 Swarm Status ${statusText}`);
 }
+
+// 🎮 NEW: Auto-release pointer lock on window blur
+window.addEventListener('blur', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - window lost focus');
+    }
+});
+
+// 🎮 NEW: Auto-release pointer lock when any floating panel is created/shown
+window.addEventListener('panelCreated', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - panel opened');
+    }
+});
+
+// 🎮 NEW: Auto-release pointer lock when dialogue opens
+window.addEventListener('dialogueOpened', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - dialogue opened');
+    }
+});

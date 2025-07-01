@@ -614,8 +614,9 @@ class FloatingPanelSystem
     // 🎪 CREATE INITIAL PANELS
     createInitialPanels()
     {
-        // Always create the welcome panel, but as a singleton
-        this.createContextualPanel('welcome');
+        // Don't create any panels automatically - let user trigger them with hotkeys
+        // This prevents the welcome panel from appearing on every page load
+        console.log('🎪 Floating Panel System ready - use F3-F7 hotkeys to create panels');
     }
 
     // 🎮 SWARMDESK INTEGRATION
@@ -1148,7 +1149,13 @@ class FloatingPanelSystem
     }
 }
 
-// Initialize the single instance of the floating panel system
-window.panelSystem = new FloatingPanelSystem();
-
-console.log('🎪 Floating Panel System loaded successfully!'); 
+// 🎪 ONLY ONE INITIALIZATION - Initialize the single instance of the floating panel system
+// This ensures the singleton pattern works correctly
+if (!window.panelSystem)
+{
+    window.panelSystem = new FloatingPanelSystem();
+    console.log('🎪 Floating Panel System loaded successfully!');
+} else
+{
+    console.log('🎪 Floating Panel System already initialized - using existing instance');
+} 
