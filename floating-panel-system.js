@@ -727,6 +727,25 @@ class FloatingPanelSystem
     // 🎯 CONTEXTUAL PROJECT PANEL
     createContextualProjectPanel(projectName, projectData)
     {
+        // Prevent duplicate contextual project panels
+        const existingPanel = Array.from(this.panels.values()).find(
+            p => p.config && p.config.title === `📋 ${projectName}` && p.config.type === 'project-panel'
+        );
+        if (existingPanel)
+        {
+            this.setActivePanel(existingPanel.element.id);
+            console.warn(`[FloatingPanelSystem] Contextual panel for project '${projectName}' already exists. Focusing.`);
+            return;
+        }
+        if (!projectName)
+        {
+            console.warn('[FloatingPanelSystem] No projectName provided to createContextualProjectPanel.');
+            return;
+        }
+        if (!projectData)
+        {
+            console.warn(`[FloatingPanelSystem] No projectData found for '${projectName}'. Creating panel with limited info.`);
+        }
         this.createPanel({
             title: `📋 ${projectName}`,
             type: 'project-panel',
