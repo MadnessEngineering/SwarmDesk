@@ -42,40 +42,28 @@ fi
 
 print_status "Found SwarmDesk integration files in Inventorium root"
 
-# List all files that will be deployed
-echo -e "${BLUE}📦 Files to be deployed:${NC}"
-echo "  🎪 index.html (integrated React + SwarmDesk)"
-echo "  🌀 swarmdesk.js (3D workshop environment)"
-echo "  📱 floating-panel-system.js (panel management)"
-echo "  ⚡ floating-panel-advanced.js (advanced features)"
-echo "  🔗 swarmdesk-dashboard-hooks.js (dashboard integration)"
-echo "  📍 All files deployed to main web directory (integrated approach)"
+# Create remote directory if it doesn't exist
+echo -e "${BLUE}📁 Setting up remote directory...${NC}"
+ssh $REMOTE_HOST "sudo mkdir -p $REMOTE_PATH && sudo chown -R www-data:www-data $REMOTE_PATH"
+print_status "Remote directory prepared"
 
-# Deploy core SwarmDesk integration files
-echo -e "${BLUE}📤 Deploying SwarmDesk integration files...${NC}"
-scp index.html \
-    swarmdesk.js \
-    floating-panel-system.js \
-    floating-panel-advanced.js \
-    swarmdesk-dashboard-hooks.js \
-    $REMOTE_HOST:~/
-print_status "Core integration files uploaded to staging area"
+# Deploy files directly with rsync
+echo -e "${BLUE}📤 Deploying SwarmDesk files with rsync...${NC}"
+echo "Transfer starting: syncing entire SwarmDesk directory"
+rsync -avzI --progress \
+--rsync-path="sudo rsync" \
+--exclude='.git*' \
+--exclude='node_modules' \
+--exclude='*.bak' \
+--exclude='.DS_Store' \
+--exclude='scripts/' \
+./ \
+$REMOTE_HOST:$REMOTE_PATH/
 
-# Move files to web directory with proper permissions
-echo -e "${BLUE}🔧 Setting up web directory with proper permissions...${NC}"
-ssh $REMOTE_HOST "
-    # Move core integration files to main web directory
-    sudo mv ~/index.html ~/swarmdesk.js ~/floating-panel-system.js ~/floating-panel-advanced.js ~/swarmdesk-dashboard-hooks.js $REMOTE_PATH/ &&
-    
-    # Set proper ownership and permissions
-    sudo chown -R www-data:www-data $REMOTE_PATH &&
-    sudo chmod -R 755 $REMOTE_PATH &&
-    
-    # Fix any specific permission issues
-    sudo find $REMOTE_PATH -name '*.js' -exec chmod 644 {} \; &&
-    sudo find $REMOTE_PATH -name '*.html' -exec chmod 644 {} \;
-"
-print_status "Files moved to main web directory with proper permissions"
+# Set proper permissions after rsync
+echo -e "${BLUE}🔧 Setting file permissions...${NC}"
+ssh $REMOTE_HOST "sudo chown -R www-data:www-data $REMOTE_PATH && sudo chmod -R 755 $REMOTE_PATH && sudo find $REMOTE_PATH -name '*.html' -o -name '*.js' -o -name '*.md' | sudo xargs chmod 644"
+print_status "Complete SwarmDesk directory deployed with proper permissions"
 
 # Test deployment
 echo -e "${BLUE}🧪 Testing deployment...${NC}"
@@ -93,6 +81,19 @@ else
     print_warning "SwarmDesk integration not detected - check file deployment"
 fi
 
+# Cache busting for immediate visibility
+echo -e "${BLUE}🔄 Clearing CloudFlare cache...${NC}"
+TIMESTAMP=$(date +%s)
+print_status "Testing with cache buster: https://madnessinteractive.cc/SwarmDesk/?v=$TIMESTAMP"
+
+# Check if CloudFlare CLI is available for cache purging
+if command -v cf &> /dev/null; then
+    echo -e "${BLUE}⚡ Purging CloudFlare cache...${NC}"
+    cf cache purge "https://madnessinteractive.cc/SwarmDesk/*" 2>/dev/null || print_warning "CloudFlare cache purge failed - manual refresh required"
+else
+    print_warning "CloudFlare CLI not found - cache may need manual clearing"
+fi
+
 # Integration with backend (if running)
 echo -e "${BLUE}🔗 Checking backend integration...${NC}"
 if curl -s --head "https://madnessinteractive.cc/api/health" | head -n 1 | grep -q "200 OK"; then
@@ -101,8 +102,7 @@ else
     print_warning "Backend API not responding - SwarmDesk will run in demo mode"
 fi
 
-echo -e "${GREEN}🎉 SwarmDesk Integration deployment completed successfully!${NC}"
-echo -e "${BLUE}📍 Access integrated app at: https://madnessinteractive.cc/${NC}"
-echo -e "${BLUE}🔄 Toggle between React and SwarmDesk modes using the top-right button${NC}"
-echo -e "${BLUE}🎮 SwarmDesk controls: WASD to navigate, E to interact, M for MCP debugging${NC}"
-echo -e "${BLUE}🤖 Experience the full Madness Interactive ecosystem!${NC}" 
+echo -e "${GREEN}🎉 SwarmDesk deployment completed successfully!${NC}"
+echo -e "${BLUE}📍 Access SwarmDesk at: https://madnessinteractive.cc/SwarmDesk/${NC}"
+echo -e "${BLUE}🎮 Use WASD to navigate, E to interact with agents${NC}"
+echo -e "${BLUE}🤖 Experience the Madness Interactive agent swarm!${NC}"
