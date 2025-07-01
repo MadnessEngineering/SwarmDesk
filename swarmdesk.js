@@ -994,6 +994,37 @@ let pointerLocked = false;
 let currentAgent = null;
 let nearAgent = null;
 
+// Starfield toggle setting
+let starfieldEnabled = true;
+
+function toggleStarfield()
+{
+    starfieldEnabled = !starfieldEnabled;
+    particles.visible = starfieldEnabled;
+    const btn = document.getElementById('starfieldToggleBtn');
+    if (btn) btn.textContent = starfieldEnabled ? 'Disable Starfield' : 'Enable Starfield';
+}
+
+// Add a button to the DOM for toggling starfield
+window.addEventListener('DOMContentLoaded', () =>
+{
+    const btn = document.createElement('button');
+    btn.id = 'starfieldToggleBtn';
+    btn.textContent = 'Disable Starfield';
+    btn.style.position = 'fixed';
+    btn.style.top = '10px';
+    btn.style.right = '10px';
+    btn.style.zIndex = 9999;
+    btn.style.background = '#111';
+    btn.style.color = '#0f0';
+    btn.style.border = '2px solid #0f0';
+    btn.style.borderRadius = '8px';
+    btn.style.padding = '8px 16px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = toggleStarfield;
+    document.body.appendChild(btn);
+});
+
 // 🎪 NEW MADNESS: Enhanced interaction checking
 function checkInteractions()
 {

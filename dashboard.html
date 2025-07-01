@@ -36,8 +36,11 @@
             box-shadow: -2px 0 20px rgba(255, 107, 53, 0.3);
         }
         .left-sidebar.collapsed, .right-sidebar.collapsed {
-            width: 60px;
-            margin-left: -290px;
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            overflow: hidden !important;
         }
         .sidebar-toggle {
             position: absolute;
@@ -251,6 +254,8 @@
             } else {
                 icon.textContent = isCollapsed ? '◀' : '▶';
             }
+            // Trigger resize for 3D canvas
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
         }
     </script>
 </body>
