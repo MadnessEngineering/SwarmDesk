@@ -1035,6 +1035,40 @@
             console.log('🌟 Starfield toggle requested!');
         }
 
+        // Make toggle function globally available
+        window.toggleStarfield = toggleStarfield;
+
+        // 🧪 TEST FUNCTIONS FOR DEBUGGING
+        window.testFloatingPanels = function() {
+            console.log('🧪 Testing Floating Panel System...');
+            
+            if (!panelSystem) {
+                console.error('❌ Panel system not initialized');
+                return false;
+            }
+            
+            try {
+                // Test creating each panel type
+                const projectPanelId = panelSystem.createContextualPanel('project');
+                console.log('✅ Project panel created:', projectPanelId);
+                
+                const agentPanelId = panelSystem.createContextualPanel('agent');
+                console.log('✅ Agent panel created:', agentPanelId);
+                
+                const mcpPanelId = panelSystem.createContextualPanel('mcp');
+                console.log('✅ MCP panel created:', mcpPanelId);
+                
+                const analyticsPanelId = panelSystem.createContextualPanel('analytics');
+                console.log('✅ Analytics panel created:', analyticsPanelId);
+                
+                console.log('🎉 All floating panels test PASSED!');
+                return true;
+            } catch (error) {
+                console.error('❌ Floating panels test FAILED:', error);
+                return false;
+            }
+        };
+
         // === INITIALIZATION ===
         console.log('🎪 Mad Tinker Dashboard initialized with 3-layer cosmic starfield!');
         
