@@ -1,222 +1,294 @@
 // SwarmDesk - Madness Interactive Agent Command Center
 // Scene setup with cyber-punk aesthetic
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000511);
-scene.fog = new THREE.Fog(0x000511, 20, 800);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-camera.position.set(0, 1.6, 8);
+// Global variables
+let scene, camera, renderer;
+let workstations = [];
+let agents = [];
+let raycaster, mouse;
+let selectedObject = null;
+let hoveredObject = null;
+let isStarfieldActive = false;
+let starField = null;
+let dialogueOpen = false;
+let isInitialized = false;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setClearColor(0x000511);
-document.getElementById('canvas-container').appendChild(renderer.domElement);
+// Initialize SwarmDesk workspace - can be called from React or globally
+window.initSwarmDeskWorkspace = function (container)
+{
+    if (isInitialized)
+    {
+        console.log('⚠️ SwarmDesk already initialized');
+        return;
+    }
+
+    // If no container provided, try to find it
+    if (!container)
+    {
+        container = document.getElementById('swarmdesk-workspace');
+    }
+
+    if (!container)
+    {
+        console.error('❌ SwarmDesk container not found');
+        return false;
+    }
+
+    // Get canvas container within the workspace
+    let canvasContainer = container.querySelector('#canvas-container');
+    if (!canvasContainer)
+    {
+        // Create canvas container if it doesn't exist
+        canvasContainer = document.createElement('div');
+        canvasContainer.id = 'canvas-container';
+        canvasContainer.style.width = '100%';
+        canvasContainer.style.height = '100%';
+        container.appendChild(canvasContainer);
+    }
+
+    console.log('🎪 Initializing SwarmDesk 3D workspace...');
+
+    // Initialize Three.js scene
+    initializeScene(canvasContainer);
+
+    // Create environment
+    createEnvironment();
+
+    // Create workstations
+    createWorkstations();
+
+    // Create agents
+    createAgents();
+
+    // Setup controls
+    setupControls();
+
+    // Start animation loop
+    animate();
+
+    isInitialized = true;
+    console.log('✅ SwarmDesk 3D workspace initialized!');
+
+    // Log initial activity
+    if (typeof logActivity === 'function')
+    {
+        logActivity('SwarmDesk', '3D workspace initialized - Welcome to the Madness!');
+        logActivity('Navigation', 'Use WASD to move, E to interact with agents');
+        logActivity('Panels', 'Press F1-F5 for floating panels');
+    }
+
+    return true;
+};
+
+// Initialize Three.js scene
+function initializeScene(container)
+{
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000511);
+    scene.fog = new THREE.Fog(0x000511, 20, 100);
+
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 1.6, 8);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0x000511);
+    container.appendChild(renderer.domElement);
+
+    // Handle resize
+    window.addEventListener('resize', () =>
+    {
+        if (!container) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Initialize raycaster for interactions
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+}
+
+// Create environment (floor, walls, lights)
+function createEnvironment()
+{
+    // Cyber-punk lighting
+    const ambientLight = new THREE.AmbientLight(0x0a0a2e, 0.3);
+    scene.add(ambientLight);
+
+    const neonLight1 = new THREE.DirectionalLight(0x00ff00, 0.8);
+    neonLight1.position.set(10, 20, 10);
+    neonLight1.castShadow = true;
+    scene.add(neonLight1);
+
+    const neonLight2 = new THREE.PointLight(0xff6b35, 1, 50);
+    neonLight2.position.set(-10, 5, -10);
+    scene.add(neonLight2);
+
+    // Floor with grid pattern
+    const floorGeometry = new THREE.PlaneGeometry(60, 60);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.8,
+        roughness: 0.2
+    });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Add grid lines to floor
+    const gridHelper = new THREE.GridHelper(60, 60, 0x00ff00, 0x003300);
+    gridHelper.position.y = 0.01;
+    scene.add(gridHelper);
+
+    // Walls with holographic displays
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.6,
+        roughness: 0.4
+    });
+
+    // Back wall
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    backWall.position.set(0, 7.5, -30);
+    backWall.receiveShadow = true;
+    scene.add(backWall);
+
+    // Side walls
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    leftWall.position.set(-30, 7.5, 0);
+    leftWall.rotation.y = Math.PI / 2;
+    scene.add(leftWall);
+
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    rightWall.position.set(30, 7.5, 0);
+    rightWall.rotation.y = -Math.PI / 2;
+    scene.add(rightWall);
+
+    // Holographic displays on walls
+    const holoMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff88,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    for (let i = -20; i <= 20; i += 15)
+    {
+        const holo = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), holoMaterial);
+        holo.position.set(i, 8, -29.9);
+        scene.add(holo);
+    }
+
+    // Add MCP debugging wall
+    const mcpWall = createMCPDebuggingWall();
+    scene.add(mcpWall);
+}
+
+// Create workstations
+function createWorkstations()
+{
+    // Create workstations for different projects
+    workstations = [
+        createWorkstation(-15, -15, "EventGhost", "automation"),
+        createWorkstation(0, -15, "DVTTestKit", "git"),
+        createWorkstation(15, -15, "Inventorium", "project"),
+        createWorkstation(-15, 0, "Omnispindle", "browser"),
+        createWorkstation(0, 0, "Swarmonomicon", "haiku"),
+        createWorkstation(15, 0, "MadnessCore", "git"),
+    ];
+
+    workstations.forEach(station => scene.add(station));
+}
+
+// Create agents
+function createAgents()
+{
+    agents = [
+        createAgent("Git Assistant", "Version Control Master", -15, -10, 0x00ff00, 'git', "I manage the sacred repositories. Every commit tells a story of madness and brilliance!"),
+        createAgent("Browser Agent", "Web Automation Specialist", 15, -10, 0x0088ff, 'browser', "I surf the digital waves, automating the web one click at a time. Selenium is my surfboard!"),
+        createAgent("Haiku Generator", "Poetic Code Commentator", -10, 5, 0xff6b35, 'haiku', "Code flows like water\nBugs scatter in the moonlight\nMadness compiles true"),
+        createAgent("Code Jester", "Comic Relief Provider", 10, 5, 0xffd700, 'jester', "Why did the function break up with the variable? No closure! 🤡 I keep spirits high while debugging!"),
+        createAgent("Greeter", "Workshop Tour Guide", 0, 10, 0x00ffff, 'greeter', "Welcome to the Madness Interactive Workshop! I'm here to guide you through our agent ecosystem."),
+        createAgent("Project Manager", "Task Coordinator", 5, -5, 0xff00ff, 'project', "I orchestrate the beautiful chaos, ensuring every task finds its perfect agent match!")
+    ];
+
+    agents.forEach(agent => scene.add(agent));
+}
+
+// Setup controls
+function setupControls()
+{
+    // Movement controls already handled by existing event listeners
+    // Just need to ensure they're connected
+}
 
 // Project README data - the heart of our madness!
 const projectReadmes = {
-    "SwarmDesk": {
-        title: "🎮 SwarmDesk",
-        description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
-        features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
-        github: "https://github.com/MadnessEngineering/SwarmDesk.git",
-        status: "🔥 Active Development",
-        visibility: "public"
-    },
-    "Inventorium": {
-        title: "📦 Inventorium",
-        description: "Todo Inventory management system - Keep up with Agents at speed, and edit their thoughts as they tinker",
-        features: ["📋 Task tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
-        github: "https://github.com/MadnessEngineering/Inventorium.git",
-        status: "🚀 Active Development (private repo)",
-        visibility: "private"
-    },
-    "Swarmonomicon": {
-        title: "🐝 Swarmonomicon",
-        description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
-        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
-        github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
-        status: "✨ modularly functional",
-        visibility: "public"
-    },
-    "Whispermind_Conduit": {
-        title: "🌐 Whispermind Conduit",
-        description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
-        features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
-        github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
-        status: "🔮 mostly conceptual (private repo)",
-        visibility: "private"
-    },
-    "Omnispindle-cli-bridge": {
-        title: "🌀 Omnispindle CLI Bridge",
-        description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
-        features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
-        github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
-        status: "🔄 Just in my gemini account lol (private repo)",
-        visibility: "private"
-    },
-    "EventGhost-Rust": {
+    "EventGhost": {
         title: "🎭 EventGhost-Rust",
-        description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
-        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
-        github: "https://github.com/DanEdens/EventGhost-Rust.git",
-        status: "🛠️ Rust-Powered Excellence",
-        visibility: "public"
+        description: "Automation system rewritten in Rust for maximum performance and madness",
+        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation"],
+        status: "🔥 Active Development"
     },
     "DVTTestKit": {
         title: "🧪 DVT TestKit",
-        description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
-        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
-        github: "https://github.com/DanEdens/DVTTestKit.git",
-        status: "🔬 Testing Excellence",
-        visibility: "public"
+        description: "Design Verification Testing framework for ensuring quality chaos",
+        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection"],
+        status: "🛠️ Maintenance Mode"
+    },
+    "Inventorium": {
+        title: "📦 Inventorium",
+        description: "Asset and inventory management system - organizing the beautiful chaos",
+        features: ["📋 Asset tracking", "🏷️ Smart categorization", "📈 Analytics dashboard"],
+        status: "🚀 Production Ready"
     },
     "Omnispindle": {
-        title: "🌀 Omnispindle MCP",
-        description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
-        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
-        github: "https://github.com/MadnessEngineering/Omnispindle.git",
-        status: "🔄 Continuous Evolution",
-        visibility: "public"
+        title: "🌀 Omnispindle",
+        description: "MCP server for todo management - the spinning wheel of productivity",
+        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination"],
+        status: "🔄 Continuous Evolution"
     },
-    "FastMCP-Template": {
-        title: "⚡ FastMCP Server Template",
-        description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
-        features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
-        github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
-        status: "🏗️ Foundation Ready (but outdated)",
-        visibility: "public"
+    "Swarmonomicon": {
+        title: "🐝 Swarmonomicon",
+        description: "AI agent swarm coordination system - the book of digital bees",
+        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces"],
+        status: "✨ Experimental Madness"
     },
-    "Tinker": {
-        title: "🔨 Tinker Rust",
-        description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
-        features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
-        github: "https://github.com/DanEdens/Tinker.git",
-        status: "🔬 Experimental Forge",
-        visibility: "public"
-    },
-    "Cogwyrm": {
-        title: "🐉 Cogwyrm Mobile",
-        description: "Advanced Android mobile application - the digital dragon that lives in your pocket, bringing AI intelligence to mobile interfaces",
-        features: ["📱 Native Android development", "🤖 AI-powered mobile interfaces", "🐉 Dragon-themed user experience", "⚡ High-performance mobile optimization"],
-        github: "https://github.com/MadnessEngineering/Cogwyrm.git",
-        status: "🔥 Mobile Madness in Development",
-        visibility: "public"
+    "MadnessCore": {
+        title: "🧠 MadnessCore",
+        description: "System architecture foundation - the beating heart of chaos",
+        features: ["🏗️ Core infrastructure", "🔌 Plugin system", "⚡ High performance"],
+        status: "🏛️ Foundational"
     }
-};
-
-// GitHub repository mapping for each project
-const projectRepositories = {
-    "SwarmDesk": "https://github.com/MadnessEngineering/SwarmDesk.git",
-    "Inventorium": "https://github.com/MadnessEngineering/Inventorium.git",
-    "Swarmonomicon": "https://github.com/MadnessEngineering/Swarmonomicon.git",
-    "Whispermind_Conduit": "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
-    "Omnispindle-cli-bridge": "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
-    "EventGhost-Rust": "https://github.com/DanEdens/EventGhost-Rust.git",
-    "DVTTestKit": "https://github.com/DanEdens/DVTTestKit.git",
-    "Omnispindle": "https://github.com/MadnessEngineering/Omnispindle.git",
-    "FastMCP-Template": "https://github.com/DanEdens/dans-fastmcp-server-template.git",
-    "Tinker": "https://github.com/DanEdens/Tinker.git",
-    "Cogwyrm": "https://github.com/MadnessEngineering/Cogwyrm.git"
 };
 
 // MCP Toolkit data for the debugging wall
 const mcpToolkit = {
-    "Todo & Project Management": [
-        "📝 add_todo_tool - Create new todos with project validation",
-        "📋 query_todos_tool - Search and filter todos",
-        "✅ mark_todo_complete_tool - Complete todos with comments",
-        "📂 list_projects_tool - Get all valid projects",
-        "📊 list_project_todos_tool - Project-specific todo lists"
+    "Todo Management": [
+        "📝 add_todo_tool - Create new todos",
+        "📋 list_todos_by_status - View todos by status",
+        "✅ mark_todo_complete - Complete todos",
+        "🔍 query_todos - Search and filter todos"
     ],
-    "Knowledge Management": [
-        "🧠 add_lesson_tool - Store learning experiences",
-        "📚 search_lessons_tool - Find knowledge by topic",
-        "💡 list_lessons_tool - Browse all stored lessons",
-        "🔍 grep_lessons_tool - Pattern search in lessons"
+    "Project Management": [
+        "📂 list_projects - Get all projects",
+        "📊 list_project_todos - Project-specific todos",
+        "📈 query_todo_logs - Track project activity"
     ],
-    "Development Tools": [
-        "⚡ FastMCP Server Template - Rapid MCP deployment",
-        "🌀 Omnispindle MCP Server - Todo management backend",
-        "🔧 Personal JIRA Integration - Issue tracking bridge",
-        "📡 Balena CLI Integration - IoT deployment tools"
+    "Knowledge Base": [
+        "🧠 add_lesson - Store learning",
+        "📚 search_lessons - Find knowledge",
+        "💡 list_lessons - Browse all lessons"
     ],
     "System Integration": [
-        "🔄 Real-time project synchronization",
-        "🌐 Cross-agent communication protocols",
-        "🎯 Intelligent task routing and assignment",
-        "📈 Performance monitoring and analytics"
+        "🔧 Real-time status updates",
+        "🌐 Cross-project coordination",
+        "🎯 Intelligent task routing"
     ]
 };
-
-// Cyber-punk lighting
-const ambientLight = new THREE.AmbientLight(0x0a0a2e, 0.3);
-scene.add(ambientLight);
-
-const neonLight1 = new THREE.DirectionalLight(0x00ff00, 0.8);
-neonLight1.position.set(10, 20, 10);
-neonLight1.castShadow = true;
-scene.add(neonLight1);
-
-const neonLight2 = new THREE.PointLight(0xff6b35, 1, 50);
-neonLight2.position.set(-10, 5, -10);
-scene.add(neonLight2);
-
-// Floor with grid pattern
-const floorGeometry = new THREE.PlaneGeometry(60, 60);
-const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x001122,
-    metalness: 0.8,
-    roughness: 0.2
-});
-const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-// Add grid lines to floor
-const gridHelper = new THREE.GridHelper(60, 60, 0x00ff00, 0x003300);
-gridHelper.position.y = 0.01;
-scene.add(gridHelper);
-
-// Walls with holographic displays
-const wallMaterial = new THREE.MeshStandardMaterial({
-    color: 0x001122,
-    metalness: 0.6,
-    roughness: 0.4
-});
-
-// Back wall
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-backWall.position.set(0, 7.5, -30);
-backWall.receiveShadow = true;
-scene.add(backWall);
-
-// Side walls
-const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-leftWall.position.set(-30, 7.5, 0);
-leftWall.rotation.y = Math.PI / 2;
-scene.add(leftWall);
-
-const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-rightWall.position.set(30, 7.5, 0);
-rightWall.rotation.y = -Math.PI / 2;
-scene.add(rightWall);
-
-// Holographic displays on walls
-const holoMaterial = new THREE.MeshBasicMaterial({
-    color: 0x00ff88,
-    transparent: true,
-    opacity: 0.6
-});
-
-for (let i = -20; i <= 20; i += 15)
-{
-    const holo = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), holoMaterial);
-    holo.position.set(i, 8, -29.9);
-    scene.add(holo);
-}
 
 // Agent workstations with project computers
 const stationMaterial = new THREE.MeshStandardMaterial({
@@ -425,16 +497,11 @@ function createReadmePanel(projectName, agentType)
         ctx.font = 'bold 16px Courier New';
         ctx.fillText(`STATUS: ${readmeData.status}`, 30, y + 200);
 
-        // Visibility
-        ctx.fillStyle = '#a0a0a0';
-        ctx.font = '14px Courier New';
-        ctx.fillText(`Visibility: ${readmeData.visibility}`, 30, y + 230);
-
         // Interactive hint
         ctx.fillStyle = '#ffff00';
         ctx.font = '12px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText('💡 Press R near workstation for details', 256, 720);
+        ctx.fillText('💡 Press E near workstation for details', 256, 720);
 
         const texture = new THREE.CanvasTexture(canvas);
         const displayMaterial = new THREE.MeshBasicMaterial({
@@ -547,771 +614,6 @@ function createMCPDebuggingWall()
     return wall;
 }
 
-// Create workstations for different projects
-const workstations = [
-    createWorkstation(-15, -15, "SwarmDesk", "project"),
-    createWorkstation(0, -15, "Inventorium", "git"),
-    createWorkstation(15, -15, "Swarmonomicon", "haiku"),
-    createWorkstation(-15, 0, "Whispermind_Conduit", "browser"),
-    createWorkstation(0, 0, "Omnispindle-cli-bridge", "automation"),
-    createWorkstation(15, 0, "EventGhost-Rust", "git"),
-];
-
-workstations.forEach(station => scene.add(station));
-
-// 🚀 MADNESS ENHANCEMENT: Add MCP Debugging Wall to the scene!
-const mcpWall = createMCPDebuggingWall();
-scene.add(mcpWall);
-
-// Agent characters
-const agents = [];
-
-function createAgent(name, role, x, z, color, agentType, personality)
-{
-    const group = new THREE.Group();
-
-    // Body with cyberpunk aesthetic
-    const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 0.8, 8);
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        metalness: 0.3,
-        roughness: 0.7
-    });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    group.add(body);
-
-    // Head with holographic glow
-    const headGeometry = new THREE.SphereGeometry(0.25, 12, 8);
-    const headMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a2a2a,
-        metalness: 0.8,
-        roughness: 0.2
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.25;
-    head.castShadow = true;
-    group.add(head);
-
-    // Holographic interface around head
-    const haloGeometry = new THREE.RingGeometry(0.3, 0.35, 16);
-    const haloMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.6,
-        side: THREE.DoubleSide
-    });
-    const halo = new THREE.Mesh(haloGeometry, haloMaterial);
-    halo.position.y = 1.25;
-    halo.rotation.x = Math.PI / 2;
-    group.add(halo);
-
-    // Arms with data connectors
-    const armGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.6, 6);
-    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-0.3, 0.7, 0);
-    leftArm.rotation.z = Math.PI / 6;
-    group.add(leftArm);
-
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    rightArm.position.set(0.3, 0.7, 0);
-    rightArm.rotation.z = -Math.PI / 6;
-    group.add(rightArm);
-
-    // Legs
-    const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 6);
-    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.15, 0.4, 0);
-    group.add(leftLeg);
-
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    rightLeg.position.set(0.15, 0.4, 0);
-    group.add(rightLeg);
-
-    // Name and role label
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
-    const context = canvas.getContext('2d');
-    context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    context.fillRect(0, 0, 256, 64);
-    context.fillStyle = `rgb(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255})`;
-    context.font = 'bold 16px Courier New';
-    context.textAlign = 'center';
-    context.fillText(name, 128, 20);
-    context.font = '12px Courier New';
-    context.fillText(role, 128, 35);
-    context.font = '10px Courier New';
-    context.fillText(`[${agentType.toUpperCase()}]`, 128, 50);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    const labelMaterial = new THREE.SpriteMaterial({ map: texture });
-    const label = new THREE.Sprite(labelMaterial);
-    label.position.y = 1.8;
-    label.scale.set(2, 0.5, 1);
-    group.add(label);
-
-    group.position.set(x, 0, z);
-    group.userData = {
-        name,
-        role,
-        agentType,
-        personality,
-        conversations: [],
-        initialPosition: new THREE.Vector3(x, 0, z),
-        targetPosition: new THREE.Vector3(x, 0, z),
-        moveTimer: 0,
-        isDancing: false,
-        isActive: Math.random() > 0.5,
-        halo: halo,
-        leftArm: leftArm,
-        rightArm: rightArm,
-        color: color
-    };
-
-    agents.push(group);
-    return group;
-}
-
-// Create Swarmonomicon agents
-const daneAgent = createAgent('D.Edens', 'Mad Tinkerer', -10, -8, 0xff6b35, 'orchestrator', 'chaotic_genius');
-const gitAgent = createAgent('Git Assistant', 'Code Shepherd', -5, -8, 0x00ff00, 'git', 'methodical_precise');
-const browserAgent = createAgent('Browser Agent', 'Web Crawler', 0, -8, 0x0088ff, 'browser', 'curious_explorer');
-const haikuAgent = createAgent('Haiku Bot', 'Digital Poet', 5, -8, 0xff6b35, 'haiku', 'zen_creative');
-const greeterAgent = createAgent('Greeter', 'Interface Guide', 10, -8, 0x00ffff, 'greeter', 'welcoming_efficient');
-const projectAgent = createAgent('Project Manager', 'System Architect', 15, -8, 0xff00ff, 'project', 'organized_visionary');
-
-scene.add(daneAgent, gitAgent, browserAgent, haikuAgent, greeterAgent, projectAgent);
-
-// 🌟 ENHANCED COSMIC STARFIELD for maximum space vibes!
-// Distant starfield background
-const starFieldGeometry = new THREE.BufferGeometry();
-const starCount = 1500;
-const starPositions = new Float32Array(starCount * 3);
-const starColors = new Float32Array(starCount * 3);
-const starSizes = new Float32Array(starCount);
-
-for (let i = 0; i < starCount; i++)
-{
-    const i3 = i * 3;
-
-    // 🌟 FIXED: Distribute stars in visible range (closer for better visibility)
-    const radius = 150 + Math.random() * 250; // Now 150-400 units instead of 300-500
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.random() * Math.PI;
-
-    // 🚀 FIXED: Add validation to prevent NaN values
-    const x = radius * Math.sin(phi) * Math.cos(theta);
-    const y = radius * Math.cos(phi);
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-
-    // Validate positions and provide fallbacks
-    starPositions[i3] = isFinite(x) ? x : (Math.random() - 0.5) * 200;
-    starPositions[i3 + 1] = isFinite(y) ? y : Math.random() * 100 + 50;
-    starPositions[i3 + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 200;
-
-    // Varied star colors (white, blue, yellow, red)
-    const starType = Math.random();
-    if (starType < 0.7)
-    {
-        // White stars
-        starColors[i3] = 1.0;
-        starColors[i3 + 1] = 1.0;
-        starColors[i3 + 2] = 1.0;
-    } else if (starType < 0.85)
-    {
-        // Blue stars
-        starColors[i3] = 0.7;
-        starColors[i3 + 1] = 0.8;
-        starColors[i3 + 2] = 1.0;
-    } else if (starType < 0.95)
-    {
-        // Yellow stars
-        starColors[i3] = 1.0;
-        starColors[i3 + 1] = 1.0;
-        starColors[i3 + 2] = 0.7;
-    } else
-    {
-        // Red stars
-        starColors[i3] = 1.0;
-        starColors[i3 + 1] = 0.7;
-        starColors[i3 + 2] = 0.7;
-    }
-
-    // 🌟 FIXED: Bigger, brighter stars for better visibility
-    const starSize = Math.random() * 3 + 1.0; // Increased from 0.5-2.5 to 1.0-4.0
-    starSizes[i] = isFinite(starSize) ? starSize : 2.0; // Fallback size
-}
-
-starFieldGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-starFieldGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-starFieldGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-
-const starFieldMaterial = new THREE.PointsMaterial({
-    vertexColors: true,
-    size: 2.5, // Increased from 1.5 to 2.5
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0.9, // Increased from 0.8 to 0.9
-    blending: THREE.AdditiveBlending
-});
-
-const starField = new THREE.Points(starFieldGeometry, starFieldMaterial);
-scene.add(starField);
-
-// 🌟 Floating particles for close ambience
-const particleGeometry = new THREE.BufferGeometry();
-const particleCount = 150;
-const positions = new Float32Array(particleCount * 3);
-const particleColors = new Float32Array(particleCount * 3);
-
-for (let i = 0; i < particleCount * 3; i += 3)
-{
-    // 🚀 FIXED: Add NaN validation to prevent BufferGeometry errors
-    const x = (Math.random() - 0.5) * 80;
-    const y = Math.random() * 25;
-    const z = (Math.random() - 0.5) * 80;
-
-    // Validate positions and provide fallbacks to prevent NaN values
-    positions[i] = isFinite(x) ? x : (Math.random() - 0.5) * 60;
-    positions[i + 1] = isFinite(y) ? y : Math.random() * 20;
-    positions[i + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 60;
-
-    // Cyan/green particle colors
-    const intensity = 0.5 + Math.random() * 0.5;
-    // 🚀 FIXED: Validate intensity to prevent NaN colors
-    const validIntensity = isFinite(intensity) ? intensity : 0.7;
-    particleColors[i] = 0.0 * validIntensity;
-    particleColors[i + 1] = 1.0 * validIntensity;
-    particleColors[i + 2] = 0.5 * validIntensity;
-}
-
-particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-
-const particleMaterial = new THREE.PointsMaterial({
-    vertexColors: true,
-    size: 0.15,
-    transparent: true,
-    opacity: 0.7,
-    blending: THREE.AdditiveBlending
-});
-
-const particles = new THREE.Points(particleGeometry, particleMaterial);
-scene.add(particles);
-
-// 🌟 NEW MADNESS: Close-range pixely star particles for that retro space feel!
-const pixelStarGeometry = new THREE.BufferGeometry();
-const pixelStarCount = 80;
-const pixelPositions = new Float32Array(pixelStarCount * 3);
-const pixelColors = new Float32Array(pixelStarCount * 3);
-const pixelSizes = new Float32Array(pixelStarCount);
-
-for (let i = 0; i < pixelStarCount; i++)
-{
-    const i3 = i * 3;
-
-    // Close-range pixely stars (10-50 units from player)
-    const x = (Math.random() - 0.5) * 100;     // X: -50 to 50
-    const y = Math.random() * 30 + 5;          // Y: 5 to 35
-    const z = (Math.random() - 0.5) * 100;     // Z: -50 to 50
-
-    // 🚀 FIXED: Validate positions to prevent NaN values
-    pixelPositions[i3] = isFinite(x) ? x : (Math.random() - 0.5) * 80;
-    pixelPositions[i3 + 1] = isFinite(y) ? y : Math.random() * 25 + 10;
-    pixelPositions[i3 + 2] = isFinite(z) ? z : (Math.random() - 0.5) * 80;
-
-    // Bright pixely colors - classic space game palette!
-    const pixelType = Math.random();
-    if (pixelType < 0.3)
-    {
-        // Bright white pixels
-        pixelColors[i3] = 1.0;
-        pixelColors[i3 + 1] = 1.0;
-        pixelColors[i3 + 2] = 1.0;
-    } else if (pixelType < 0.5)
-    {
-        // Electric blue pixels
-        pixelColors[i3] = 0.2;
-        pixelColors[i3 + 1] = 0.8;
-        pixelColors[i3 + 2] = 1.0;
-    } else if (pixelType < 0.7)
-    {
-        // Neon cyan pixels
-        pixelColors[i3] = 0.0;
-        pixelColors[i3 + 1] = 1.0;
-        pixelColors[i3 + 2] = 0.8;
-    } else if (pixelType < 0.85)
-    {
-        // Hot pink pixels
-        pixelColors[i3] = 1.0;
-        pixelColors[i3 + 1] = 0.2;
-        pixelColors[i3 + 2] = 0.8;
-    } else
-    {
-        // Gold pixels
-        pixelColors[i3] = 1.0;
-        pixelColors[i3 + 1] = 0.8;
-        pixelColors[i3 + 2] = 0.0;
-    }
-
-    // 🚀 FIXED: Validate sizes to prevent NaN values
-    const pixelSize = Math.random() * 2 + 0.5; // 0.5 to 2.5
-    pixelSizes[i] = isFinite(pixelSize) ? pixelSize : 1.5; // Fallback size
-}
-
-pixelStarGeometry.setAttribute('position', new THREE.BufferAttribute(pixelPositions, 3));
-pixelStarGeometry.setAttribute('color', new THREE.BufferAttribute(pixelColors, 3));
-pixelStarGeometry.setAttribute('size', new THREE.BufferAttribute(pixelSizes, 1));
-
-const pixelStarMaterial = new THREE.PointsMaterial({
-    vertexColors: true,
-    size: 3.0, // Bigger for that chunky pixel feel
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0.85,
-    blending: THREE.AdditiveBlending
-});
-
-const pixelStars = new THREE.Points(pixelStarGeometry, pixelStarMaterial);
-scene.add(pixelStars);
-
-// 🚀 FIXED: Add initialization tracking for pixely stars
-let pixelStarsInitialized = false;
-let animationFrameCount = 0;
-
-// Small delay to ensure full initialization
-setTimeout(() =>
-{
-    pixelStarsInitialized = true;
-    console.log('🌟 Pixely stars initialized and ready for animation!');
-}, 100);
-
-// 🌟 ENHANCED 3-LAYER STARFIELD TOGGLE SYSTEM
-let starfieldEnabled = true;
-
-function toggleStarfield()
-{
-    starfieldEnabled = !starfieldEnabled;
-
-    // Toggle all three cosmic layers
-    if (starField) starField.visible = starfieldEnabled;
-    if (particles) particles.visible = starfieldEnabled;
-    if (pixelStars) pixelStars.visible = starfieldEnabled;
-
-    // Update button text if button exists
-    const btn = document.querySelector('.starfield-toggle');
-    if (btn)
-    {
-        btn.textContent = starfieldEnabled ? '🌟 Disable Starfield' : '🌟 Enable Starfield';
-    }
-
-    // Create floating text feedback
-    const statusText = starfieldEnabled ? 'COSMIC STARFIELD ENABLED' : 'STARFIELD DISABLED';
-    createFloatingText(`🌟 ${statusText} 🌟`, { x: 0, y: 10, z: 0 });
-
-    console.log(`🌟 3-Layer Starfield ${starfieldEnabled ? 'ENABLED' : 'DISABLED'}:`, {
-        distantStars: starField?.visible,
-        ambientParticles: particles?.visible,
-        pixelyStars: pixelStars?.visible
-    });
-}
-
-// Make toggle function globally available
-window.toggleStarfield = toggleStarfield;
-
-// 🌠 Shooting stars (occasional streaks)
-const shootingStars = [];
-function createShootingStar()
-{
-    const geometry = new THREE.BufferGeometry();
-    const material = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-    });
-
-    const points = [];
-    const startX = (Math.random() - 0.5) * 200;
-    const startY = 20 + Math.random() * 30;
-    const startZ = (Math.random() - 0.5) * 200;
-
-    points.push(new THREE.Vector3(startX, startY, startZ));
-    points.push(new THREE.Vector3(startX - 5, startY - 2, startZ - 5));
-
-    geometry.setFromPoints(points);
-    const line = new THREE.Line(geometry, material);
-
-    line.userData = {
-        velocity: new THREE.Vector3(-0.5, -0.1, -0.3),
-        life: 100,
-        maxLife: 100
-    };
-
-    scene.add(line);
-    shootingStars.push(line);
-}
-
-// Enhanced interaction system variables
-let nearReadmePanel = null;
-let nearMCPWall = false;
-let currentInteractiveObject = null;
-
-// Enhanced controls with new madness features!
-const controls = {
-    moveForward: false,
-    moveBackward: false,
-    moveLeft: false,
-    moveRight: false,
-    canJump: false,
-    chaos: false
-};
-
-const keys = {
-    KeyW: 'moveForward',
-    KeyS: 'moveBackward',
-    KeyA: 'moveLeft',
-    KeyD: 'moveRight',
-    Space: 'chaos'
-};
-
-// Velocity for smooth movement
-const velocity = new THREE.Vector3();
-const direction = new THREE.Vector3();
-
-// Mouse controls
-let mouseMovement = { x: 0, y: 0 };
-let euler = new THREE.Euler(0, 0, 0, 'YXZ');
-let pointerLocked = false;
-
-// Current agent being interacted with
-let currentAgent = null;
-let nearAgent = null;
-
-function checkInteractions()
-{
-    const playerPosition = camera.position;
-
-    // Check for nearby workstations with README panels
-    nearReadmePanel = null;
-    workstations.forEach(station =>
-    {
-        const distance = playerPosition.distanceTo(station.position);
-        if (distance < 4)
-        {
-            nearReadmePanel = station;
-        }
-    });
-
-    // Check for MCP debugging wall
-    const mcpDistance = playerPosition.distanceTo(mcpWall.position);
-    nearMCPWall = mcpDistance < 6;
-
-    // Check for nearby agents (existing functionality)
-    nearAgent = null;
-    agents.forEach(agent =>
-    {
-        const distance = playerPosition.distanceTo(agent.position);
-        if (distance < 3)
-        {
-            nearAgent = agent;
-        }
-    });
-
-    // Update interaction prompt
-    updateInteractionPrompt();
-}
-
-// 🚀 NEW MADNESS: Enhanced interaction prompt system
-function updateInteractionPrompt()
-{
-    const prompt = document.getElementById('interaction-prompt');
-
-    if (nearAgent && !document.getElementById('dialogue-box').style.display === 'block')
-    {
-        prompt.textContent = `Press E to interface with ${nearAgent.userData.name}`;
-        prompt.style.display = 'block';
-    } else if (nearReadmePanel)
-    {
-        const projectData = projectReadmes[nearReadmePanel.userData.projectName];
-        const linkText = projectData.visibility === 'private'
-            ? 'Open Project Documentation'
-            : 'Open GitHub Repository';
-
-        prompt.innerHTML = `Press R to view ${nearReadmePanel.userData.projectName} README details<br>Press G to ${linkText}`;
-        prompt.style.display = 'block';
-    } else if (nearMCPWall)
-    {
-        prompt.textContent = 'Press M to access MCP Debugging Toolkit';
-        prompt.style.display = 'block';
-    } else
-    {
-        prompt.style.display = 'none';
-    }
-}
-
-// 🛠️ NEW MADNESS: Show README details
-function showReadmeDetails(station)
-{
-    const readmeData = station.userData.readmeData;
-    if (!readmeData) return;
-
-    // 🎯 UX IMPROVEMENT: Exit pointer lock when opening dialogue
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-    }
-
-    // Create enhanced dialogue for README
-    const dialogueBox = document.getElementById('dialogue-box');
-    const dialogueName = document.getElementById('dialogue-name');
-    const dialogueContent = document.getElementById('dialogue-content');
-    const dialogueOptions = document.getElementById('dialogue-options');
-
-    dialogueName.innerHTML = `📖 ${readmeData.title} - Project Documentation`;
-
-    dialogueContent.innerHTML = `
-        <div style="color: #00ff88; margin-bottom: 15px;">
-            <strong>Description:</strong><br>
-            ${readmeData.description}
-        </div>
-        
-        <div style="color: #0088ff; margin-bottom: 15px;">
-            <strong>🚀 Key Features:</strong><br>
-            ${readmeData.features.map(feature => `• ${feature}`).join('<br>')}
-        </div>
-        
-        <div style="color: #ff6b35; margin-bottom: 15px;">
-            <strong>Current Status:</strong> ${readmeData.status}
-        </div>
-        
-        <div style="color: #a0a0a0; margin-bottom: 15px;">
-            <strong>Visibility:</strong> ${readmeData.visibility}
-        </div>
-        
-        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 20px;">
-            💡 This project is part of the Madness Interactive ecosystem!
-        </div>
-    `;
-
-    dialogueOptions.innerHTML = `
-        <div class="dialogue-option" onclick="closeDialogue()">
-            🔙 Back to Workshop
-        </div>
-        <div class="dialogue-option" onclick="exploreProject('${station.userData.projectName}')">
-            🔍 Explore Project Structure
-        </div>
-        <div class="dialogue-option" onclick="viewProjectTodos('${station.userData.projectName}')">
-            📝 View Project Todos
-        </div>
-        <div class="dialogue-option" onclick="openProjectRepository('${station.userData.projectName}')">
-            🐙 ${readmeData.visibility === 'private' ? 'Open Project Documentation' : 'Open GitHub Repository'}
-        </div>
-    `;
-
-    dialogueBox.style.display = 'block';
-}
-
-// 🔧 NEW MADNESS: Show MCP debugging interface
-function showMCPDebugging()
-{
-    // 🎯 UX IMPROVEMENT: Exit pointer lock when opening dialogue
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-    }
-
-    const dialogueBox = document.getElementById('dialogue-box');
-    const dialogueName = document.getElementById('dialogue-name');
-    const dialogueContent = document.getElementById('dialogue-content');
-    const dialogueOptions = document.getElementById('dialogue-options');
-
-    dialogueName.innerHTML = '🛠️ MCP Debugging Toolkit - Madness Control Protocol';
-
-    dialogueContent.innerHTML = `
-        <div style="color: #00ff88; margin-bottom: 15px;">
-            <strong>🚀 Welcome to the MCP Debugging Toolkit!</strong><br>
-            The nerve center of our agent swarm coordination system.
-        </div>
-        
-        <div style="color: #0088ff; margin-bottom: 10px;">
-            <strong>Available MCP Tools:</strong>
-        </div>
-
-        ${Object.entries(mcpToolkit).map(([category, tools]) => `
-            <div style="margin-bottom: 15px;">
-                <div style="color: #ff6b35; font-weight: bold;">🔧 ${category}:</div>
-                ${tools.map(tool => `<div style="color: #00ff00; margin-left: 20px; font-size: 12px;">• ${tool}</div>`).join('')}
-            </div>
-        `).join('')}
-        
-        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 15px;">
-            💡 Real-time MCP integration active - all agents connected!
-        </div>
-    `;
-
-    dialogueOptions.innerHTML = `
-        <div class="dialogue-option" onclick="closeDialogue()">
-            🔙 Back to Workshop
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('list_projects')">
-            📂 List All Projects
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('check_todos')">
-            📝 Check Active Todos
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('system_status')">
-            ⚡ System Status Check
-        </div>
-    `;
-
-    dialogueBox.style.display = 'block';
-}
-
-// 💡 NEW MADNESS: Project exploration functions
-function exploreProject(projectName)
-{
-    createFloatingText(`🔍 Exploring ${projectName}...`, camera.position);
-    console.log(`Exploring project: ${projectName}`);
-    // TODO: Could integrate with actual file browsing
-}
-
-function viewProjectTodos(projectName)
-{
-    createFloatingText(`📝 Loading ${projectName} todos...`, camera.position);
-    console.log(`Viewing todos for: ${projectName}`);
-    // TODO: Integrate with actual MCP todo system
-}
-
-// 🚀 NEW MADNESS: Open GitHub repository function
-function openProjectRepository(projectName)
-{
-    console.log(`🔍 DEBUG: Attempting to open repository for project: "${projectName}"`);
-    const projectData = projectReadmes[projectName];
-
-    if (!projectData)
-    {
-        createFloatingText(`❌ No project data found for ${projectName}`, camera.position);
-        console.log(`❌ No project data found for project: "${projectName}"`);
-        return;
-    }
-
-    let repoUrl;
-    if (projectData.visibility === 'private')
-    {
-        // For private projects, link to a future public README in the main repo
-        repoUrl = `https://github.com/MadnessEngineering/madness_interactive/blob/main/docs/grimoire/projects/${projectName.toLowerCase()}.md`;
-        console.log(`🔒 Private project detected. Linking to documentation: ${repoUrl}`);
-    } else
-    {
-        // For public projects, use the direct repository link
-        repoUrl = projectRepositories[projectName];
-        console.log(`🌍 Public project detected. Linking to repository: ${repoUrl}`);
-    }
-
-    console.log(`🔍 DEBUG: Found URL: "${repoUrl}"`);
-
-    if (repoUrl)
-    {
-        createFloatingText(`🐙 Opening ${projectName} on GitHub...`, camera.position);
-        console.log(`🚀 Opening GitHub repository: ${repoUrl}`);
-
-        // Try multiple methods to ensure the link opens
-        try
-        {
-            // Method 1: Direct window.open (most reliable for user-triggered events)
-            const newWindow = window.open(repoUrl, '_blank', 'noopener,noreferrer');
-
-            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined')
-            {
-                // Method 2: If popup blocked, create a temporary link and click it
-                console.log('🔄 Popup blocked, trying alternative method...');
-                const tempLink = document.createElement('a');
-                tempLink.href = repoUrl;
-                tempLink.target = '_blank';
-                tempLink.rel = 'noopener noreferrer';
-                document.body.appendChild(tempLink);
-                tempLink.click();
-                document.body.removeChild(tempLink);
-                createFloatingText(`🔗 Link opened via alternative method`, camera.position);
-            } else
-            {
-                createFloatingText(`✅ GitHub opened successfully!`, camera.position);
-            }
-        } catch (error)
-        {
-            console.error('❌ Error opening repository:', error);
-            createFloatingText(`❌ Error opening repository: ${error.message}`, camera.position);
-
-            // Method 3: Fallback - copy to clipboard and show message
-            if (navigator.clipboard)
-            {
-                navigator.clipboard.writeText(repoUrl).then(() =>
-                {
-                    createFloatingText(`📋 URL copied to clipboard: ${repoUrl}`, camera.position);
-                }).catch(() =>
-                {
-                    createFloatingText(`🔗 Manual link: ${repoUrl}`, camera.position);
-                });
-            }
-        }
-    } else
-    {
-        createFloatingText(`❌ No repository found for ${projectName}`, camera.position);
-        console.log(`❌ No repository URL found for project: "${projectName}"`);
-        console.log(`Available projects: ${Object.keys(projectRepositories).join(', ')}`);
-    }
-}
-
-function runMCPCommand(command)
-{
-    createFloatingText(`🛠️ Running MCP: ${command}`, camera.position);
-    console.log(`MCP Command: ${command}`);
-    // TODO: Integrate with actual MCP system
-}
-
-// Floating text effect
-function createFloatingText(text, worldPos)
-{
-    // 🚀 FIXED: Handle both THREE.Vector3 and plain objects
-    let screenPos;
-    if (worldPos && typeof worldPos.clone === 'function')
-    {
-        // It's a THREE.Vector3
-        screenPos = worldPos.clone();
-    } else if (worldPos && typeof worldPos === 'object')
-    {
-        // It's a plain object like {x: 0, y: 5, z: 0}
-        screenPos = new THREE.Vector3(worldPos.x || 0, worldPos.y || 0, worldPos.z || 0);
-    } else
-    {
-        // Fallback to camera position
-        screenPos = camera.position.clone();
-    }
-
-    screenPos.project(camera);
-
-    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-
-    const div = document.createElement('div');
-    div.className = 'floating-text';
-    div.textContent = text;
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
-    document.body.appendChild(div);
-
-    setTimeout(() => div.remove(), 2000);
-}
-
 // 🚀 MADNESS ENHANCED: Animation loop with interactive features
 function animate(currentTime)
 {
@@ -1319,11 +621,8 @@ function animate(currentTime)
 
     const time = currentTime * 0.001;
 
-    // 🚀 FIXED: Track animation frames for debugging
-    animationFrameCount++;
-
     // 🎪 NEW: Enhanced movement system (FIXED!)
-    if (!currentAgent)
+    if (!dialogueOpen) // Use unified dialogue state to halt movement
     {
         // Reset direction
         direction.set(0, 0, 0);
@@ -1365,22 +664,15 @@ function animate(currentTime)
     const positions = particles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3)
     {
-        // 🚀 FIXED: Add NaN validation to runtime particle animation
-        const currentY = positions[i + 1];
-        const currentX = positions[i];
-        const yUpdate = Math.sin(time + currentX * 0.01) * 0.02;
-
-        // Validate calculations and provide fallbacks
-        if (isFinite(yUpdate) && isFinite(currentY))
+        // Check for NaN and reset if needed
+        if (isNaN(positions[i]) || isNaN(positions[i + 1]) || isNaN(positions[i + 2]))
         {
-            positions[i + 1] += yUpdate;
-            if (positions[i + 1] > 20) positions[i + 1] = 0;
-        }
-        else
-        {
-            // Reset to safe position if NaN detected
+            positions[i] = (Math.random() - 0.5) * 100;
             positions[i + 1] = Math.random() * 20;
+            positions[i + 2] = (Math.random() - 0.5) * 100;
         }
+        positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
+        if (positions[i + 1] > 20) positions[i + 1] = 0;
     }
     particles.geometry.attributes.position.needsUpdate = true;
 
@@ -1500,177 +792,6 @@ function animate(currentTime)
         });
     });
 
-    // 🌟 COSMIC STARFIELD ANIMATIONS - The epic space vibes!
-    // Twinkling stars effect
-    if (starField && starField.geometry.attributes.color)
-    {
-        const starColors = starField.geometry.attributes.color.array;
-        for (let i = 0; i < starColors.length; i += 3)
-        {
-            const starIndex = i / 3;
-            const twinkleSpeed = 1 + (starIndex % 7) * 0.3;
-            const twinkle = 0.7 + Math.sin(time * twinkleSpeed + starIndex) * 0.3;
-
-            // 🚀 FIXED: Validate twinkle calculation to prevent NaN
-            const validTwinkle = isFinite(twinkle) ? twinkle : 0.7;
-
-            // Apply twinkling to each color component while preserving star color
-            const baseR = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 1.0);
-            const baseG = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 0.7);
-            const baseB = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 0.7 : 0.7);
-
-            // 🚀 FIXED: Validate final color values before assignment
-            starColors[i] = isFinite(baseR * validTwinkle) ? baseR * validTwinkle : baseR;
-            starColors[i + 1] = isFinite(baseG * validTwinkle) ? baseG * validTwinkle : baseG;
-            starColors[i + 2] = isFinite(baseB * validTwinkle) ? baseB * validTwinkle : baseB;
-        }
-        starField.geometry.attributes.color.needsUpdate = true;
-    }
-
-    // Slow rotation of the entire starfield for cosmic drift
-    if (starField)
-    {
-        starField.rotation.y += 0.0003;
-        starField.rotation.x += 0.0001;
-    }
-
-    // 🌠 Shooting stars management
-    // Occasionally create new shooting stars
-    if (Math.random() < 0.002 && shootingStars.length < 3)
-    {
-        createShootingStar();
-    }
-
-    // Update existing shooting stars
-    for (let i = shootingStars.length - 1; i >= 0; i--)
-    {
-        const star = shootingStars[i];
-        const starData = star.userData;
-
-        // Move the shooting star
-        const positions = star.geometry.attributes.position.array;
-        for (let j = 0; j < positions.length; j += 3)
-        {
-            positions[j] += starData.velocity.x;
-            positions[j + 1] += starData.velocity.y;
-            positions[j + 2] += starData.velocity.z;
-        }
-        star.geometry.attributes.position.needsUpdate = true;
-
-        // Fade out over time
-        starData.life--;
-        star.material.opacity = starData.life / starData.maxLife;
-
-        // Remove expired shooting stars
-        if (starData.life <= 0)
-        {
-            scene.remove(star);
-            star.geometry.dispose();
-            star.material.dispose();
-            shootingStars.splice(i, 1);
-        }
-    }
-
-    // 🌟 PIXELY STAR MADNESS - Close-range retro space vibes!
-    if (pixelStarsInitialized && pixelStars && pixelStars.geometry && pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
-    {
-        const pixelPositions = pixelStars.geometry.attributes.position.array;
-        const pixelColors = pixelStars.geometry.attributes.color.array;
-
-        // 🚀 FIXED: Check arrays are properly initialized before animation
-        if (!pixelPositions || !pixelColors || pixelPositions.length === 0 || pixelColors.length === 0)
-        {
-            return; // Skip this frame if geometry isn't ready
-        }
-
-        for (let i = 0; i < pixelPositions.length; i += 3)
-        {
-            const pixelIndex = i / 3;
-
-            // 🚀 FIXED: Validate current positions before calculations
-            if (!isFinite(pixelPositions[i]) || !isFinite(pixelPositions[i + 1]) || !isFinite(pixelPositions[i + 2]))
-            {
-                // Reset invalid positions to safe defaults
-                pixelPositions[i] = (Math.random() - 0.5) * 80;
-                pixelPositions[i + 1] = Math.random() * 25 + 10;
-                pixelPositions[i + 2] = (Math.random() - 0.5) * 80;
-            }
-
-            // 🚀 FIXED: Guard against undefined time value
-            if (!isFinite(time))
-            {
-                continue; // Skip this pixel if time is invalid
-            }
-
-            // Gentle floating motion - different for each pixel
-            const floatSpeed = 0.5 + (pixelIndex % 3) * 0.2;
-            const floatAmount = 0.05 + (pixelIndex % 5) * 0.01;
-            const floatDelta = Math.sin(time * floatSpeed + pixelIndex) * floatAmount;
-
-            // 🚀 FIXED: Validate float delta before applying
-            if (isFinite(floatDelta))
-            {
-                pixelPositions[i + 1] += floatDelta;
-            }
-
-            // Subtle sideways drift
-            const driftX = Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
-            const driftZ = Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
-
-            // 🚀 FIXED: Validate drift before applying
-            if (isFinite(driftX)) pixelPositions[i] += driftX;
-            if (isFinite(driftZ)) pixelPositions[i + 2] += driftZ;
-
-            // Wrap around if they drift too far
-            if (pixelPositions[i] > 50) pixelPositions[i] = -50;
-            if (pixelPositions[i] < -50) pixelPositions[i] = 50;
-            if (pixelPositions[i + 2] > 50) pixelPositions[i + 2] = -50;
-            if (pixelPositions[i + 2] < -50) pixelPositions[i + 2] = 50;
-
-            // Reset if they fall too low or go too high
-            if (pixelPositions[i + 1] < 5) pixelPositions[i + 1] = 35;
-            if (pixelPositions[i + 1] > 35) pixelPositions[i + 1] = 5;
-
-            // 🚀 FIXED: Check bounds before accessing color array
-            if (i + 2 >= pixelColors.length)
-            {
-                break; // Prevent array bounds overflow
-            }
-
-            // Retro blinking/pulsing effect
-            const blinkSpeed = 2 + (pixelIndex % 4) * 0.5;
-            const blinkIntensity = 0.7 + Math.sin(time * blinkSpeed + pixelIndex) * 0.3;
-
-            // 🚀 FIXED: Validate colors and blink intensity
-            if (isFinite(blinkIntensity) && pixelColors[i] !== undefined && pixelColors[i + 1] !== undefined && pixelColors[i + 2] !== undefined)
-            {
-                // Apply blinking to color while preserving hue
-                const baseR = pixelColors[i] > 0.8 ? 1.0 : pixelColors[i];
-                const baseG = pixelColors[i + 1] > 0.8 ? 1.0 : pixelColors[i + 1];
-                const baseB = pixelColors[i + 2] > 0.8 ? 1.0 : pixelColors[i + 2];
-
-                const newR = baseR * blinkIntensity;
-                const newG = baseG * blinkIntensity;
-                const newB = baseB * blinkIntensity;
-
-                // Final validation before assignment
-                pixelColors[i] = isFinite(newR) ? newR : baseR;
-                pixelColors[i + 1] = isFinite(newG) ? newG : baseG;
-                pixelColors[i + 2] = isFinite(newB) ? newB : baseB;
-            }
-        }
-
-        // 🚀 FIXED: Only update geometry if we have valid data
-        if (pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
-        {
-            pixelStars.geometry.attributes.position.needsUpdate = true;
-            pixelStars.geometry.attributes.color.needsUpdate = true;
-        }
-
-        // Overall pixely star system rotation for extra dynamism
-        pixelStars.rotation.y += 0.001;
-    }
-
     renderer.render(scene, camera);
 }
 
@@ -1696,14 +817,9 @@ setTimeout(() =>
     🖱️  Mouse - Look around (click to lock pointer)
     ⌨️  E - Interface with agents
     📖 R - View project README details  
-    🐙 G - Open GitHub/Docs (when near workstation)
     🛠️  M - Access MCP debugging toolkit
     🎵 SPACE - Toggle chaos dance mode
     🚪 ESC - Close dialogues/unlock pointer
-    
-    🎛️  NEW HOTKEYS:
-    📋 TAB - Toggle Control Center panel
-    🤖 = - Toggle Swarm Status panel
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     💡 Explore, interact, and embrace the madness!
     `);
@@ -1723,81 +839,53 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
-    // --- Floating Panel Hotkeys (F3-F7) ---
-    if (window.panelSystem)
-    {
-        switch (e.key)
-        {
-            case 'F3':
-                e.preventDefault();
-                window.panelSystem.createContextualPanel('welcome');
-                return;
-            case 'F4':
-                e.preventDefault();
-                window.panelSystem.createContextualPanel('project');
-                return;
-            case 'F5':
-                e.preventDefault();
-                window.panelSystem.createContextualPanel('agent');
-                return;
-            case 'F6':
-                e.preventDefault();
-                window.panelSystem.createContextualPanel('mcp');
-                return;
-            case 'F7':
-                e.preventDefault();
-                window.panelSystem.createContextualPanel('analytics');
-                return;
-        }
-    }
-
-    // 🎛️ NEW HOTKEYS: Panel Toggle Controls
-    if (e.key === 'Tab')
-    {
-        e.preventDefault();
-        toggleControlCenter();
-        return;
-    }
-
-    if (e.key === '=')
-    {
-        e.preventDefault();
-        toggleSwarmStatus();
-        return;
-    }
-
     // Handle movement controls
     if (keys[e.code])
     {
         controls[keys[e.code]] = true;
     }
 
-    // Enhanced interaction controls
-    if (e.key.toLowerCase() === 'e' && nearAgent && !currentAgent)
+    // Unified interaction controls with toggle functionality
+    if (e.key.toLowerCase() === 'e')
     {
         e.preventDefault();
-        openDialogue(nearAgent);
+        const targetType = nearAgent ? 'agent' : nearReadmePanel ? 'readme' : null;
+
+        if (dialogueOpen)
+        {
+            if (activePanelType === targetType && targetType !== null)
+            {
+                closeDialogue();
+            }
+        } else if (targetType)
+        {
+            if (targetType === 'agent')
+            {
+                openDialogue(nearAgent);
+            } else if (targetType === 'readme')
+            {
+                showReadmeDetails(nearReadmePanel);
+            }
+        }
     }
 
-    // 🚀 NEW: README panel interaction
-    if (e.key.toLowerCase() === 'r' && nearReadmePanel && !currentAgent)
+    if (e.key.toLowerCase() === 'm')
     {
-        e.preventDefault();
-        showReadmeDetails(nearReadmePanel);
-    }
-
-    // 🛠️ NEW: MCP debugging wall interaction
-    if (e.key.toLowerCase() === 'm' && nearMCPWall && !currentAgent)
-    {
-        e.preventDefault();
-        showMCPDebugging();
-    }
-
-    // 🐙 NEW: GitHub repository interaction
-    if (e.key.toLowerCase() === 'g' && nearReadmePanel && !currentAgent)
-    {
-        e.preventDefault();
-        openProjectRepository(nearReadmePanel.userData.projectName);
+        if (nearMCPWall)
+        {
+            e.preventDefault();
+            const targetType = 'mcp';
+            if (dialogueOpen)
+            {
+                if (activePanelType === targetType)
+                {
+                    closeDialogue();
+                }
+            } else
+            {
+                showMCPDebugging();
+            }
+        }
     }
 
     if (e.key === ' ')
@@ -1840,8 +928,8 @@ document.addEventListener('keydown', (e) =>
 // Enhanced mouse controls
 document.addEventListener('mousemove', (e) =>
 {
-    if (document.pointerLockElement === renderer.domElement && !currentAgent)
-    {
+    if (document.pointerLockElement === renderer.domElement && !dialogueOpen)
+    { // Check unified state
         const sensitivity = 0.002;
 
         euler.setFromQuaternion(camera.quaternion);
@@ -1868,44 +956,41 @@ renderer.domElement.addEventListener('click', () =>
 function handleArrowKeys(key)
 {
     const rotationSpeed = 0.1; // Made more responsive
-
-    // Use the same persistent euler object as mouse controls instead of creating new one
-    euler.setFromQuaternion(camera.quaternion);
+    const currentEuler = new THREE.Euler().setFromQuaternion(camera.quaternion);
 
     switch (key)
     {
         case 'ArrowLeft':
-            euler.y += rotationSpeed;
+            currentEuler.y += rotationSpeed;
             break;
         case 'ArrowRight':
-            euler.y -= rotationSpeed;
+            currentEuler.y -= rotationSpeed;
             break;
         case 'ArrowUp':
-            euler.x += rotationSpeed;
-            euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+            currentEuler.x += rotationSpeed;
+            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
             break;
         case 'ArrowDown':
-            euler.x -= rotationSpeed;
-            euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+            currentEuler.x -= rotationSpeed;
+            currentEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, currentEuler.x));
             break;
     }
 
-    camera.quaternion.setFromEuler(euler);
+    camera.quaternion.setFromEuler(currentEuler);
 }
 
 // Dialogue system functions (preserved and enhanced)
 function openDialogue(agent)
 {
     currentAgent = agent;
+    dialogueOpen = true; // Halt movement
+    activePanelType = 'agent'; // Set panel type
     const dialogueBox = document.getElementById('dialogue-box');
     const dialogueName = document.getElementById('dialogue-name');
     const dialogueContent = document.getElementById('dialogue-content');
 
     dialogueBox.style.display = 'block';
     dialogueName.textContent = `${agent.userData.name} - ${agent.userData.role}`;
-
-    // 🎮 Dispatch event to release mouse look
-    window.dispatchEvent(new Event('dialogueOpened'));
 
     if (document.pointerLockElement === renderer.domElement)
     {
@@ -2085,6 +1170,8 @@ function closeDialogue()
     const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox.style.display = 'none';
     currentAgent = null;
+    dialogueOpen = false; // Re-enable movement
+    activePanelType = null; // Clear panel type
 }
 
 function updateAgentStatus(agentType, status)
@@ -2128,63 +1215,5 @@ document.getElementById('custom-question-input').addEventListener('keypress', (e
             selectOption(customQuestion);
             e.target.value = '';
         }
-    }
-});
-
-// 🔧 NEW MADNESS: UI Panel Toggle Functions
-function toggleControlCenter()
-{
-    const controlCenter = document.getElementById('ui-overlay');
-    const isVisible = controlCenter.style.display !== 'none';
-
-    controlCenter.style.display = isVisible ? 'none' : 'block';
-
-    const statusText = isVisible ? 'hidden' : 'visible';
-    createFloatingText(`📋 Control Center ${statusText}`, camera.position);
-    console.log(`🎮 Control Center ${statusText}`);
-}
-
-function toggleSwarmStatus()
-{
-    const swarmStatus = document.querySelector('.agent-status');
-    const isVisible = swarmStatus.style.display !== 'none';
-
-    swarmStatus.style.display = isVisible ? 'none' : 'block';
-
-    const statusText = isVisible ? 'hidden' : 'visible';
-    createFloatingText(`🤖 Swarm Status ${statusText}`, camera.position);
-    console.log(`🤖 Swarm Status ${statusText}`);
-}
-
-// 🎮 NEW: Auto-release pointer lock on window blur
-window.addEventListener('blur', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - window lost focus');
-    }
-});
-
-// 🎮 NEW: Auto-release pointer lock when any floating panel is created/shown
-window.addEventListener('panelCreated', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - panel opened');
-    }
-});
-
-// 🎮 NEW: Auto-release pointer lock when dialogue opens
-window.addEventListener('dialogueOpened', () =>
-{
-    if (document.pointerLockElement === renderer.domElement)
-    {
-        document.exitPointerLock();
-        pointerLocked = false;
-        console.log('🖱️ Mouse look released - dialogue opened');
     }
 });

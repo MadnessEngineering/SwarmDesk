@@ -14,11 +14,11 @@ NC='\033[0m' # No Color
 
 # Configuration
 REMOTE_HOST="eaws"
-REMOTE_PATH="/var/www/html/SwarmDesk"
-LOCAL_PATH="."
+REMOTE_PATH="/var/www/html"
+LOCAL_PATH="../.."  # Go up to Inventorium root
 
-echo -e "${BLUE}🚀 SwarmDesk Deployment for Madness Interactive${NC}"
-echo -e "${BLUE}===============================================${NC}"
+echo -e "${BLUE}🚀 SwarmDesk Integration Deployment for Madness Interactive${NC}"
+echo -e "${BLUE}==========================================================${NC}"
 
 # Function to print status
 print_status() {
@@ -33,13 +33,14 @@ print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
-# Check if we're in the SwarmDesk directory
+# Check if we can find the integrated SwarmDesk files
+cd $LOCAL_PATH
 if [ ! -f "index.html" ] || [ ! -f "swarmdesk.js" ]; then
-    print_error "SwarmDesk files not found. Make sure you're in the SwarmDesk directory."
+    print_error "SwarmDesk integration files not found. Make sure you're running from SwarmDesk/scripts/ directory."
     exit 1
 fi
 
-print_status "Found SwarmDesk files in current directory"
+print_status "Found SwarmDesk integration files in Inventorium root"
 
 # Create remote directory if it doesn't exist
 echo -e "${BLUE}📁 Setting up remote directory...${NC}"
@@ -50,14 +51,14 @@ print_status "Remote directory prepared"
 echo -e "${BLUE}📤 Deploying SwarmDesk files with rsync...${NC}"
 echo "Transfer starting: syncing entire SwarmDesk directory"
 rsync -avzI --progress \
-    --rsync-path="sudo rsync" \
-    --exclude='.git*' \
-    --exclude='node_modules' \
-    --exclude='*.bak' \
-    --exclude='.DS_Store' \
-    --exclude='scripts/' \
-    ./ \
-    $REMOTE_HOST:$REMOTE_PATH/
+--rsync-path="sudo rsync" \
+--exclude='.git*' \
+--exclude='node_modules' \
+--exclude='*.bak' \
+--exclude='.DS_Store' \
+--exclude='scripts/' \
+./ \
+$REMOTE_HOST:$REMOTE_PATH/
 
 # Set proper permissions after rsync
 echo -e "${BLUE}🔧 Setting file permissions...${NC}"
@@ -66,10 +67,18 @@ print_status "Complete SwarmDesk directory deployed with proper permissions"
 
 # Test deployment
 echo -e "${BLUE}🧪 Testing deployment...${NC}"
-if curl -s --head "https://madnessinteractive.cc/SwarmDesk/" | head -n 1 | grep -q "200 OK"; then
-    print_status "SwarmDesk is accessible at https://madnessinteractive.cc/SwarmDesk/"
+if curl -s --head "https://madnessinteractive.cc/" | head -n 1 | grep -q "200 OK"; then
+    print_status "Integrated app is accessible at https://madnessinteractive.cc/"
 else
-    print_warning "SwarmDesk deployment test inconclusive - check manually"
+    print_warning "Deployment test inconclusive - check manually"
+fi
+
+# Test SwarmDesk specific functionality
+echo -e "${BLUE}🎪 Testing SwarmDesk integration...${NC}"
+if curl -s "https://madnessinteractive.cc/" | grep -q "swarmdesk.js"; then
+    print_status "SwarmDesk integration detected in main application"
+else
+    print_warning "SwarmDesk integration not detected - check file deployment"
 fi
 
 # Cache busting for immediate visibility
@@ -88,7 +97,7 @@ fi
 # Integration with backend (if running)
 echo -e "${BLUE}🔗 Checking backend integration...${NC}"
 if curl -s --head "https://madnessinteractive.cc/api/health" | head -n 1 | grep -q "200 OK"; then
-    print_status "Backend API is running - SwarmDesk can access agent data"
+    print_status "Backend API is running - SwarmDesk can access MCP tools"
 else
     print_warning "Backend API not responding - SwarmDesk will run in demo mode"
 fi

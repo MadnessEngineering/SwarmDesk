@@ -5,12 +5,6 @@ class FloatingPanelSystem
 {
     constructor()
     {
-        // Singleton pattern: Ensure only one instance exists
-        if (FloatingPanelSystem.instance)
-        {
-            return FloatingPanelSystem.instance;
-        }
-
         this.panels = new Map();
         this.activePanelId = null;
         this.dragState = {
@@ -24,7 +18,6 @@ class FloatingPanelSystem
         this.panelIdCounter = 0;
 
         this.init();
-        FloatingPanelSystem.instance = this;
     }
 
     // 🚀 INITIALIZATION
@@ -77,86 +70,11 @@ class FloatingPanelSystem
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
 
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
-
-        // Keyboard events for panel system
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-    }
-
-    // ⌨️ KEYBOARD HANDLER
-    handleKeyboard(event)
-    {
-        // Handle keyboard shortcuts for panel system
-        switch (event.key)
-        {
-            case 'F1':
-                event.preventDefault();
-                this.createContextualPanel('welcome');
-                break;
-            case 'F2':
-                event.preventDefault();
-                this.toggleAllPanels();
-                break;
-            case 'F8':
-                event.preventDefault();
-                this.createContextualPanel('debug');
-                break;
-            case 'F9':
-                event.preventDefault();
-                this.minimizeAllPanels();
-                break;
-            case 'F10':
-                event.preventDefault();
-                this.closeAllPanels();
-                break;
-            case 'Escape':
-                if (this.activePanelId)
-                {
-                    this.setActivePanel(null);
-                }
-                break;
-        }
-    }
-
-    // 🔧 TOGGLE ALL PANELS
-    toggleAllPanels()
-    {
-        const allHidden = Array.from(this.panels.values()).every(panel =>
-            panel.element.style.display === 'none' || panel.element.classList.contains('minimized')
-        );
-
-        this.panels.forEach((panel) =>
-        {
-            if (allHidden)
-            {
-                panel.element.style.display = 'block';
-                panel.element.classList.remove('minimized');
-            } else
-            {
-                panel.element.style.display = 'none';
-            }
-        });
-    }
-
-    // 📦 MINIMIZE ALL PANELS
-    minimizeAllPanels()
-    {
-        this.panels.forEach((panel, panelId) =>
-        {
-            this.minimizePanel(panelId);
-        });
-    }
-
-    // ❌ CLOSE ALL PANELS
-    closeAllPanels()
-    {
-        // Create a copy of the keys to avoid modification during iteration
-        const panelIds = Array.from(this.panels.keys());
-        panelIds.forEach(panelId =>
-        {
-            this.closePanel(panelId);
-        });
     }
 
     // 🏷️ CREATE PANEL
@@ -208,9 +126,6 @@ class FloatingPanelSystem
 
         // Set as active
         this.setActivePanel(panelId);
-
-        // 🎮 Dispatch event to release mouse look
-        window.dispatchEvent(new Event('panelCreated'));
 
         console.log(`🏷️ Created panel: ${panelId} (${config.title})`);
         return panelId;
@@ -612,28 +527,15 @@ class FloatingPanelSystem
         const panel = this.panels.get(panelId);
         if (!panel) return;
 
-        // Check if this is a singleton panel (has panelType)
-        if (panel.config && panel.config.panelType)
+        // Undock if needed
+        if (panel.isDocked)
         {
-            // For singleton panels, just hide instead of destroy
-            panel.element.style.display = 'none';
-            console.log(`🔄 Hiding singleton panel: ${panel.config.panelType}`);
-            return;
+            this.undockPanel(panelId);
         }
 
-        // For non-singleton panels, destroy completely
+        // Remove from DOM
         panel.element.remove();
         this.panels.delete(panelId);
-
-        // Select another panel if this was active
-        if (this.activePanelId === panelId)
-        {
-            const remainingPanels = Array.from(this.panels.keys());
-            if (remainingPanels.length > 0)
-            {
-                this.setActivePanel(remainingPanels[0]);
-            }
-        }
 
         console.log(`❌ Closed panel: ${panelId}`);
     }
@@ -645,6 +547,40 @@ class FloatingPanelSystem
             x: 100 + (this.panelIdCounter * 30),
             y: 100 + (this.panelIdCounter * 30)
         };
+    }
+
+    // ⌨️ HANDLE KEYBOARD
+    handleKeyboard(event)
+    {
+        // Don't interfere with SwarmDesk or input fields
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+        if (document.getElementById('dialogue-box').style.display === 'block') return;
+
+        switch (event.key)
+        {
+            case 'F4':
+                event.preventDefault();
+                this.createContextualPanel('project');
+                break;
+            case 'F5':
+                event.preventDefault();
+                this.createContextualPanel('agent');
+                break;
+            case 'F6':
+                event.preventDefault();
+                this.createContextualPanel('mcp');
+                break;
+            case 'F7':
+                event.preventDefault();
+                this.createContextualPanel('analytics');
+                break;
+            case 'Escape':
+                if (this.dragState.isDragging)
+                {
+                    this.cancelDrag();
+                }
+                break;
+        }
     }
 
     // 🚫 CANCEL DRAG
@@ -692,9 +628,26 @@ class FloatingPanelSystem
     // 🎪 CREATE INITIAL PANELS
     createInitialPanels()
     {
-        // Don't create any panels automatically - let user trigger them with hotkeys
-        // This prevents the welcome panel from appearing on every page load
-        console.log('🎪 Floating Panel System ready - use F3-F7 hotkeys to create panels');
+        // Welcome panel
+        this.createPanel({
+            title: '🎪 Welcome to Floating Madness!',
+            type: 'project-panel',
+            position: { x: 50, y: 50 },
+            width: 400,
+            height: 300,
+            tabs: [
+                {
+                    id: 'welcome',
+                    title: '🚀 Welcome',
+                    content: this.generateWelcomeContent()
+                },
+                {
+                    id: 'shortcuts',
+                    title: '⌨️ Shortcuts',
+                    content: this.generateShortcutsContent()
+                }
+            ]
+        });
     }
 
     // 🎮 SWARMDESK INTEGRATION
@@ -725,58 +678,10 @@ class FloatingPanelSystem
     // 🎯 CREATE CONTEXTUAL PANELS
     createContextualPanel(type)
     {
-        // Check if panel of this type already exists
-        const existingPanel = Array.from(this.panels.values()).find(
-            p => p.config && p.config.panelType === type
-        );
-
-        if (existingPanel)
-        {
-            // Panel exists - toggle visibility or focus it
-            const panelElement = existingPanel.element;
-            if (panelElement.style.display === 'none')
-            {
-                // Show hidden panel
-                panelElement.style.display = 'block';
-                this.setActivePanel(existingPanel.element.id);
-
-                // 🎮 Dispatch event to release mouse look
-                window.dispatchEvent(new Event('panelCreated'));
-
-                console.log(`🔄 Showing existing ${type} panel`);
-            }
-            else
-            {
-                // Hide visible panel (toggle off)
-                panelElement.style.display = 'none';
-                console.log(`🔄 Hiding ${type} panel`);
-            }
-            return existingPanel.element.id;
-        }
-
-        // No existing panel - create new one
         const configs = {
-            welcome: {
-                title: '🎪 Welcome to Floating Madness!',
-                type: 'project-panel',
-                panelType: 'welcome', // Add this for singleton tracking
-                tabs: [
-                    {
-                        id: 'welcome',
-                        title: '🚀 Welcome',
-                        content: this.generateWelcomeContent()
-                    },
-                    {
-                        id: 'shortcuts',
-                        title: '⌨️ Shortcuts',
-                        content: this.generateShortcutsContent()
-                    }
-                ]
-            },
             project: {
                 title: '📋 Project Management',
                 type: 'project-panel',
-                panelType: 'project', // Add this for singleton tracking
                 tabs: [
                     { id: 'overview', title: '📊 Overview', content: this.generateProjectOverviewContent() },
                     { id: 'todos', title: '✅ Todos', content: this.generateTodosContent() },
@@ -786,7 +691,6 @@ class FloatingPanelSystem
             agent: {
                 title: '🤖 Agent Interface',
                 type: 'agent-panel',
-                panelType: 'agent', // Add this for singleton tracking
                 tabs: [
                     { id: 'chat', title: '💬 Chat', content: this.generateChatContent() },
                     { id: 'commands', title: '⚡ Commands', content: this.generateCommandsContent() },
@@ -796,7 +700,6 @@ class FloatingPanelSystem
             mcp: {
                 title: '🔧 MCP Tools',
                 type: 'mcp-panel',
-                panelType: 'mcp', // Add this for singleton tracking
                 tabs: [
                     { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
                     { id: 'logs', title: '📋 Logs', content: this.generateLogsContent() },
@@ -806,7 +709,6 @@ class FloatingPanelSystem
             analytics: {
                 title: '📊 Analytics Dashboard',
                 type: 'analytics-panel',
-                panelType: 'analytics', // Add this for singleton tracking
                 tabs: [
                     { id: 'metrics', title: '📈 Metrics', content: this.generateMetricsContent() },
                     { id: 'activity', title: '🚀 Activity', content: this.generateActivityContent() },
@@ -818,59 +720,125 @@ class FloatingPanelSystem
         const config = configs[type];
         if (config)
         {
-            return this.createPanel(config);
+            this.createPanel(config);
         }
     }
 
-    // 🎯 CONTEXTUAL PROJECT PANEL
+    // 🎯 CONTEXTUAL PROJECT PANEL (REFACTORED for single-state)
     createContextualProjectPanel(projectName, projectData)
     {
-        // Prevent duplicate contextual project panels
-        const existingPanel = Array.from(this.panels.values()).find(
-            p => p.config && p.config.title === `📋 ${projectName}` && p.config.type === 'project-panel'
-        );
-        if (existingPanel)
+        const PANEL_ID = 'singleton-project-panel';
+        const PANEL_TITLE = '📋 Project Management';
+        const existingPanel = this.panels.get(PANEL_ID);
+
+        // If the panel exists and is for the same project, close it (toggle off).
+        if (existingPanel && existingPanel.config.projectName === projectName)
         {
-            this.setActivePanel(existingPanel.element.id);
-            console.warn(`[FloatingPanelSystem] Contextual panel for project '${projectName}' already exists. Focusing.`);
+            this.closePanel(PANEL_ID);
             return;
         }
-        if (!projectName)
+
+        // If the panel doesn't exist, create it.
+        if (!existingPanel)
         {
-            console.warn('[FloatingPanelSystem] No projectName provided to createContextualProjectPanel.');
-            return;
+            const panelConfig = {
+                id: PANEL_ID,
+                title: PANEL_TITLE,
+                type: 'project-management-panel', // New, consistent type
+                x: window.innerWidth - 520,
+                y: 60,
+                width: 450,
+                height: 500,
+                tabs: [], // Tabs will be populated by the update function
+                projectName: projectName // Store current project
+            };
+            this.createPanel(panelConfig);
         }
-        if (!projectData)
-        {
-            console.warn(`[FloatingPanelSystem] No projectData found for '${projectName}'. Creating panel with limited info.`);
-        }
-        this.createPanel({
-            title: `📋 ${projectName}`,
-            type: 'project-panel',
-            tabs: [
-                {
-                    id: 'details',
-                    title: '📄 Details',
-                    contextual: true,
-                    content: this.generateProjectDetailsContent(projectName, projectData)
-                },
-                {
-                    id: 'todos',
-                    title: '✅ Todos',
-                    contextual: true,
-                    content: this.generateProjectTodosContent(projectName)
-                },
-                {
-                    id: 'activity',
-                    title: '🚀 Activity',
-                    contextual: true,
-                    content: this.generateProjectActivityContent(projectName)
-                }
-            ]
-        });
+
+        // Update the content of the (now guaranteed to exist) panel
+        this.updateProjectPanelContent(PANEL_ID, projectName, projectData);
     }
 
-    // 🤖 CONTEXTUAL AGENT PANEL
+    updateProjectPanelContent(panelId, projectName, projectData)
+    {
+        const panel = this.panels.get(panelId);
+        if (!panel) return;
+
+        // Update the project associated with the panel
+        panel.config.projectName = projectName;
+        panel.config.title = `📋 ${projectName}`; // Update title to be specific
+        const titleEl = panel.element.querySelector('.panel-title');
+        if (titleEl) titleEl.textContent = panel.config.title;
+
+        // Define tab content
+        const overviewContent = `
+            <div class="tab-content-inner">
+                <h4>Project Overview</h4>
+                <p>${projectData.description || 'No description available.'}</p>
+                <hr>
+                <h5>Key Metrics</h5>
+                <p><strong>Active Projects:</strong> 5</p>
+                <p><strong>Pending Tasks:</strong> 23</p>
+                <p><strong>Completed Today:</strong> 7</p>
+                <div style="margin-top: 20px;">
+                    <button class="ui-button">View All Projects</button>
+                    <button class="ui-button primary">Add New Task</button>
+                </div>
+            </div>`;
+
+        const todosContent = `
+            <div class="tab-content-inner">
+                <h4>Active Todos for ${projectName}</h4>
+                <ul>
+                    ${(projectData.todos && projectData.todos.length > 0) ?
+                projectData.todos.map(todo => `<li>${todo}</li>`).join('') :
+                '<li>No active todos.</li>'}
+                </ul>
+            </div>`;
+
+        const filesContent = `
+            <div class="tab-content-inner">
+                <h4>Files for ${projectName}</h4>
+                <p>File browsing functionality coming soon...</p>
+            </div>`;
+
+        const tabs = [
+            { id: 'overview', title: '📊 Overview', content: overviewContent },
+            { id: 'todos', title: '✅ Todos', content: todosContent },
+            { id: 'files', title: '📁 Files', content: filesContent }
+        ];
+
+        // Set the tabs and activate the first one
+        this.setPanelTabs(panelId, tabs);
+        this.setActiveTab(panelId, 'overview');
+    }
+
+    createMCPToolPanel(toolName)
+    {
+        const toolConfig = {
+            'list_projects': { title: '📂 Project List', content: 'Displaying all projects...' },
+            'add_todo': { title: '📝 Add Todo', content: 'Enter the todo description...' },
+            'query_todos': { title: '🔍 Query Todos', content: 'Enter the todo description...' },
+            'get_analytics': { title: '📊 Get Analytics', content: 'Getting analytics...' },
+            'tools': { title: '🛠️ Tools', content: 'Displaying available tools...' },
+            'logs': { title: '📋 Logs', content: 'Displaying MCP logs...' },
+            'debug': { title: '🐛 Debug', content: 'Getting debug information...' }
+        };
+
+        const panelConfig = {
+            id: `mcp-${toolName}-panel`,
+            title: `🔧 MCP: ${toolName}`,
+            type: 'mcp-panel',
+            tabs: [
+                { id: 'result', title: '📤 Result', content: toolConfig[toolName].content },
+                { id: 'debug', title: '🐛 Debug', content: toolConfig[toolName].content }
+            ]
+        };
+
+        this.createPanel(panelConfig);
+    }
+
+    // 🎯 CONTEXTUAL AGENT PANEL
     createContextualAgentPanel(agentData)
     {
         this.createPanel({
@@ -896,24 +864,7 @@ class FloatingPanelSystem
     // 🔧 CONTEXTUAL MCP PANEL
     createContextualMCPPanel(toolName, result)
     {
-        this.createPanel({
-            title: `🔧 MCP: ${toolName}`,
-            type: 'mcp-panel',
-            tabs: [
-                {
-                    id: 'result',
-                    title: '📤 Result',
-                    contextual: true,
-                    content: this.generateMCPResultContent(toolName, result)
-                },
-                {
-                    id: 'debug',
-                    title: '🐛 Debug',
-                    contextual: true,
-                    content: this.generateMCPDebugContent(toolName, result)
-                }
-            ]
-        });
+        this.createMCPToolPanel(toolName);
     }
 
     // 📄 CONTENT GENERATORS
@@ -947,11 +898,10 @@ class FloatingPanelSystem
             <div class="content-section">
                 <h3>⌨️ Keyboard Shortcuts</h3>
                 <div style="font-size: 12px; line-height: 1.6;">
-                    <p><strong>F3</strong> - Toggle Welcome Panel</p>
-                    <p><strong>F4</strong> - Toggle Project Panel</p>
-                    <p><strong>F5</strong> - Toggle Agent Panel</p>
-                    <p><strong>F6</strong> - Toggle MCP Tools Panel</p>
-                    <p><strong>F7</strong> - Toggle Analytics Panel</p>
+                    <p><strong>F4</strong> - Create Project Panel</p>
+                    <p><strong>F5</strong> - Create Agent Panel</p>
+                    <p><strong>F6</strong> - Create MCP Tools Panel</p>
+                    <p><strong>F7</strong> - Create Analytics Panel</p>
                     <p><strong>ESC</strong> - Cancel current drag operation</p>
                     <p><strong>Drag panels</strong> - Click and drag panel headers</p>
                     <p><strong>Dock panels</strong> - Drag near screen edges to dock</p>
@@ -1128,51 +1078,6 @@ class FloatingPanelSystem
         `;
     }
 
-    generateProjectDetailsContent(projectName, projectData)
-    {
-        return `
-            <div class="content-section">
-                <h3>📋 ${projectName} Details</h3>
-                <p><strong>Status:</strong> ${projectData?.status || 'Active Development'}</p>
-                <p><strong>Description:</strong> ${projectData?.description || 'Loading project information...'}</p>
-                <button class="action-button">📂 Open in SwarmDesk</button>
-                <button class="action-button">📝 Edit Details</button>
-            </div>
-        `;
-    }
-
-    generateProjectTodosContent(projectName)
-    {
-        return `
-            <div class="content-section">
-                <h3>✅ ${projectName} Todos</h3>
-                <div style="font-size: 12px;">
-                    <div style="padding: 6px; background: rgba(0,255,136,0.1); border-radius: 4px; margin: 4px 0;">
-                        🎪 Complete floating panel system
-                    </div>
-                    <div style="padding: 6px; background: rgba(255,170,0,0.1); border-radius: 4px; margin: 4px 0;">
-                        🔧 Add multi-monitor support
-                    </div>
-                </div>
-                <button class="action-button">➕ Add Todo</button>
-            </div>
-        `;
-    }
-
-    generateProjectActivityContent(projectName)
-    {
-        return `
-            <div class="content-section">
-                <h3>🚀 ${projectName} Activity</h3>
-                <div style="font-size: 11px; opacity: 0.9;">
-                    <p>15:30 - Workstation selected</p>
-                    <p>15:25 - Panel created</p>
-                    <p>15:20 - Project opened</p>
-                </div>
-            </div>
-        `;
-    }
-
     generateAgentInterfaceContent(agentData)
     {
         return `
@@ -1227,13 +1132,31 @@ class FloatingPanelSystem
     }
 }
 
-// 🎪 ONLY ONE INITIALIZATION - Initialize the single instance of the floating panel system
-// This ensures the singleton pattern works correctly
-if (!window.panelSystem)
+// 🚀 INITIALIZE FLOATING PANEL SYSTEM
+window.addEventListener('load', () =>
 {
     window.panelSystem = new FloatingPanelSystem();
-    console.log('🎪 Floating Panel System loaded successfully!');
-} else
+    console.log('🎪 Floating Panel Madness initialized!');
+});
+
+// 🎮 INTEGRATION WITH SWARMDESK
+if (typeof SwarmDeskDashboard !== 'undefined')
 {
-    console.log('🎪 Floating Panel System already initialized - using existing instance');
-} 
+    // Enhanced project selection
+    const originalSelectProject = SwarmDeskDashboard.selectProject;
+    SwarmDeskDashboard.selectProject = function (projectName)
+    {
+        originalSelectProject.call(this, projectName);
+
+        // Create contextual panel if system is ready
+        if (window.panelSystem)
+        {
+            setTimeout(() =>
+            {
+                window.panelSystem.createContextualProjectPanel(projectName, projectReadmes[projectName]);
+            }, 100);
+        }
+    };
+}
+
+console.log('🎪 Floating Panel System loaded successfully!'); 
