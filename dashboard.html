@@ -242,8 +242,16 @@
     <script src="floating-panel-advanced.js"></script>
     <!-- Add dashboard logic for sidebars, chat, analytics, etc. (from previous versions) -->
     <script>
-        // Sidebar toggle logic, chat, analytics, etc. (reuse from previous dashboard-integrated.html)
-        // ...
+        function toggleSidebar(side) {
+            const sidebar = document.getElementById(side === 'left' ? 'leftSidebar' : 'rightSidebar');
+            const icon = document.getElementById(side === 'left' ? 'leftToggleIcon' : 'rightToggleIcon');
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            if (side === 'left') {
+                icon.textContent = isCollapsed ? '▶' : '◀';
+            } else {
+                icon.textContent = isCollapsed ? '◀' : '▶';
+            }
+        }
     </script>
 </body>
-</html> 
+</html>
