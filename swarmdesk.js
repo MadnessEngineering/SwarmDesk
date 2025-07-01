@@ -1836,6 +1836,39 @@ renderer.domElement.addEventListener('click', () =>
     }
 });
 
+// 🎮 NEW: Auto-release pointer lock on window blur
+window.addEventListener('blur', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - window lost focus');
+    }
+});
+
+// 🎮 NEW: Auto-release pointer lock when any floating panel is created/shown
+window.addEventListener('panelCreated', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - panel opened');
+    }
+});
+
+// 🎮 NEW: Auto-release pointer lock when dialogue opens
+window.addEventListener('dialogueOpened', () =>
+{
+    if (document.pointerLockElement === renderer.domElement)
+    {
+        document.exitPointerLock();
+        pointerLocked = false;
+        console.log('🖱️ Mouse look released - dialogue opened');
+    }
+});
+
 // Arrow key camera controls for backup/alternative control
 function handleArrowKeys(key)
 {
@@ -1875,6 +1908,9 @@ function openDialogue(agent)
 
     dialogueBox.style.display = 'block';
     dialogueName.textContent = `${agent.userData.name} - ${agent.userData.role}`;
+
+    // 🎮 Dispatch event to release mouse look
+    window.dispatchEvent(new Event('dialogueOpened'));
 
     if (document.pointerLockElement === renderer.domElement)
     {

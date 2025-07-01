@@ -231,7 +231,7 @@
             backdrop-filter: blur(10px);
             max-width: 350px;
             box-shadow: 0 0 20px #0f0;
-            z-index: 999;
+            z-index: 1500;
         }
 
         .agent-status {
@@ -245,7 +245,7 @@
             color: #0f0;
             min-width: 200px;
             box-shadow: 0 0 20px #0f0;
-            z-index: 999;
+            z-index: 1500;
         }
 
         .agent-status h3 {
@@ -919,8 +919,9 @@
                         shortcutsInfo.innerHTML = `
                             <p style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #0f0; font-size: 11px;">
                                 <strong style="color: #ffaa00;">🏷️ Floating Panels:</strong><br>
-                                F4 - Project Panel | F5 - Agent Panel<br>
-                                F6 - MCP Tools Panel | F7 - Analytics Panel
+                                F3 - Welcome Panel | F4 - Project Panel<br>
+                                F5 - Agent Panel | F6 - MCP Tools Panel<br>
+                                F7 - Analytics Panel
                             </p>
                         `;
                         overlay.appendChild(shortcutsInfo);
@@ -942,6 +943,10 @@
             }
 
             switch(e.key) {
+                case 'F3':
+                    e.preventDefault();
+                    if (panelSystem) panelSystem.createContextualPanel('welcome');
+                    break;
                 case 'F4':
                     e.preventDefault();
                     if (panelSystem) panelSystem.createContextualPanel('project');

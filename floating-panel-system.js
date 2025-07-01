@@ -25,7 +25,8 @@ class FloatingPanelSystem
     {
         this.setupDockingZones();
         this.setupEventListeners();
-        this.createInitialPanels();
+        // Don't create initial panels - let user open them with hotkeys
+        // this.createInitialPanels();
         this.setupSwarmDeskIntegration();
 
         console.log('🎪 Floating Panel System initialized!');
@@ -126,6 +127,9 @@ class FloatingPanelSystem
 
         // Set as active
         this.setActivePanel(panelId);
+
+        // 🎮 Dispatch event to release mouse look
+        window.dispatchEvent(new Event('panelCreated'));
 
         console.log(`🏷️ Created panel: ${panelId} (${config.title})`);
         return panelId;
@@ -571,6 +575,10 @@ class FloatingPanelSystem
 
         switch (event.key)
         {
+            case 'F3':
+                event.preventDefault();
+                this.createContextualPanel('welcome');
+                break;
             case 'F4':
                 event.preventDefault();
                 this.createContextualPanel('project');
@@ -705,6 +713,10 @@ class FloatingPanelSystem
                 // Show hidden panel
                 panelElement.style.display = 'block';
                 this.setActivePanel(existingPanel.element.id);
+
+                // 🎮 Dispatch event to release mouse look
+                window.dispatchEvent(new Event('panelCreated'));
+
                 console.log(`🔄 Showing existing ${type} panel`);
             }
             else
@@ -718,6 +730,23 @@ class FloatingPanelSystem
 
         // No existing panel - create new one
         const configs = {
+            welcome: {
+                title: '🎪 Welcome to Floating Madness!',
+                type: 'project-panel',
+                panelType: 'welcome', // Add this for singleton tracking
+                tabs: [
+                    {
+                        id: 'welcome',
+                        title: '🚀 Welcome',
+                        content: this.generateWelcomeContent()
+                    },
+                    {
+                        id: 'shortcuts',
+                        title: '⌨️ Shortcuts',
+                        content: this.generateShortcutsContent()
+                    }
+                ]
+            },
             project: {
                 title: '📋 Project Management',
                 type: 'project-panel',
@@ -892,10 +921,11 @@ class FloatingPanelSystem
             <div class="content-section">
                 <h3>⌨️ Keyboard Shortcuts</h3>
                 <div style="font-size: 12px; line-height: 1.6;">
-                    <p><strong>F4</strong> - Create Project Panel</p>
-                    <p><strong>F5</strong> - Create Agent Panel</p>
-                    <p><strong>F6</strong> - Create MCP Tools Panel</p>
-                    <p><strong>F7</strong> - Create Analytics Panel</p>
+                    <p><strong>F3</strong> - Toggle Welcome Panel</p>
+                    <p><strong>F4</strong> - Toggle Project Panel</p>
+                    <p><strong>F5</strong> - Toggle Agent Panel</p>
+                    <p><strong>F6</strong> - Toggle MCP Tools Panel</p>
+                    <p><strong>F7</strong> - Toggle Analytics Panel</p>
                     <p><strong>ESC</strong> - Cancel current drag operation</p>
                     <p><strong>Drag panels</strong> - Click and drag panel headers</p>
                     <p><strong>Dock panels</strong> - Drag near screen edges to dock</p>
