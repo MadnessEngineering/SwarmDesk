@@ -1,18 +1,229 @@
 // SwarmDesk - Madness Interactive Agent Command Center
 // Scene setup with cyber-punk aesthetic
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000511);
-scene.fog = new THREE.Fog(0x000511, 20, 100);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 8);
+// Global variables
+let scene, camera, renderer;
+let workstations = [];
+let agents = [];
+let raycaster, mouse;
+let selectedObject = null;
+let hoveredObject = null;
+let isStarfieldActive = false;
+let starField = null;
+let dialogueOpen = false;
+let isInitialized = false;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setClearColor(0x000511);
-document.getElementById('canvas-container').appendChild(renderer.domElement);
+// Initialize SwarmDesk workspace - can be called from React or globally
+window.initSwarmDeskWorkspace = function (container)
+{
+    if (isInitialized)
+    {
+        console.log('⚠️ SwarmDesk already initialized');
+        return;
+    }
+
+    // If no container provided, try to find it
+    if (!container)
+    {
+        container = document.getElementById('swarmdesk-workspace');
+    }
+
+    if (!container)
+    {
+        console.error('❌ SwarmDesk container not found');
+        return false;
+    }
+
+    // Get canvas container within the workspace
+    let canvasContainer = container.querySelector('#canvas-container');
+    if (!canvasContainer)
+    {
+        // Create canvas container if it doesn't exist
+        canvasContainer = document.createElement('div');
+        canvasContainer.id = 'canvas-container';
+        canvasContainer.style.width = '100%';
+        canvasContainer.style.height = '100%';
+        container.appendChild(canvasContainer);
+    }
+
+    console.log('🎪 Initializing SwarmDesk 3D workspace...');
+
+    // Initialize Three.js scene
+    initializeScene(canvasContainer);
+
+    // Create environment
+    createEnvironment();
+
+    // Create workstations
+    createWorkstations();
+
+    // Create agents
+    createAgents();
+
+    // Setup controls
+    setupControls();
+
+    // Start animation loop
+    animate();
+
+    isInitialized = true;
+    console.log('✅ SwarmDesk 3D workspace initialized!');
+
+    // Log initial activity
+    if (typeof logActivity === 'function')
+    {
+        logActivity('SwarmDesk', '3D workspace initialized - Welcome to the Madness!');
+        logActivity('Navigation', 'Use WASD to move, E to interact with agents');
+        logActivity('Panels', 'Press F1-F5 for floating panels');
+    }
+
+    return true;
+};
+
+// Initialize Three.js scene
+function initializeScene(container)
+{
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000511);
+    scene.fog = new THREE.Fog(0x000511, 20, 100);
+
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 1.6, 8);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0x000511);
+    container.appendChild(renderer.domElement);
+
+    // Handle resize
+    window.addEventListener('resize', () =>
+    {
+        if (!container) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Initialize raycaster for interactions
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+}
+
+// Create environment (floor, walls, lights)
+function createEnvironment()
+{
+    // Cyber-punk lighting
+    const ambientLight = new THREE.AmbientLight(0x0a0a2e, 0.3);
+    scene.add(ambientLight);
+
+    const neonLight1 = new THREE.DirectionalLight(0x00ff00, 0.8);
+    neonLight1.position.set(10, 20, 10);
+    neonLight1.castShadow = true;
+    scene.add(neonLight1);
+
+    const neonLight2 = new THREE.PointLight(0xff6b35, 1, 50);
+    neonLight2.position.set(-10, 5, -10);
+    scene.add(neonLight2);
+
+    // Floor with grid pattern
+    const floorGeometry = new THREE.PlaneGeometry(60, 60);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.8,
+        roughness: 0.2
+    });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Add grid lines to floor
+    const gridHelper = new THREE.GridHelper(60, 60, 0x00ff00, 0x003300);
+    gridHelper.position.y = 0.01;
+    scene.add(gridHelper);
+
+    // Walls with holographic displays
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0x001122,
+        metalness: 0.6,
+        roughness: 0.4
+    });
+
+    // Back wall
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    backWall.position.set(0, 7.5, -30);
+    backWall.receiveShadow = true;
+    scene.add(backWall);
+
+    // Side walls
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    leftWall.position.set(-30, 7.5, 0);
+    leftWall.rotation.y = Math.PI / 2;
+    scene.add(leftWall);
+
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
+    rightWall.position.set(30, 7.5, 0);
+    rightWall.rotation.y = -Math.PI / 2;
+    scene.add(rightWall);
+
+    // Holographic displays on walls
+    const holoMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff88,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    for (let i = -20; i <= 20; i += 15)
+    {
+        const holo = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), holoMaterial);
+        holo.position.set(i, 8, -29.9);
+        scene.add(holo);
+    }
+
+    // Add MCP debugging wall
+    const mcpWall = createMCPDebuggingWall();
+    scene.add(mcpWall);
+}
+
+// Create workstations
+function createWorkstations()
+{
+    // Create workstations for different projects
+    workstations = [
+        createWorkstation(-15, -15, "EventGhost", "automation"),
+        createWorkstation(0, -15, "DVTTestKit", "git"),
+        createWorkstation(15, -15, "Inventorium", "project"),
+        createWorkstation(-15, 0, "Omnispindle", "browser"),
+        createWorkstation(0, 0, "Swarmonomicon", "haiku"),
+        createWorkstation(15, 0, "MadnessCore", "git"),
+    ];
+
+    workstations.forEach(station => scene.add(station));
+}
+
+// Create agents
+function createAgents()
+{
+    agents = [
+        createAgent("Git Assistant", "Version Control Master", -15, -10, 0x00ff00, 'git', "I manage the sacred repositories. Every commit tells a story of madness and brilliance!"),
+        createAgent("Browser Agent", "Web Automation Specialist", 15, -10, 0x0088ff, 'browser', "I surf the digital waves, automating the web one click at a time. Selenium is my surfboard!"),
+        createAgent("Haiku Generator", "Poetic Code Commentator", -10, 5, 0xff6b35, 'haiku', "Code flows like water\nBugs scatter in the moonlight\nMadness compiles true"),
+        createAgent("Code Jester", "Comic Relief Provider", 10, 5, 0xffd700, 'jester', "Why did the function break up with the variable? No closure! 🤡 I keep spirits high while debugging!"),
+        createAgent("Greeter", "Workshop Tour Guide", 0, 10, 0x00ffff, 'greeter', "Welcome to the Madness Interactive Workshop! I'm here to guide you through our agent ecosystem."),
+        createAgent("Project Manager", "Task Coordinator", 5, -5, 0xff00ff, 'project', "I orchestrate the beautiful chaos, ensuring every task finds its perfect agent match!")
+    ];
+
+    agents.forEach(agent => scene.add(agent));
+}
+
+// Setup controls
+function setupControls()
+{
+    // Movement controls already handled by existing event listeners
+    // Just need to ensure they're connected
+}
 
 // Project README data - the heart of our madness!
 const projectReadmes = {
@@ -78,74 +289,6 @@ const mcpToolkit = {
         "🎯 Intelligent task routing"
     ]
 };
-
-// Cyber-punk lighting
-const ambientLight = new THREE.AmbientLight(0x0a0a2e, 0.3);
-scene.add(ambientLight);
-
-const neonLight1 = new THREE.DirectionalLight(0x00ff00, 0.8);
-neonLight1.position.set(10, 20, 10);
-neonLight1.castShadow = true;
-scene.add(neonLight1);
-
-const neonLight2 = new THREE.PointLight(0xff6b35, 1, 50);
-neonLight2.position.set(-10, 5, -10);
-scene.add(neonLight2);
-
-// Floor with grid pattern
-const floorGeometry = new THREE.PlaneGeometry(60, 60);
-const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x001122,
-    metalness: 0.8,
-    roughness: 0.2
-});
-const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-// Add grid lines to floor
-const gridHelper = new THREE.GridHelper(60, 60, 0x00ff00, 0x003300);
-gridHelper.position.y = 0.01;
-scene.add(gridHelper);
-
-// Walls with holographic displays
-const wallMaterial = new THREE.MeshStandardMaterial({
-    color: 0x001122,
-    metalness: 0.6,
-    roughness: 0.4
-});
-
-// Back wall
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-backWall.position.set(0, 7.5, -30);
-backWall.receiveShadow = true;
-scene.add(backWall);
-
-// Side walls
-const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-leftWall.position.set(-30, 7.5, 0);
-leftWall.rotation.y = Math.PI / 2;
-scene.add(leftWall);
-
-const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), wallMaterial);
-rightWall.position.set(30, 7.5, 0);
-rightWall.rotation.y = -Math.PI / 2;
-scene.add(rightWall);
-
-// Holographic displays on walls
-const holoMaterial = new THREE.MeshBasicMaterial({
-    color: 0x00ff88,
-    transparent: true,
-    opacity: 0.6
-});
-
-for (let i = -20; i <= 20; i += 15)
-{
-    const holo = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), holoMaterial);
-    holo.position.set(i, 8, -29.9);
-    scene.add(holo);
-}
 
 // Agent workstations with project computers
 const stationMaterial = new THREE.MeshStandardMaterial({
@@ -469,459 +612,6 @@ function createMCPDebuggingWall()
     };
 
     return wall;
-}
-
-// Create workstations for different projects
-const workstations = [
-    createWorkstation(-15, -15, "EventGhost", "automation"),
-    createWorkstation(0, -15, "DVTTestKit", "git"),
-    createWorkstation(15, -15, "Inventorium", "project"),
-    createWorkstation(-15, 0, "Omnispindle", "browser"),
-    createWorkstation(0, 0, "Swarmonomicon", "haiku"),
-    createWorkstation(15, 0, "MadnessCore", "git"),
-];
-
-workstations.forEach(station => scene.add(station));
-
-// 🚀 MADNESS ENHANCEMENT: Add MCP Debugging Wall to the scene!
-const mcpWall = createMCPDebuggingWall();
-scene.add(mcpWall);
-
-// Agent characters
-const agents = [];
-
-function createAgent(name, role, x, z, color, agentType, personality)
-{
-    const group = new THREE.Group();
-
-    // Body with cyberpunk aesthetic
-    const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 0.8, 8);
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        metalness: 0.3,
-        roughness: 0.7
-    });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    group.add(body);
-
-    // Head with holographic glow
-    const headGeometry = new THREE.SphereGeometry(0.25, 12, 8);
-    const headMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a2a2a,
-        metalness: 0.8,
-        roughness: 0.2
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.25;
-    head.castShadow = true;
-    group.add(head);
-
-    // Holographic interface around head
-    const haloGeometry = new THREE.RingGeometry(0.3, 0.35, 16);
-    const haloMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.6,
-        side: THREE.DoubleSide
-    });
-    const halo = new THREE.Mesh(haloGeometry, haloMaterial);
-    halo.position.y = 1.25;
-    halo.rotation.x = Math.PI / 2;
-    group.add(halo);
-
-    // Arms with data connectors
-    const armGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.6, 6);
-    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-0.3, 0.7, 0);
-    leftArm.rotation.z = Math.PI / 6;
-    group.add(leftArm);
-
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    rightArm.position.set(0.3, 0.7, 0);
-    rightArm.rotation.z = -Math.PI / 6;
-    group.add(rightArm);
-
-    // Legs
-    const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 6);
-    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.15, 0.4, 0);
-    group.add(leftLeg);
-
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    rightLeg.position.set(0.15, 0.4, 0);
-    group.add(rightLeg);
-
-    // Name and role label
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
-    const context = canvas.getContext('2d');
-    context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    context.fillRect(0, 0, 256, 64);
-    context.fillStyle = `rgb(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255})`;
-    context.font = 'bold 16px Courier New';
-    context.textAlign = 'center';
-    context.fillText(name, 128, 20);
-    context.font = '12px Courier New';
-    context.fillText(role, 128, 35);
-    context.font = '10px Courier New';
-    context.fillText(`[${agentType.toUpperCase()}]`, 128, 50);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    const labelMaterial = new THREE.SpriteMaterial({ map: texture });
-    const label = new THREE.Sprite(labelMaterial);
-    label.position.y = 1.8;
-    label.scale.set(2, 0.5, 1);
-    group.add(label);
-
-    group.position.set(x, 0, z);
-    group.userData = {
-        name,
-        role,
-        agentType,
-        personality,
-        conversations: [],
-        initialPosition: new THREE.Vector3(x, 0, z),
-        targetPosition: new THREE.Vector3(x, 0, z),
-        moveTimer: 0,
-        isDancing: false,
-        isActive: Math.random() > 0.5,
-        halo: halo,
-        leftArm: leftArm,
-        rightArm: rightArm,
-        color: color
-    };
-
-    agents.push(group);
-    return group;
-}
-
-// Create Swarmonomicon agents
-const daneAgent = createAgent('D.Edens', 'Mad Tinkerer', -10, -8, 0xff6b35, 'orchestrator', 'chaotic_genius');
-const gitAgent = createAgent('Git Assistant', 'Code Shepherd', -5, -8, 0x00ff00, 'git', 'methodical_precise');
-const browserAgent = createAgent('Browser Agent', 'Web Crawler', 0, -8, 0x0088ff, 'browser', 'curious_explorer');
-const haikuAgent = createAgent('Haiku Bot', 'Digital Poet', 5, -8, 0xff6b35, 'haiku', 'zen_creative');
-const greeterAgent = createAgent('Greeter', 'Interface Guide', 10, -8, 0x00ffff, 'greeter', 'welcoming_efficient');
-const projectAgent = createAgent('Project Manager', 'System Architect', 15, -8, 0xff00ff, 'project', 'organized_visionary');
-
-scene.add(daneAgent, gitAgent, browserAgent, haikuAgent, greeterAgent, projectAgent);
-
-// Floating particles for ambience
-const particleGeometry = new THREE.BufferGeometry();
-const particleCount = 200;
-const positions = new Float32Array(particleCount * 3);
-
-for (let i = 0; i < particleCount * 3; i += 3)
-{
-    positions[i] = (Math.random() - 0.5) * 100;
-    positions[i + 1] = Math.random() * 20;
-    positions[i + 2] = (Math.random() - 0.5) * 100;
-}
-
-particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-const particleMaterial = new THREE.PointsMaterial({
-    color: 0x00ff88,
-    size: 0.1,
-    transparent: true,
-    opacity: 0.6
-});
-
-const particles = new THREE.Points(particleGeometry, particleMaterial);
-scene.add(particles);
-
-// Enhanced interaction system variables
-let nearReadmePanel = null;
-let nearMCPWall = false;
-let currentInteractiveObject = null;
-
-// Enhanced controls with new madness features!
-const controls = {
-    moveForward: false,
-    moveBackward: false,
-    moveLeft: false,
-    moveRight: false,
-    canJump: false,
-    chaos: false
-};
-
-const keys = {
-    KeyW: 'moveForward',
-    KeyS: 'moveBackward',
-    KeyA: 'moveLeft',
-    KeyD: 'moveRight',
-    Space: 'chaos'
-};
-
-// Velocity for smooth movement
-const velocity = new THREE.Vector3();
-const direction = new THREE.Vector3();
-
-// Mouse controls
-let mouseMovement = { x: 0, y: 0 };
-let euler = new THREE.Euler(0, 0, 0, 'YXZ');
-let pointerLocked = false;
-
-// Current agent being interacted with
-let currentAgent = null;
-let nearAgent = null;
-let dialogueOpen = false; // NEW: Unified state for any dialogue/panel
-let activePanelType = null; // NEW: Tracks the type of open panel ('agent', 'readme', 'mcp')
-
-// Starfield toggle setting
-let starfieldEnabled = true;
-
-function toggleStarfield()
-{
-    starfieldEnabled = !starfieldEnabled;
-    particles.visible = starfieldEnabled;
-    const btn = document.getElementById('starfieldToggleBtn');
-    if (btn) btn.textContent = starfieldEnabled ? 'Disable Starfield' : 'Enable Starfield';
-}
-
-// Add a button to the DOM for toggling starfield
-window.addEventListener('DOMContentLoaded', () =>
-{
-    const btn = document.createElement('button');
-    btn.id = 'starfieldToggleBtn';
-    btn.textContent = 'Disable Starfield';
-    btn.style.position = 'fixed';
-    btn.style.top = '10px';
-    btn.style.right = '10px';
-    btn.style.zIndex = 9999;
-    btn.style.background = '#111';
-    btn.style.color = '#0f0';
-    btn.style.border = '2px solid #0f0';
-    btn.style.borderRadius = '8px';
-    btn.style.padding = '8px 16px';
-    btn.style.cursor = 'pointer';
-    btn.onclick = toggleStarfield;
-    document.body.appendChild(btn);
-});
-
-// 🎪 NEW MADNESS: Enhanced interaction checking
-function checkInteractions()
-{
-    const playerPosition = camera.position;
-
-    // Check for nearby workstations with README panels
-    nearReadmePanel = null;
-    workstations.forEach(station =>
-    {
-        const distance = playerPosition.distanceTo(station.position);
-        if (distance < 4)
-        {
-            nearReadmePanel = station;
-        }
-    });
-
-    // Check for MCP debugging wall
-    const mcpDistance = playerPosition.distanceTo(mcpWall.position);
-    nearMCPWall = mcpDistance < 6;
-
-    // Check for nearby agents (existing functionality)
-    nearAgent = null;
-    agents.forEach(agent =>
-    {
-        const distance = playerPosition.distanceTo(agent.position);
-        if (distance < 3)
-        {
-            nearAgent = agent;
-        }
-    });
-
-    // Update interaction prompt
-    updateInteractionPrompt();
-}
-
-// 🚀 NEW MADNESS: Enhanced interaction prompt system
-function updateInteractionPrompt()
-{
-    const prompt = document.getElementById('interaction-prompt');
-
-    if (nearAgent && !document.getElementById('dialogue-box').style.display === 'block')
-    {
-        prompt.textContent = `Press E to interface with ${nearAgent.userData.name}`;
-        prompt.style.display = 'block';
-    } else if (nearReadmePanel)
-    {
-        prompt.textContent = `Press E to view ${nearReadmePanel.userData.projectName} README details`;
-        prompt.style.display = 'block';
-    } else if (nearMCPWall)
-    {
-        prompt.textContent = 'Press M to access MCP Debugging Toolkit';
-        prompt.style.display = 'block';
-    } else
-    {
-        prompt.style.display = 'none';
-    }
-}
-
-// 🛠️ NEW MADNESS: Show README details
-function showReadmeDetails(station)
-{
-    const readmeData = station.userData.readmeData;
-    if (!readmeData) return;
-    dialogueOpen = true; // Halt movement
-    activePanelType = 'readme'; // Set panel type
-
-    // Create enhanced dialogue for README
-    const dialogueBox = document.getElementById('dialogue-box');
-    const dialogueName = document.getElementById('dialogue-name');
-    const dialogueContent = document.getElementById('dialogue-content');
-    const dialogueOptions = document.getElementById('dialogue-options');
-
-    dialogueName.innerHTML = `📖 ${readmeData.title} - Project Documentation`;
-
-    dialogueContent.innerHTML = `
-        <div style="color: #00ff88; margin-bottom: 15px;">
-            <strong>Description:</strong><br>
-            ${readmeData.description}
-        </div>
-        
-        <div style="color: #0088ff; margin-bottom: 15px;">
-            <strong>🚀 Key Features:</strong><br>
-            ${readmeData.features.map(feature => `• ${feature}`).join('<br>')}
-        </div>
-        
-        <div style="color: #ff6b35; margin-bottom: 15px;">
-            <strong>Current Status:</strong> ${readmeData.status}
-        </div>
-        
-        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 20px;">
-            💡 This project is part of the Madness Interactive ecosystem!
-        </div>
-    `;
-
-    dialogueOptions.innerHTML = `
-        <div class="dialogue-option" onclick="closeDialogue()">
-            🔙 Back to Workshop
-        </div>
-        <div class="dialogue-option" onclick="exploreProject('${station.userData.projectName}')">
-            🔍 Explore Project Structure
-        </div>
-        <div class="dialogue-option" onclick="viewProjectTodos('${station.userData.projectName}')">
-            📝 View Project Todos
-        </div>
-    `;
-
-    dialogueBox.style.display = 'block';
-}
-
-// 🔧 NEW MADNESS: Show MCP debugging interface
-function showMCPDebugging()
-{
-    dialogueOpen = true; // Halt movement
-    activePanelType = 'mcp'; // Set panel type
-    const dialogueBox = document.getElementById('dialogue-box');
-    const dialogueName = document.getElementById('dialogue-name');
-    const dialogueContent = document.getElementById('dialogue-content');
-    const dialogueOptions = document.getElementById('dialogue-options');
-
-    dialogueName.innerHTML = '🛠️ MCP Debugging Toolkit - Madness Control Protocol';
-
-    dialogueContent.innerHTML = `
-        <div style="color: #00ff88; margin-bottom: 15px;">
-            <strong>🚀 Welcome to the MCP Debugging Toolkit!</strong><br>
-            The nerve center of our agent swarm coordination system.
-        </div>
-        
-        <div style="color: #0088ff; margin-bottom: 10px;">
-            <strong>Available MCP Tools:</strong>
-        </div>
-
-        ${Object.entries(mcpToolkit).map(([category, tools]) => `
-            <div style="margin-bottom: 15px;">
-                <div style="color: #ff6b35; font-weight: bold;">🔧 ${category}:</div>
-                ${tools.map(tool => `<div style="color: #00ff00; margin-left: 20px; font-size: 12px;">• ${tool}</div>`).join('')}
-            </div>
-        `).join('')}
-        
-        <div style="color: #ffff00; font-size: 12px; text-align: center; margin-top: 15px;">
-            💡 Real-time MCP integration active - all agents connected!
-        </div>
-    `;
-
-    dialogueOptions.innerHTML = `
-        <div class="dialogue-option" onclick="closeDialogue()">
-            🔙 Back to Workshop
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('list_projects')">
-            📂 List All Projects
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('check_todos')">
-            📝 Check Active Todos
-        </div>
-        <div class="dialogue-option" onclick="runMCPCommand('system_status')">
-            ⚡ System Status Check
-        </div>
-    `;
-
-    dialogueBox.style.display = 'block';
-}
-
-// 💡 NEW MADNESS: Project exploration functions
-function exploreProject(projectName)
-{
-    createFloatingText(`🔍 Exploring ${projectName}...`, camera.position);
-    console.log(`Exploring project: ${projectName}`);
-    // TODO: Could integrate with actual file browsing
-}
-
-function viewProjectTodos(projectName)
-{
-    createFloatingText(`📝 Loading ${projectName} todos...`, camera.position);
-    console.log(`Viewing todos for: ${projectName}`);
-    // TODO: Integrate with actual MCP todo system
-}
-
-function runMCPCommand(command)
-{
-    createFloatingText(`🛠️ Running MCP: ${command}`, camera.position);
-    console.log(`MCP Command: ${command}`);
-    // TODO: Integrate with actual MCP system
-}
-
-// Floating text effect
-function createFloatingText(text, worldPos)
-{
-    const div = document.createElement('div');
-    div.className = 'floating-text'; // Use a class for styling
-    div.textContent = text;
-    document.body.appendChild(div);
-
-    if (worldPos && typeof worldPos.clone === 'function')
-    {
-        // Positioned in 3D space
-        const screenPos = worldPos.clone();
-        screenPos.project(camera);
-        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-        const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-        div.style.left = x + 'px';
-        div.style.top = y + 'px';
-        div.style.transform = 'translate(-50%, -50%)'; // Center on the coordinate
-    } else
-    {
-        // Default to center of screen if no worldPos
-        console.warn(`[createFloatingText] No worldPos provided for "${text}". Defaulting to screen center.`);
-        div.style.left = '50%';
-        div.style.top = '50%';
-        div.style.transform = 'translate(-50%, -50%)';
-    }
-
-    // Animate and remove
-    setTimeout(() =>
-    {
-        div.style.opacity = '0';
-        div.style.transform += ' translateY(-20px)';
-    }, 1800);
-    setTimeout(() => div.remove(), 2000);
 }
 
 // 🚀 MADNESS ENHANCED: Animation loop with interactive features
