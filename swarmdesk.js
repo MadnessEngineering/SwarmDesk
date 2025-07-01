@@ -892,6 +892,39 @@ setTimeout(() =>
     console.log('🌟 Pixely stars initialized and ready for animation!');
 }, 100);
 
+// 🌟 ENHANCED 3-LAYER STARFIELD TOGGLE SYSTEM
+let starfieldEnabled = true;
+
+function toggleStarfield()
+{
+    starfieldEnabled = !starfieldEnabled;
+
+    // Toggle all three cosmic layers
+    if (starField) starField.visible = starfieldEnabled;
+    if (particles) particles.visible = starfieldEnabled;
+    if (pixelStars) pixelStars.visible = starfieldEnabled;
+
+    // Update button text if button exists
+    const btn = document.querySelector('.starfield-toggle');
+    if (btn)
+    {
+        btn.textContent = starfieldEnabled ? '🌟 Disable Starfield' : '🌟 Enable Starfield';
+    }
+
+    // Create floating text feedback
+    const statusText = starfieldEnabled ? 'COSMIC STARFIELD ENABLED' : 'STARFIELD DISABLED';
+    createFloatingText(`🌟 ${statusText} 🌟`, { x: 0, y: 10, z: 0 });
+
+    console.log(`🌟 3-Layer Starfield ${starfieldEnabled ? 'ENABLED' : 'DISABLED'}:`, {
+        distantStars: starField?.visible,
+        ambientParticles: particles?.visible,
+        pixelyStars: pixelStars?.visible
+    });
+}
+
+// Make toggle function globally available
+window.toggleStarfield = toggleStarfield;
+
 // 🌠 Shooting stars (occasional streaks)
 const shootingStars = [];
 function createShootingStar()

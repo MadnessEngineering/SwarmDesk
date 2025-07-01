@@ -12,14 +12,213 @@
             font-family: 'Courier New', monospace;
             background: #000;
             color: #0f0;
+            position: relative;
         }
 
-        #canvas-container {
+        /* --- DASHBOARD CONTAINER SYSTEM --- */
+        .dashboard-container {
+            display: flex;
             width: 100vw;
             height: 100vh;
             position: relative;
         }
 
+        /* --- SIDEBAR STYLES --- */
+        .left-sidebar, .right-sidebar {
+            width: 350px;
+            background: linear-gradient(135deg, #001122 0%, #002244 100%);
+            border-right: 2px solid #00ff88;
+            box-shadow: 2px 0 20px rgba(0, 255, 136, 0.3);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            position: absolute;
+            height: 100%;
+        }
+
+        .left-sidebar {
+            left: 0;
+        }
+
+        .right-sidebar {
+            right: 0;
+            background: linear-gradient(135deg, #220011 0%, #440022 100%);
+            border-left: 2px solid #ff6b35;
+            box-shadow: -2px 0 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .left-sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .right-sidebar.collapsed {
+            transform: translateX(100%);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .left-toggle { 
+            left: 350px;
+            transform: translate(-50%, -50%);
+            border-color: #00ff88; 
+            color: #00ff88; 
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+        }
+
+        .right-toggle { 
+            right: 350px;
+            transform: translate(50%, -50%);
+            border-color: #ff6b35; 
+            color: #ff6b35; 
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+        }
+
+        .sidebar-toggle:hover { 
+            box-shadow: 0 0 15px currentColor; 
+            transform: translateY(-50%) scale(1.1); 
+        }
+
+        /* --- SIDEBAR CONTENT STYLES --- */
+        .sidebar-section { 
+            padding: 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+
+        .sidebar-section h3 { 
+            margin: 0 0 15px 0; 
+            color: #ff6b35; 
+            text-shadow: 0 0 10px currentColor; 
+            font-size: 18px; 
+        }
+
+        .sidebar-section.projects h3 { color: #00ff88; }
+        .sidebar-section.mcp h3 { color: #0088ff; }
+        .sidebar-section.chat h3 { color: #ff6b35; }
+        .sidebar-section.analytics h3 { color: #ffaa00; }
+
+        .project-card { 
+            background: rgba(0,255,136,0.1); 
+            border: 1px solid #00ff88; 
+            border-radius: 8px; 
+            padding: 12px; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+        }
+
+        .project-card:hover { 
+            background: rgba(0,255,136,0.2); 
+            box-shadow: 0 0 10px rgba(0,255,136,0.5); 
+            transform: translateX(5px); 
+        }
+
+        .project-card h4 { 
+            margin: 0 0 8px 0; 
+            color: #00ff88; 
+            font-size: 14px; 
+        }
+
+        .project-card p { 
+            margin: 0; 
+            font-size: 12px; 
+            opacity: 0.8; 
+            line-height: 1.4; 
+        }
+
+        .mcp-tool { 
+            background: rgba(0,136,255,0.1); 
+            border: 1px solid #0088ff; 
+            border-radius: 6px; 
+            padding: 8px 12px; 
+            margin: 4px 0; 
+            cursor: pointer; 
+            font-size: 12px; 
+            transition: all 0.3s ease; 
+        }
+
+        .mcp-tool:hover { 
+            background: rgba(0,136,255,0.2); 
+            box-shadow: 0 0 8px rgba(0,136,255,0.5); 
+        }
+
+        .chat-container { 
+            height: 300px; 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid #ff6b35; 
+            border-radius: 8px; 
+            padding: 10px; 
+            overflow-y: auto; 
+            margin-bottom: 10px; 
+        }
+
+        .chat-input { 
+            width: 100%; 
+            padding: 8px; 
+            background: rgba(0,0,0,0.7); 
+            border: 1px solid #ff6b35; 
+            border-radius: 6px; 
+            color: #ff6b35; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            box-sizing: border-box; 
+        }
+
+        .chat-input:focus { 
+            outline: none; 
+            box-shadow: 0 0 8px rgba(255,107,53,0.5); 
+        }
+
+        .analytics-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 0; 
+            border-bottom: 1px solid rgba(255,170,0,0.2); 
+        }
+
+        .analytics-item:last-child { border-bottom: none; }
+
+        .analytics-label { 
+            color: #ffaa00; 
+            font-size: 12px; 
+        }
+
+        .analytics-value { 
+            color: #fff; 
+            font-weight: bold; 
+            font-size: 14px; 
+        }
+
+        /* --- CENTRAL CANVAS CONTAINER --- */
+        .swarmdesk-container {
+            flex: 1;
+            position: relative;
+            background: #000511;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* --- ORIGINAL UI OVERLAY STYLES --- */
         #ui-overlay {
             position: absolute;
             top: 20px;
@@ -32,7 +231,40 @@
             backdrop-filter: blur(10px);
             max-width: 350px;
             box-shadow: 0 0 20px #0f0;
+            z-index: 999;
         }
+
+        .agent-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+            color: #0f0;
+            min-width: 200px;
+            box-shadow: 0 0 20px #0f0;
+            z-index: 999;
+        }
+
+        .agent-status h3 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+            text-shadow: 0 0 10px #ff6b35;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .status-active { color: #0f0; }
+        .status-idle { color: #ff0; }
+        .status-error { color: #f00; }
 
         #dialogue-box {
             position: absolute;
@@ -49,6 +281,7 @@
             display: none;
             box-shadow: 0 0 30px #0f0;
             backdrop-filter: blur(20px);
+            z-index: 1002;
         }
 
         #dialogue-box h3 {
@@ -123,6 +356,37 @@
             box-shadow: 0 0 10px #0f0;
         }
 
+        #interaction-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #0f0;
+            display: none;
+            font-size: 14px;
+            box-shadow: 0 0 20px #0f0;
+            z-index: 1002;
+        }
+
+        .floating-text {
+            position: absolute;
+            color: #ff6b35;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 2s ease-out forwards;
+            text-shadow: 0 0 10px #ff6b35;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+
         .loading {
             display: inline-block;
             width: 20px;
@@ -144,67 +408,6 @@
             text-shadow: 0 0 5px #0f0;
         }
 
-        #interaction-prompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #0f0;
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: 1px solid #0f0;
-            display: none;
-            font-size: 14px;
-            box-shadow: 0 0 20px #0f0;
-        }
-
-        .floating-text {
-            position: absolute;
-            color: #ff6b35;
-            font-size: 24px;
-            font-weight: bold;
-            pointer-events: none;
-            animation: floatUp 2s ease-out forwards;
-            text-shadow: 0 0 10px #ff6b35;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
-        }
-
-        .agent-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #0f0;
-            border-radius: 10px;
-            padding: 15px;
-            color: #0f0;
-            min-width: 200px;
-            box-shadow: 0 0 20px #0f0;
-        }
-
-        .agent-status h3 {
-            margin: 0 0 10px 0;
-            color: #ff6b35;
-            text-shadow: 0 0 10px #ff6b35;
-        }
-
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            padding: 3px 0;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
-        }
-
-        .status-active { color: #0f0; }
-        .status-idle { color: #ff0; }
-        .status-error { color: #f00; }
-
         .glitch {
             animation: glitch 0.3s infinite;
         }
@@ -216,53 +419,287 @@
             75% { text-shadow: 0 2px #f0f, 0 -2px #0ff; }
             100% { text-shadow: 0 0 5px #0f0; }
         }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 1200px) { 
+            .left-sidebar, .right-sidebar { width: 300px; } 
+        }
+
+        @media (max-width: 900px) { 
+            .left-sidebar, .right-sidebar { width: 250px; } 
+        }
+
+        @media (max-width: 768px) { 
+            .left-sidebar, .right-sidebar { 
+                position: absolute; 
+                height: 100%; 
+                z-index: 2000; 
+            } 
+            .left-sidebar { left: 0; } 
+            .right-sidebar { right: 0; } 
+        }
+
+        /* --- UTILITY ANIMATIONS --- */
+        .glow-effect { 
+            animation: glow 2s ease-in-out infinite; 
+        }
+
+        @keyframes glow { 
+            0%,100%{box-shadow:0 0 5px currentColor;} 
+            50%{box-shadow:0 0 20px currentColor;} 
+        }
+
+        .loading-indicator { 
+            display: inline-block; 
+            width: 16px; 
+            height: 16px; 
+            border: 2px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; 
+            border-top: 2px solid currentColor; 
+            animation: spin 1s linear infinite; 
+        }
+
+        /* --- STARFIELD TOGGLE BUTTON --- */
+        .starfield-toggle {
+            position: absolute;
+            top: 10px;
+            right: 50%;
+            transform: translateX(50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0088ff;
+            color: #0088ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .starfield-toggle:hover {
+            background: rgba(0, 136, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+        }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
+    <div class="dashboard-container">
+        <!-- 📋 LEFT SIDEBAR: Project Management -->
+        <div class="left-sidebar" id="leftSidebar">
+            <div class="sidebar-section projects">
+                <h3>🚀 Projects</h3>
+                <div class="project-card" onclick="selectProject('EventGhost')">
+                    <h4>🎭 EventGhost-Rust</h4>
+                    <p>Automation system - Active Development</p>
+                </div>
+                <div class="project-card" onclick="selectProject('DVTTestKit')">
+                    <h4>🧪 DVT TestKit</h4>
+                    <p>Testing framework - Maintenance Mode</p>
+                </div>
+                <div class="project-card" onclick="selectProject('Inventorium')">
+                    <h4>📦 Inventorium</h4>
+                    <p>Asset management - Production Ready</p>
+                </div>
+                <div class="project-card" onclick="selectProject('Omnispindle')">
+                    <h4>🌀 Omnispindle</h4>
+                    <p>MCP server - Continuous Evolution</p>
+                </div>
+                <div class="project-card" onclick="selectProject('Swarmonomicon')">
+                    <h4>🐝 Swarmonomicon</h4>
+                    <p>Agent swarm - Experimental Madness</p>
+                </div>
+            </div>
+            <div class="sidebar-section mcp">
+                <h3>🔧 MCP Tools</h3>
+                <div class="mcp-tool" onclick="runMCPTool('list_projects')">📂 List Projects</div>
+                <div class="mcp-tool" onclick="runMCPTool('add_todo')">📝 Add Todo</div>
+                <div class="mcp-tool" onclick="runMCPTool('query_todos')">🔍 Query Todos</div>
+                <div class="mcp-tool" onclick="runMCPTool('check_status')">⚡ System Status</div>
+                <div class="mcp-tool" onclick="runMCPTool('analytics')">📊 Analytics</div>
+            </div>
+            <div class="sidebar-section current-project">
+                <h3>📋 Current Project</h3>
+                <div id="currentProjectDetails">
+                    <p style="opacity: 0.6; font-size: 12px;">Select a project or workstation...</p>
+                </div>
+            </div>
+        </div>
 
-    <div id="ui-overlay">
-        <h2 class="glitch">🚀 SwarmDesk Control Center</h2>
-        <p style="font-size: 16px; color: #ff6b35;">🤖 Agent Command Interface</p>
-        <p>Use WASD to navigate the swarm</p>
-        <p>Arrow keys or mouse to look around</p>
-        <p>Press E to interface with agents</p>
-        <p><strong>📖 Press R near workstations for README details</strong></p>
-        <p><strong>🐙 Press G near workstations to open GitHub repo</strong></p>
-        <p><strong>🛠️ Press M near wall for MCP debugging toolkit</strong></p>
-        <p>Press SPACE for chaos dance mode</p>
-        <p>Press ESC to disconnect/release</p>
-        <p><strong style="color: #ff6b35;">⌨️ Press TAB to toggle Control Center</strong></p>
-        <p><strong style="color: #ff6b35;">⌨️ Press = to toggle Swarm Status</strong></p>
-        <p class="instruction">💡 Direct the AI swarm through conversation!</p>
-        <p class="instruction">🎪 Explore interactive project displays!</p>
-    </div>
+        <!-- 🎮 CENTRAL SWARMDESK WITH PRESERVED THREE.JS -->
+        <div class="swarmdesk-container">
+            <div id="canvas-container"></div>
 
-    <div class="agent-status">
-        <h3>🤖 Swarm Status</h3>
-        <div id="agent-status-list">
-            <div class="status-item"><span>Git Assistant:</span><span class="status-active">ACTIVE</span></div>
-            <div class="status-item"><span>Browser Agent:</span><span class="status-idle">IDLE</span></div>
-            <div class="status-item"><span>Haiku Generator:</span><span class="status-active">COMPOSING</span></div>
-            <div class="status-item"><span>Greeter Agent:</span><span class="status-active">WELCOMING</span></div>
-            <div class="status-item"><span>Project Manager:</span><span class="status-idle">STANDBY</span></div>
+            <!-- SwarmDesk UI Overlay -->
+            <div id="ui-overlay">
+                <h2 class="glitch">🚀 SwarmDesk Control Center</h2>
+                <p style="font-size: 16px; color: #ff6b35;">🤖 Agent Command Interface</p>
+                <p>Use WASD to navigate the swarm</p>
+                <p>Arrow keys or mouse to look around</p>
+                <p>Press E to interface with agents</p>
+                <p><strong>📖 Press R near workstations for README details</strong></p>
+                <p><strong>🐙 Press G near workstations to open GitHub repo</strong></p>
+                <p><strong>🛠️ Press M near wall for MCP debugging toolkit</strong></p>
+                <p>Press SPACE for chaos dance mode</p>
+                <p>Press ESC to disconnect/release</p>
+                <p><strong style="color: #ff6b35;">⌨️ Press TAB to toggle Control Center</strong></p>
+                <p><strong style="color: #ff6b35;">⌨️ Press = to toggle Swarm Status</strong></p>
+                <p class="instruction">💡 Direct the AI swarm through conversation!</p>
+                <p class="instruction">🎪 Explore interactive project displays!</p>
+            </div>
+
+            <!-- Agent Status Panel -->
+            <div class="agent-status">
+                <h3>🤖 Swarm Status</h3>
+                <div id="agent-status-list">
+                    <div class="status-item"><span>Git Assistant:</span><span class="status-active">ACTIVE</span></div>
+                    <div class="status-item"><span>Browser Agent:</span><span class="status-idle">IDLE</span></div>
+                    <div class="status-item"><span>Haiku Generator:</span><span class="status-active">COMPOSING</span></div>
+                    <div class="status-item"><span>Greeter Agent:</span><span class="status-active">WELCOMING</span></div>
+                    <div class="status-item"><span>Project Manager:</span><span class="status-idle">STANDBY</span></div>
+                </div>
+            </div>
+
+            <!-- 3-Layer Starfield Toggle -->
+            <div class="starfield-toggle" onclick="toggleStarfield()">
+                🌟 Toggle Starfield
+            </div>
+
+            <!-- Dialogue Box -->
+            <div id="dialogue-box">
+                <h3 id="dialogue-name">Agent Name</h3>
+                <div id="dialogue-content">Content</div>
+                <div id="dialogue-options"></div>
+                <div id="custom-question-container">
+                    <p style="margin: 5px 0; font-size: 14px; opacity: 0.8; text-align: center;">━━━ Or send direct command ━━━</p>
+                    <input type="text" id="custom-question-input" placeholder="Enter command: e.g., 'commit current changes' or 'browse to github.com'">
+                    <button id="custom-question-submit">Execute Command</button>
+                </div>
+            </div>
+
+            <div id="interaction-prompt"></div>
+        </div>
+
+        <!-- 💬 RIGHT SIDEBAR: Communication & Analytics -->
+        <div class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-section chat">
+                <h3>💬 AI Chat Assistant</h3>
+                <div class="chat-container" id="chatContainer">
+                    <div style="color:#ff6b35;font-size:12px;margin-bottom:10px;">🤖 AI Assistant ready to help with your projects!</div>
+                </div>
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about your projects..." onkeypress="handleChatInput(event)">
+            </div>
+            <div class="sidebar-section analytics">
+                <h3>📊 Analytics</h3>
+                <div class="analytics-item"><span class="analytics-label">Active Projects:</span><span class="analytics-value" id="activeProjects">5</span></div>
+                <div class="analytics-item"><span class="analytics-label">Pending Todos:</span><span class="analytics-value" id="pendingTodos">23</span></div>
+                <div class="analytics-item"><span class="analytics-label">Completed Today:</span><span class="analytics-value" id="completedToday">7</span></div>
+                <div class="analytics-item"><span class="analytics-label">Agents Active:</span><span class="analytics-value" id="activeAgents">6</span></div>
+                <div class="analytics-item"><span class="analytics-label">System Load:</span><span class="analytics-value" id="systemLoad">42%</span></div>
+            </div>
+            <div class="sidebar-section activity">
+                <h3>📋 Recent Activity</h3>
+                <div id="activityLog" style="height:200px;overflow-y:auto;font-size:11px;"></div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR TOGGLES -->
+        <div class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')">
+            <span id="leftToggleIcon">◀</span>
+        </div>
+        <div class="sidebar-toggle right-toggle" onclick="toggleSidebar('right')">
+            <span id="rightToggleIcon">▶</span>
         </div>
     </div>
 
-    <div id="dialogue-box">
-        <h3 id="dialogue-name">Agent Name</h3>
-        <div id="dialogue-content">Content</div>
-        <div id="dialogue-options"></div>
-        <div id="custom-question-container">
-            <p style="margin: 5px 0; font-size: 14px; opacity: 0.8; text-align: center;">━━━ Or send direct command ━━━</p>
-            <input type="text" id="custom-question-input" placeholder="Enter command: e.g., 'commit current changes' or 'browse to github.com'">
-            <button id="custom-question-submit">Execute Command</button>
-        </div>
-    </div>
-
-    <div id="interaction-prompt"></div>
-
+    <!-- 🎪 SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="swarmdesk.js"></script>
+    <script>
+        // === DASHBOARD INTEGRATION FUNCTIONS ===
+
+        function toggleSidebar(side) {
+            const sidebar = document.getElementById(side === 'left' ? 'leftSidebar' : 'rightSidebar');
+            const toggle = document.querySelector(side === 'left' ? '.left-toggle' : '.right-toggle');
+            const icon = document.getElementById(side === 'left' ? 'leftToggleIcon' : 'rightToggleIcon');
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+
+            if (side === 'left') {
+                icon.textContent = isCollapsed ? '▶' : '◀';
+                toggle.style.left = isCollapsed ? '0px' : '350px';
+            } else {
+                icon.textContent = isCollapsed ? '◀' : '▶';
+                toggle.style.right = isCollapsed ? '0px' : '350px';
+            }
+        }
+
+        function selectProject(projectName) {
+            const detailsDiv = document.getElementById('currentProjectDetails');
+            detailsDiv.innerHTML = `
+                <h4 style="color: #00ff88; margin: 0 0 8px 0;">${projectName}</h4>
+                <p style="font-size: 12px; opacity: 0.8;">Selected project workspace</p>
+                <div style="margin-top: 10px;">
+                    <button onclick="exploreProject('${projectName}')" style="background: rgba(0,255,136,0.2); border: 1px solid #00ff88; color: #00ff88; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin: 2px;">🔍 Explore</button>
+                    <button onclick="viewProjectTodos('${projectName}')" style="background: rgba(0,136,255,0.2); border: 1px solid #0088ff; color: #0088ff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin: 2px;">📝 Todos</button>
+                </div>
+            `;
+        }
+
+        function runMCPTool(tool) {
+            const activityLog = document.getElementById('activityLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `<div style="margin-bottom: 8px; padding: 6px; background: rgba(0,136,255,0.1); border-radius: 4px;">
+                <span style="color: #0088ff;">[${timestamp}]</span> 
+                <span style="color: #fff;">MCP Tool:</span> 
+                <span style="color: #ffaa00;">${tool}</span>
+            </div>`;
+            activityLog.innerHTML = logEntry + activityLog.innerHTML;
+            
+            // Scroll to top
+            activityLog.scrollTop = 0;
+        }
+
+        function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const message = input.value.trim();
+                if (message) {
+                    const chatContainer = document.getElementById('chatContainer');
+                    const timestamp = new Date().toLocaleTimeString();
+                    
+                    // Add user message
+                    chatContainer.innerHTML += `
+                        <div style="margin-bottom: 8px; text-align: right;">
+                            <span style="color: #00ff88; font-size: 11px;">[${timestamp}] You:</span><br>
+                            <span style="color: #fff; font-size: 12px;">${message}</span>
+                        </div>
+                    `;
+                    
+                    // Add AI response
+                    setTimeout(() => {
+                        chatContainer.innerHTML += `
+                            <div style="margin-bottom: 8px;">
+                                <span style="color: #ff6b35; font-size: 11px;">[${new Date().toLocaleTimeString()}] AI:</span><br>
+                                <span style="color: #0ff; font-size: 12px;">🤖 Processing "${message}" through the agent swarm...</span>
+                            </div>
+                        `;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }, 500);
+                    
+                    input.value = '';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }
+        }
+
+        // Add starfield toggle function (connects to swarmdesk.js)
+        function toggleStarfield() {
+            // This function will be enhanced by swarmdesk.js
+            console.log('🌟 Starfield toggle requested!');
+        }
+
+        // === INITIALIZATION ===
+        console.log('🎪 Mad Tinker Dashboard initialized with 3-layer cosmic starfield!');
+    </script>
 </body>
 </html>
