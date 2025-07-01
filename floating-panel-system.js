@@ -527,15 +527,28 @@ class FloatingPanelSystem
         const panel = this.panels.get(panelId);
         if (!panel) return;
 
-        // Undock if needed
-        if (panel.isDocked)
+        // Check if this is a singleton panel (has panelType)
+        if (panel.config && panel.config.panelType)
         {
-            this.undockPanel(panelId);
+            // For singleton panels, just hide instead of destroy
+            panel.element.style.display = 'none';
+            console.log(`🔄 Hiding singleton panel: ${panel.config.panelType}`);
+            return;
         }
 
-        // Remove from DOM
+        // For non-singleton panels, destroy completely
         panel.element.remove();
         this.panels.delete(panelId);
+
+        // Select another panel if this was active
+        if (this.activePanelId === panelId)
+        {
+            const remainingPanels = Array.from(this.panels.keys());
+            if (remainingPanels.length > 0)
+            {
+                this.setActivePanel(remainingPanels[0]);
+            }
+        }
 
         console.log(`❌ Closed panel: ${panelId}`);
     }
@@ -678,10 +691,37 @@ class FloatingPanelSystem
     // 🎯 CREATE CONTEXTUAL PANELS
     createContextualPanel(type)
     {
+        // Check if panel of this type already exists
+        const existingPanel = Array.from(this.panels.values()).find(
+            p => p.config && p.config.panelType === type
+        );
+
+        if (existingPanel)
+        {
+            // Panel exists - toggle visibility or focus it
+            const panelElement = existingPanel.element;
+            if (panelElement.style.display === 'none')
+            {
+                // Show hidden panel
+                panelElement.style.display = 'block';
+                this.setActivePanel(existingPanel.element.id);
+                console.log(`🔄 Showing existing ${type} panel`);
+            }
+            else
+            {
+                // Hide visible panel (toggle off)
+                panelElement.style.display = 'none';
+                console.log(`🔄 Hiding ${type} panel`);
+            }
+            return existingPanel.element.id;
+        }
+
+        // No existing panel - create new one
         const configs = {
             project: {
                 title: '📋 Project Management',
                 type: 'project-panel',
+                panelType: 'project', // Add this for singleton tracking
                 tabs: [
                     { id: 'overview', title: '📊 Overview', content: this.generateProjectOverviewContent() },
                     { id: 'todos', title: '✅ Todos', content: this.generateTodosContent() },
@@ -691,6 +731,7 @@ class FloatingPanelSystem
             agent: {
                 title: '🤖 Agent Interface',
                 type: 'agent-panel',
+                panelType: 'agent', // Add this for singleton tracking
                 tabs: [
                     { id: 'chat', title: '💬 Chat', content: this.generateChatContent() },
                     { id: 'commands', title: '⚡ Commands', content: this.generateCommandsContent() },
@@ -700,6 +741,7 @@ class FloatingPanelSystem
             mcp: {
                 title: '🔧 MCP Tools',
                 type: 'mcp-panel',
+                panelType: 'mcp', // Add this for singleton tracking
                 tabs: [
                     { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
                     { id: 'logs', title: '📋 Logs', content: this.generateLogsContent() },
@@ -709,6 +751,7 @@ class FloatingPanelSystem
             analytics: {
                 title: '📊 Analytics Dashboard',
                 type: 'analytics-panel',
+                panelType: 'analytics', // Add this for singleton tracking
                 tabs: [
                     { id: 'metrics', title: '📈 Metrics', content: this.generateMetricsContent() },
                     { id: 'activity', title: '🚀 Activity', content: this.generateActivityContent() },
@@ -720,7 +763,7 @@ class FloatingPanelSystem
         const config = configs[type];
         if (config)
         {
-            this.createPanel(config);
+            return this.createPanel(config);
         }
     }
 
@@ -1131,6 +1174,13 @@ class FloatingPanelSystem
 // 🚀 INITIALIZE FLOATING PANEL SYSTEM
 window.addEventListener('load', () =>
 {
+    // Prevent multiple initialization
+    if (window.panelSystem)
+    {
+        console.log('⚠️ FloatingPanelSystem already initialized, skipping...');
+        return;
+    }
+
     window.panelSystem = new FloatingPanelSystem();
     console.log('🎪 Floating Panel Madness initialized!');
 });

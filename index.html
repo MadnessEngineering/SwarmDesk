@@ -894,6 +894,12 @@
 
         function initializeFloatingPanels() {
             if (typeof FloatingPanelSystem !== 'undefined') {
+                // Check if already initialized
+                if (window.panelSystem) {
+                    console.log('🎪 Floating Panel System already initialized');
+                    return;
+                }
+                
                 // Check if required elements exist
                 const workspace = document.getElementById('swarmdesk-workspace');
                 if (!workspace) {
