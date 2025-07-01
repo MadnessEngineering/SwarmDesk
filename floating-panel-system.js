@@ -79,6 +79,84 @@ class FloatingPanelSystem
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
+
+        // Keyboard events for panel system
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+    }
+
+    // ⌨️ KEYBOARD HANDLER
+    handleKeyboard(event)
+    {
+        // Handle keyboard shortcuts for panel system
+        switch (event.key)
+        {
+            case 'F1':
+                event.preventDefault();
+                this.createContextualPanel('welcome');
+                break;
+            case 'F2':
+                event.preventDefault();
+                this.toggleAllPanels();
+                break;
+            case 'F8':
+                event.preventDefault();
+                this.createContextualPanel('debug');
+                break;
+            case 'F9':
+                event.preventDefault();
+                this.minimizeAllPanels();
+                break;
+            case 'F10':
+                event.preventDefault();
+                this.closeAllPanels();
+                break;
+            case 'Escape':
+                if (this.activePanelId)
+                {
+                    this.setActivePanel(null);
+                }
+                break;
+        }
+    }
+
+    // 🔧 TOGGLE ALL PANELS
+    toggleAllPanels()
+    {
+        const allHidden = Array.from(this.panels.values()).every(panel =>
+            panel.element.style.display === 'none' || panel.element.classList.contains('minimized')
+        );
+
+        this.panels.forEach((panel) =>
+        {
+            if (allHidden)
+            {
+                panel.element.style.display = 'block';
+                panel.element.classList.remove('minimized');
+            } else
+            {
+                panel.element.style.display = 'none';
+            }
+        });
+    }
+
+    // 📦 MINIMIZE ALL PANELS
+    minimizeAllPanels()
+    {
+        this.panels.forEach((panel, panelId) =>
+        {
+            this.minimizePanel(panelId);
+        });
+    }
+
+    // ❌ CLOSE ALL PANELS
+    closeAllPanels()
+    {
+        // Create a copy of the keys to avoid modification during iteration
+        const panelIds = Array.from(this.panels.keys());
+        panelIds.forEach(panelId =>
+        {
+            this.closePanel(panelId);
+        });
     }
 
     // 🏷️ CREATE PANEL
