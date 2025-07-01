@@ -49,12 +49,7 @@ echo "  🌀 swarmdesk.js (3D workshop environment)"
 echo "  📱 floating-panel-system.js (panel management)"
 echo "  ⚡ floating-panel-advanced.js (advanced features)"
 echo "  🔗 swarmdesk-dashboard-hooks.js (dashboard integration)"
-echo "  📁 SwarmDesk/ directory (if present)"
-
-# Create remote directory if it doesn't exist
-echo -e "${BLUE}📁 Setting up remote directory...${NC}"
-ssh $REMOTE_HOST "sudo mkdir -p $REMOTE_PATH"
-print_status "Remote directory prepared"
+echo "  📍 All files deployed to main web directory (integrated approach)"
 
 # Deploy core SwarmDesk integration files
 echo -e "${BLUE}📤 Deploying SwarmDesk integration files...${NC}"
@@ -66,24 +61,11 @@ scp index.html \
     $REMOTE_HOST:~/
 print_status "Core integration files uploaded to staging area"
 
-# Deploy SwarmDesk directory if it exists
-if [ -d "SwarmDesk" ]; then
-    echo -e "${BLUE}📁 Deploying SwarmDesk directory...${NC}"
-    rsync -avz --progress SwarmDesk/ $REMOTE_HOST:~/SwarmDesk_temp/
-    print_status "SwarmDesk directory uploaded"
-fi
-
 # Move files to web directory with proper permissions
 echo -e "${BLUE}🔧 Setting up web directory with proper permissions...${NC}"
 ssh $REMOTE_HOST "
-    # Move core integration files
+    # Move core integration files to main web directory
     sudo mv ~/index.html ~/swarmdesk.js ~/floating-panel-system.js ~/floating-panel-advanced.js ~/swarmdesk-dashboard-hooks.js $REMOTE_PATH/ &&
-    
-    # Move SwarmDesk directory if it exists
-    if [ -d ~/SwarmDesk_temp ]; then
-        sudo rm -rf $REMOTE_PATH/SwarmDesk
-        sudo mv ~/SwarmDesk_temp $REMOTE_PATH/SwarmDesk
-    fi &&
     
     # Set proper ownership and permissions
     sudo chown -R www-data:www-data $REMOTE_PATH &&
@@ -93,7 +75,7 @@ ssh $REMOTE_HOST "
     sudo find $REMOTE_PATH -name '*.js' -exec chmod 644 {} \; &&
     sudo find $REMOTE_PATH -name '*.html' -exec chmod 644 {} \;
 "
-print_status "Files moved to web directory with proper permissions"
+print_status "Files moved to main web directory with proper permissions"
 
 # Test deployment
 echo -e "${BLUE}🧪 Testing deployment...${NC}"
