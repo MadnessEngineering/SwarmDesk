@@ -22,7 +22,11 @@ check-files:
 	@test -f index.html || (echo "❌ index.html not found" && exit 1)
 	@test -f swarmdesk.js || (echo "❌ swarmdesk.js not found" && exit 1)
 	@test -f README.md || (echo "❌ README.md not found" && exit 1)
-	@echo "✅ All required files present"
+	@test -f floating-panel-system.js || (echo "❌ floating-panel-system.js not found" && exit 1)
+	@test -f floating-panel-advanced.js || (echo "❌ floating-panel-advanced.js not found" && exit 1)
+	@test -f swarmdesk-dashboard-hooks.js || (echo "❌ swarmdesk-dashboard-hooks.js not found" && exit 1)
+	@test -f dashboard.html || (echo "❌ dashboard.html not found" && exit 1)
+	@echo "✅ All required files present (including floating panel system)"
 
 # Test backend connectivity
 check-backend:

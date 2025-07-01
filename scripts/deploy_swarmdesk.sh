@@ -48,15 +48,21 @@ print_status "Remote directory prepared"
 
 # Deploy files directly with rsync
 echo -e "${BLUE}📤 Deploying SwarmDesk files with rsync...${NC}"
+echo "Transfer starting: syncing entire SwarmDesk directory"
 rsync -avzI --progress \
     --rsync-path="sudo rsync" \
-    ./index.html ./swarmdesk.js ./README.md \
+    --exclude='.git*' \
+    --exclude='node_modules' \
+    --exclude='*.bak' \
+    --exclude='.DS_Store' \
+    --exclude='scripts/' \
+    ./ \
     $REMOTE_HOST:$REMOTE_PATH/
 
 # Set proper permissions after rsync
 echo -e "${BLUE}🔧 Setting file permissions...${NC}"
-ssh $REMOTE_HOST "sudo chown -R www-data:www-data $REMOTE_PATH && sudo chmod -R 755 $REMOTE_PATH && sudo chmod 644 $REMOTE_PATH/*.{html,js,md}"
-print_status "Files deployed directly to web directory with proper permissions"
+ssh $REMOTE_HOST "sudo chown -R www-data:www-data $REMOTE_PATH && sudo chmod -R 755 $REMOTE_PATH && sudo find $REMOTE_PATH -name '*.html' -o -name '*.js' -o -name '*.md' | sudo xargs chmod 644"
+print_status "Complete SwarmDesk directory deployed with proper permissions"
 
 # Test deployment
 echo -e "${BLUE}🧪 Testing deployment...${NC}"
