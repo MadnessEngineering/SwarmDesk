@@ -30,6 +30,23 @@ let mcpWall = null;
 // Particle system
 let particles = null;
 
+// At the top of the file, add these missing variables
+let euler = new THREE.Euler(0, 0, 0, 'YXZ'); // For mouse look
+let pointerLocked = false;
+let currentAgent = null;
+let nearAgent = null;
+let nearReadmePanel = null;
+let nearMCPWall = null;
+let activePanelType = null;
+
+// Key mapping
+const keys = {
+    KeyW: 'moveForward',
+    KeyS: 'moveBackward',
+    KeyA: 'moveLeft',
+    KeyD: 'moveRight'
+};
+
 // Initialize SwarmDesk workspace - can be called from React or globally
 window.initSwarmDeskWorkspace = function (container)
 {
@@ -769,10 +786,16 @@ function animate(currentTime)
 {
     requestAnimationFrame(animate);
 
+    // Guard against uninitialized objects
+    if (!scene || !camera || !renderer)
+    {
+        return;
+    }
+
     const time = currentTime * 0.001;
 
     // 🎪 NEW: Enhanced movement system (FIXED!)
-    if (!dialogueOpen) // Use unified dialogue state to halt movement
+    if (!dialogueOpen && camera && camera.position) // Use unified dialogue state to halt movement and check camera exists
     {
         // Reset direction
         direction.set(0, 0, 0);
@@ -811,20 +834,23 @@ function animate(currentTime)
     checkInteractions();
 
     // Animate particles
-    const positions = particles.geometry.attributes.position.array;
-    for (let i = 0; i < positions.length; i += 3)
+    if (particles && particles.geometry && particles.geometry.attributes.position)
     {
-        // Check for NaN and reset if needed
-        if (isNaN(positions[i]) || isNaN(positions[i + 1]) || isNaN(positions[i + 2]))
+        const positions = particles.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3)
         {
-            positions[i] = (Math.random() - 0.5) * 100;
-            positions[i + 1] = Math.random() * 20;
-            positions[i + 2] = (Math.random() - 0.5) * 100;
+            // Check for NaN and reset if needed
+            if (isNaN(positions[i]) || isNaN(positions[i + 1]) || isNaN(positions[i + 2]))
+            {
+                positions[i] = (Math.random() - 0.5) * 100;
+                positions[i + 1] = Math.random() * 20;
+                positions[i + 2] = (Math.random() - 0.5) * 100;
+            }
+            positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
+            if (positions[i + 1] > 20) positions[i + 1] = 0;
         }
-        positions[i + 1] += Math.sin(time + positions[i] * 0.01) * 0.02;
-        if (positions[i + 1] > 20) positions[i + 1] = 0;
+        particles.geometry.attributes.position.needsUpdate = true;
     }
-    particles.geometry.attributes.position.needsUpdate = true;
 
     // Animate holographic displays
     for (let i = 0; i < scene.children.length; i++)

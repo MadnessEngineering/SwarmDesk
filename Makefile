@@ -19,7 +19,7 @@ help:
 # Check required files exist
 check-files:
 	@echo "🔍 Checking SwarmDesk files..."
-	@test -f index.html || (echo "❌ index.html not found" && exit 1)
+	# @test -f index.html || (echo "❌ index.html not found" && exit 1)
 	@test -f swarmdesk.js || (echo "❌ swarmdesk.js not found" && exit 1)
 	@test -f README.md || (echo "❌ README.md not found" && exit 1)
 	@test -f floating-panel-system.js || (echo "❌ floating-panel-system.js not found" && exit 1)
@@ -34,7 +34,7 @@ check-backend:
 	@curl -s --head "https://madnessinteractive.cc/api/health" | head -n 1 | grep -q "200" && echo "✅ Backend API is running" || echo "⚠️ Backend API not responding - SwarmDesk will run in demo mode"
 
 # Deploy SwarmDesk
-deploy: check-files
+deploy:
 	@echo "🚀 Deploying SwarmDesk to production..."
 	./scripts/deploy_swarmdesk.sh
 

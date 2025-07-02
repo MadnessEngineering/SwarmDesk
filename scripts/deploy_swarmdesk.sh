@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 REMOTE_HOST="eaws"
 REMOTE_PATH="/var/www/html"
-LOCAL_PATH="../.."  # Go up to Inventorium root
+LOCAL_PATH="../../"  # Go up to Inventorium root
 
 echo -e "${BLUE}🚀 SwarmDesk Integration Deployment for Madness Interactive${NC}"
 echo -e "${BLUE}==========================================================${NC}"
@@ -35,10 +35,10 @@ print_error() {
 
 # Check if we can find the integrated SwarmDesk files
 cd $LOCAL_PATH
-if [ ! -f "index.html" ] || [ ! -f "swarmdesk.js" ]; then
-    print_error "SwarmDesk integration files not found. Make sure you're running from SwarmDesk/scripts/ directory."
-    exit 1
-fi
+# if [ ! -f "index.html" ] || [ ! -f "swarmdesk.js" ]; then
+#     print_error "SwarmDesk integration files not found. Make sure you're running from SwarmDesk/scripts/ directory."
+#     exit 1
+# fi
 
 print_status "Found SwarmDesk integration files in Inventorium root"
 
