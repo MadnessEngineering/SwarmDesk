@@ -13,6 +13,23 @@ let starField = null;
 let dialogueOpen = false;
 let isInitialized = false;
 
+// Movement system variables - FIXED!
+let direction = new THREE.Vector3();
+let velocity = new THREE.Vector3();
+let controls = {
+    moveForward: false,
+    moveBackward: false,
+    moveLeft: false,
+    moveRight: false,
+    chaos: false
+};
+
+// MCP debugging wall reference
+let mcpWall = null;
+
+// Particle system
+let particles = null;
+
 // Initialize SwarmDesk workspace - can be called from React or globally
 window.initSwarmDeskWorkspace = function (container)
 {
@@ -221,8 +238,141 @@ function createAgents()
 // Setup controls
 function setupControls()
 {
-    // Movement controls already handled by existing event listeners
-    // Just need to ensure they're connected
+    // Initialize particle system
+    const particleCount = 200;
+    const particleGeometry = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount * 3; i += 3)
+    {
+        particlePositions[i] = (Math.random() - 0.5) * 100;
+        particlePositions[i + 1] = Math.random() * 20;
+        particlePositions[i + 2] = (Math.random() - 0.5) * 100;
+    }
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+        color: 0x00ff88,
+        size: 0.1,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    particles = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particles);
+
+    // Keyboard event listeners
+    document.addEventListener('keydown', (event) =>
+    {
+        switch (event.code)
+        {
+            case 'KeyW':
+                controls.moveForward = true;
+                break;
+            case 'KeyS':
+                controls.moveBackward = true;
+                break;
+            case 'KeyA':
+                controls.moveLeft = true;
+                break;
+            case 'KeyD':
+                controls.moveRight = true;
+                break;
+            case 'Space':
+                event.preventDefault();
+                controls.chaos = !controls.chaos;
+                console.log('🎪 Chaos mode:', controls.chaos ? 'ACTIVATED' : 'DEACTIVATED');
+                break;
+            case 'KeyE':
+                event.preventDefault();
+                checkInteractions();
+                break;
+            case 'KeyR':
+                event.preventDefault();
+                // Toggle README display or additional info
+                break;
+            case 'KeyM':
+                event.preventDefault();
+                // MCP debugging toggle
+                break;
+        }
+    });
+
+    document.addEventListener('keyup', (event) =>
+    {
+        switch (event.code)
+        {
+            case 'KeyW':
+                controls.moveForward = false;
+                break;
+            case 'KeyS':
+                controls.moveBackward = false;
+                break;
+            case 'KeyA':
+                controls.moveLeft = false;
+                break;
+            case 'KeyD':
+                controls.moveRight = false;
+                break;
+        }
+    });
+
+    // Mouse interaction setup
+    renderer.domElement.addEventListener('click', () =>
+    {
+        renderer.domElement.requestPointerLock();
+    });
+
+    document.addEventListener('mousemove', (event) =>
+    {
+        if (document.pointerLockElement === renderer.domElement)
+        {
+            camera.rotation.y -= event.movementX * 0.002;
+            camera.rotation.x -= event.movementY * 0.002;
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+        }
+    });
+
+    console.log('🎮 SwarmDesk controls initialized!');
+}
+
+// 🔍 INTERACTION SYSTEM
+function checkInteractions()
+{
+    console.log('🔍 Checking for interactions...');
+
+    // Check if we're near any workstations or agents
+    if (agents && agents.length > 0)
+    {
+        agents.forEach(agent =>
+        {
+            const distance = camera.position.distanceTo(agent.position);
+            if (distance < 5)
+            {
+                console.log(`🤖 Near agent: ${agent.userData.name}`);
+                openDialogue(agent);
+            }
+        });
+    }
+
+    // Check workstations
+    if (workstations && workstations.length > 0)
+    {
+        workstations.forEach(station =>
+        {
+            const distance = camera.position.distanceTo(station.position);
+            if (distance < 4)
+            {
+                console.log(`🏗️ Near workstation: ${station.userData.projectName}`);
+                // Trigger floating panel for this project
+                if (typeof window.panelSystem !== 'undefined' && window.panelSystem.createPanel)
+                {
+                    window.panelSystem.createPanel('project', station.userData.projectName);
+                }
+            }
+        });
+    }
 }
 
 // Project README data - the heart of our madness!
