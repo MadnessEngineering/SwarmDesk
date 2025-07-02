@@ -63,19 +63,26 @@ class FloatingPanelSystem
         };
     }
 
-    // 🎮 SETUP EVENT LISTENERS
+    // 🎮 SETUP EVENT LISTENERS - ENHANCED ERROR HANDLING
     setupEventListeners()
     {
         // Dragging events
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
 
-        // Keyboard shortcuts - with error checking
+        // Keyboard shortcuts - with enhanced error checking and initialization verification
         document.addEventListener('keydown', (e) =>
         {
             try
             {
-                this.handleKeyboard(e);
+                // Ensure the handleKeyboard method exists and panel system is properly initialized
+                if (typeof this.handleKeyboard === 'function')
+                {
+                    this.handleKeyboard(e);
+                } else
+                {
+                    console.warn('⚠️ handleKeyboard method not available');
+                }
             } catch (error)
             {
                 console.warn('⚠️ Keyboard handler error:', error);
@@ -84,6 +91,26 @@ class FloatingPanelSystem
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
+
+        // Global error handler for panel system issues
+        window.addEventListener('error', (event) =>
+        {
+            if (event.message && event.message.includes('panelSystem'))
+            {
+                console.warn('🔧 Panel system error intercepted:', event.message);
+                event.preventDefault(); // Prevent error from breaking the app
+            }
+        });
+
+        // Prevent multiple panel system instances
+        if (window.panelSystem && window.panelSystem !== this)
+        {
+            console.warn('⚠️ Multiple panel systems detected, using existing instance');
+            return window.panelSystem;
+        }
+
+        // Register this instance globally
+        window.panelSystem = this;
     }
 
     // 🏷️ CREATE PANEL
@@ -558,37 +585,46 @@ class FloatingPanelSystem
         };
     }
 
-    // ⌨️ HANDLE KEYBOARD
+    // ⌨️ HANDLE KEYBOARD - ENHANCED ERROR HANDLING
     handleKeyboard(event)
     {
-        // Don't interfere with SwarmDesk or input fields
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
-        if (document.getElementById('dialogue-box').style.display === 'block') return;
-
-        switch (event.key)
+        try
         {
-            case 'F4':
-                event.preventDefault();
-                this.createContextualPanel('project');
-                break;
-            case 'F5':
-                event.preventDefault();
-                this.createContextualPanel('agent');
-                break;
-            case 'F6':
-                event.preventDefault();
-                this.createContextualPanel('mcp');
-                break;
-            case 'F7':
-                event.preventDefault();
-                this.createContextualPanel('analytics');
-                break;
-            case 'Escape':
-                if (this.dragState.isDragging)
-                {
-                    this.cancelDrag();
-                }
-                break;
+            // Don't interfere with SwarmDesk or input fields
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+
+            // Check if dialogue box exists before accessing it
+            const dialogueBox = document.getElementById('dialogue-box');
+            if (dialogueBox && dialogueBox.style.display === 'block') return;
+
+            switch (event.key)
+            {
+                case 'F4':
+                    event.preventDefault();
+                    this.createContextualPanel('project');
+                    break;
+                case 'F5':
+                    event.preventDefault();
+                    this.createContextualPanel('agent');
+                    break;
+                case 'F6':
+                    event.preventDefault();
+                    this.createContextualPanel('mcp');
+                    break;
+                case 'F7':
+                    event.preventDefault();
+                    this.createContextualPanel('analytics');
+                    break;
+                case 'Escape':
+                    if (this.dragState.isDragging)
+                    {
+                        this.cancelDrag();
+                    }
+                    break;
+            }
+        } catch (error)
+        {
+            console.warn('⚠️ Keyboard handling error:', error);
         }
     }
 
