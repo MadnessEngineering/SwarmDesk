@@ -66,12 +66,21 @@ class FloatingPanelSystem
     // 🎮 SETUP EVENT LISTENERS
     setupEventListeners()
     {
-        // Global mouse events for dragging
+        // Dragging events
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        // Keyboard shortcuts - with error checking
+        document.addEventListener('keydown', (e) =>
+        {
+            try
+            {
+                this.handleKeyboard(e);
+            } catch (error)
+            {
+                console.warn('⚠️ Keyboard handler error:', error);
+            }
+        });
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
@@ -1132,31 +1141,70 @@ class FloatingPanelSystem
     }
 }
 
-// 🚀 INITIALIZE FLOATING PANEL SYSTEM
+// 🚀 INITIALIZE FLOATING PANEL SYSTEM - ENHANCED INITIALIZATION
 window.addEventListener('load', () =>
 {
-    window.panelSystem = new FloatingPanelSystem();
-    console.log('🎪 Floating Panel Madness initialized!');
+    try
+    {
+        // Ensure we don't create multiple instances
+        if (window.panelSystem)
+        {
+            console.log('🎪 Panel system already initialized');
+            return;
+        }
+
+        window.panelSystem = new FloatingPanelSystem();
+
+        // Verify the handleKeyboard method is available
+        if (typeof window.panelSystem.handleKeyboard !== 'function')
+        {
+            console.error('❌ handleKeyboard method not found on panel system');
+        } else
+        {
+            console.log('✅ handleKeyboard method verified');
+        }
+
+        console.log('🎪 Floating Panel Madness initialized!');
+    } catch (error)
+    {
+        console.error('❌ Failed to initialize panel system:', error);
+    }
 });
 
-// 🎮 INTEGRATION WITH SWARMDESK
+// 🎮 INTEGRATION WITH SWARMDESK - ENHANCED ERROR HANDLING
 if (typeof SwarmDeskDashboard !== 'undefined')
 {
     // Enhanced project selection
     const originalSelectProject = SwarmDeskDashboard.selectProject;
     SwarmDeskDashboard.selectProject = function (projectName)
     {
-        originalSelectProject.call(this, projectName);
-
-        // Create contextual panel if system is ready
-        if (window.panelSystem)
+        try
         {
-            setTimeout(() =>
+            originalSelectProject.call(this, projectName);
+
+            // Create contextual panel if system is ready
+            if (window.panelSystem && typeof window.panelSystem.createContextualProjectPanel === 'function')
             {
-                window.panelSystem.createContextualProjectPanel(projectName, projectReadmes[projectName]);
-            }, 100);
+                setTimeout(() =>
+                {
+                    window.panelSystem.createContextualProjectPanel(projectName, projectReadmes[projectName]);
+                }, 100);
+            }
+        } catch (error)
+        {
+            console.warn('⚠️ Project selection integration failed:', error);
         }
     };
 }
 
-console.log('🎪 Floating Panel System loaded successfully!'); 
+// 🛡️ GLOBAL ERROR HANDLER FOR PANEL SYSTEM
+window.addEventListener('error', (event) =>
+{
+    if (event.message.includes('panelSystem') || event.message.includes('handleKeyboard'))
+    {
+        console.warn('🛡️ Intercepted panel system error:', event.message);
+        event.preventDefault();
+    }
+});
+
+console.log('🎪 Floating Panel System loaded successfully!');
