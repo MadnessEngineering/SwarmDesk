@@ -519,6 +519,32 @@ class ContextualIntelligence
         return null;
     }
 
+    suggestWorkflowOptimizations(workflow)
+    {
+        console.log(`[ContextualIntelligence] Suggesting optimizations for workflow: ${workflow}`);
+        // TODO: Implement actual workflow optimization suggestions
+        const suggestionPanelId = `workflow-suggestion-${Date.now()}`;
+        const suggestionContent = `
+            <h3>🚀 Workflow Optimization Suggested!</h3>
+            <p>For your current <strong>${workflow}</strong> workflow, consider:</p>
+            <ul>
+                <li>Docking related panels together for easier access.</li>
+                <li>Using layout profiles to save this workspace setup.</li>
+                <li>Exploring related MCP tools to automate tasks.</li>
+            </ul>
+        `;
+
+        if (this.panelSystem.createPanel)
+        {
+            this.panelSystem.createPanel({
+                id: suggestionPanelId,
+                type: 'suggestion',
+                title: 'Workflow Suggestion',
+                content: suggestionContent
+            });
+        }
+    }
+
     setupSmartContentGeneration()
     {
         // Generate contextually relevant content based on SwarmDesk state
