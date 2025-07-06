@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,8 @@
         }
 
         /* --- SIDEBAR STYLES --- */
-        .left-sidebar, .right-sidebar {
+        .left-sidebar,
+        .right-sidebar {
             width: 350px;
             background: linear-gradient(135deg, #001122 0%, #002244 100%);
             border-right: 2px solid #00ff88;
@@ -58,6 +60,10 @@
         .sidebar-toggle {
             position: absolute;
             top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
             width: 40px;
             height: 40px;
             cursor: pointer;
@@ -65,8 +71,8 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            z-index: 1001;
             transition: all 0.3s ease;
+            z-index: 1001;
         }
 
         .left-toggle {
@@ -94,10 +100,9 @@
             transform: translateY(-50%) scale(1.1);
         }
 
-        /* --- SIDEBAR CONTENT STYLES --- */
         .sidebar-section {
             padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-section h3 {
@@ -107,13 +112,24 @@
             font-size: 18px;
         }
 
-        .sidebar-section.projects h3 { color: #00ff88; }
-        .sidebar-section.mcp h3 { color: #0088ff; }
-        .sidebar-section.chat h3 { color: #ff6b35; }
-        .sidebar-section.analytics h3 { color: #ffaa00; }
+        .sidebar-section.projects h3 {
+            color: #00ff88;
+        }
+
+        .sidebar-section.mcp h3 {
+            color: #0088ff;
+        }
+
+        .sidebar-section.chat h3 {
+            color: #ff6b35;
+        }
+
+        .sidebar-section.analytics h3 {
+            color: #ffaa00;
+        }
 
         .project-card {
-            background: rgba(0,255,136,0.1);
+            background: rgba(0, 255, 136, 0.1);
             border: 1px solid #00ff88;
             border-radius: 8px;
             padding: 12px;
@@ -123,8 +139,8 @@
         }
 
         .project-card:hover {
-            background: rgba(0,255,136,0.2);
-            box-shadow: 0 0 10px rgba(0,255,136,0.5);
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
             transform: translateX(5px);
         }
 
@@ -142,7 +158,7 @@
         }
 
         .mcp-tool {
-            background: rgba(0,136,255,0.1);
+            background: rgba(0, 136, 255, 0.1);
             border: 1px solid #0088ff;
             border-radius: 6px;
             padding: 8px 12px;
@@ -153,13 +169,13 @@
         }
 
         .mcp-tool:hover {
-            background: rgba(0,136,255,0.2);
-            box-shadow: 0 0 8px rgba(0,136,255,0.5);
+            background: rgba(0, 136, 255, 0.2);
+            box-shadow: 0 0 8px rgba(0, 136, 255, 0.5);
         }
 
         .chat-container {
             height: 300px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             border: 1px solid #ff6b35;
             border-radius: 8px;
             padding: 10px;
@@ -170,7 +186,7 @@
         .chat-input {
             width: 100%;
             padding: 8px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             border: 1px solid #ff6b35;
             border-radius: 6px;
             color: #ff6b35;
@@ -181,7 +197,7 @@
 
         .chat-input:focus {
             outline: none;
-            box-shadow: 0 0 8px rgba(255,107,53,0.5);
+            box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
         }
 
         .analytics-item {
@@ -189,10 +205,12 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(255,170,0,0.2);
+            border-bottom: 1px solid rgba(255, 170, 0, 0.2);
         }
 
-        .analytics-item:last-child { border-bottom: none; }
+        .analytics-item:last-child {
+            border-bottom: none;
+        }
 
         .analytics-label {
             color: #ffaa00;
@@ -262,9 +280,17 @@
             border-bottom: 1px solid rgba(0, 255, 0, 0.3);
         }
 
-        .status-active { color: #0f0; }
-        .status-idle { color: #ff0; }
-        .status-error { color: #f00; }
+        .status-active {
+            color: #0f0;
+        }
+
+        .status-idle {
+            color: #ff0;
+        }
+
+        .status-error {
+            color: #f00;
+        }
 
         #dialogue-box {
             position: absolute;
@@ -383,8 +409,15 @@
         }
 
         @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
         }
 
         .loading {
@@ -398,7 +431,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .instruction {
@@ -413,30 +448,60 @@
         }
 
         @keyframes glitch {
-            0% { text-shadow: 0 0 5px #0f0; }
-            25% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
-            50% { text-shadow: -2px 0 #f0f, 2px 0 #0ff; }
-            75% { text-shadow: 0 2px #f0f, 0 -2px #0ff; }
-            100% { text-shadow: 0 0 5px #0f0; }
+            0% {
+                text-shadow: 0 0 5px #0f0;
+            }
+
+            25% {
+                text-shadow: 2px 0 #f0f, -2px 0 #0ff;
+            }
+
+            50% {
+                text-shadow: -2px 0 #f0f, 2px 0 #0ff;
+            }
+
+            75% {
+                text-shadow: 0 2px #f0f, 0 -2px #0ff;
+            }
+
+            100% {
+                text-shadow: 0 0 5px #0f0;
+            }
         }
 
         /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 1200px) {
-            .left-sidebar, .right-sidebar { width: 300px; }
+
+            .left-sidebar,
+            .right-sidebar {
+                width: 300px;
+            }
         }
 
         @media (max-width: 900px) {
-            .left-sidebar, .right-sidebar { width: 250px; }
+
+            .left-sidebar,
+            .right-sidebar {
+                width: 250px;
+            }
         }
 
         @media (max-width: 768px) {
-            .left-sidebar, .right-sidebar {
+
+            .left-sidebar,
+            .right-sidebar {
                 position: absolute;
                 height: 100%;
                 z-index: 2000;
             }
-            .left-sidebar { left: 0; }
-            .right-sidebar { right: 0; }
+
+            .left-sidebar {
+                left: 0;
+            }
+
+            .right-sidebar {
+                right: 0;
+            }
         }
 
         /* --- UTILITY ANIMATIONS --- */
@@ -445,15 +510,22 @@
         }
 
         @keyframes glow {
-            0%,100%{box-shadow:0 0 5px currentColor;}
-            50%{box-shadow:0 0 20px currentColor;}
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px currentColor;
+            }
+
+            50% {
+                box-shadow: 0 0 20px currentColor;
+            }
         }
 
         .loading-indicator {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top: 2px solid currentColor;
             animation: spin 1s linear infinite;
@@ -485,10 +557,10 @@
         /* --- FLOATING PANEL SYSTEM STYLES --- */
         .floating-panel {
             position: absolute;
-            background: linear-gradient(135deg, rgba(0,20,40,0.95) 0%, rgba(0,40,80,0.95) 100%);
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.95) 0%, rgba(0, 40, 80, 0.95) 100%);
             border: 2px solid #00ff88;
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,255,136,0.3);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
             backdrop-filter: blur(20px);
             min-width: 300px;
             min-height: 200px;
@@ -499,7 +571,7 @@
 
         .floating-panel.active {
             border-color: #ff6b35;
-            box-shadow: 0 8px 32px rgba(255,107,53,0.4);
+            box-shadow: 0 8px 32px rgba(255, 107, 53, 0.4);
             z-index: 2001;
         }
 
@@ -525,9 +597,9 @@
         }
 
         .panel-header {
-            background: linear-gradient(135deg, rgba(0,255,136,0.2) 0%, rgba(0,136,255,0.2) 100%);
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 136, 255, 0.2) 100%);
             padding: 8px 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px 10px 0 0;
             cursor: move;
             display: flex;
@@ -553,7 +625,7 @@
             height: 20px;
             border: 1px solid;
             border-radius: 50%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -584,8 +656,8 @@
 
         .panel-tabs {
             display: flex;
-            background: rgba(0,0,0,0.3);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             overflow-x: auto;
         }
 
@@ -606,22 +678,29 @@
         .panel-tab.active {
             color: #00ff88;
             border-bottom-color: #00ff88;
-            background: rgba(0,255,136,0.1);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         .panel-tab:hover:not(.active) {
             color: #aaa;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .panel-tab.context-tab {
-            background: linear-gradient(45deg, rgba(255,107,53,0.1), rgba(255,170,0,0.1));
+            background: linear-gradient(45deg, rgba(255, 107, 53, 0.1), rgba(255, 170, 0, 0.1));
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.7; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
 
         .panel-content {
@@ -642,7 +721,7 @@
         /* --- DOCKING ZONES --- */
         .dock-zone {
             position: absolute;
-            background: rgba(0,255,136,0.1);
+            background: rgba(0, 255, 136, 0.1);
             border: 2px dashed #00ff88;
             border-radius: 8px;
             opacity: 0;
@@ -662,8 +741,8 @@
         }
 
         .dock-zone.highlight {
-            background: rgba(0,255,136,0.3);
-            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
         }
 
         .dock-left {
@@ -706,6 +785,7 @@
                 opacity: 0;
                 transform: scale(0.8) translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -719,13 +799,15 @@
                 max-width: calc(100vw - 20px);
             }
 
-            .dock-left, .dock-right {
+            .dock-left,
+            .dock-right {
                 width: calc(100vw - 20px);
                 height: 300px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- 📋 LEFT SIDEBAR: Project Management -->
@@ -772,7 +854,8 @@
         <!-- 🎮 CENTRAL SWARMDESK WITH PRESERVED THREE.JS -->
         <div class="swarmdesk-container">
             <div id="canvas-container"></div>
-            <div id="swarmdesk-workspace" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+            <div id="swarmdesk-workspace"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                 <!-- Floating panels will be added here -->
             </div>
 
@@ -800,8 +883,10 @@
                 <div id="agent-status-list">
                     <div class="status-item"><span>Git Assistant:</span><span class="status-active">ACTIVE</span></div>
                     <div class="status-item"><span>Browser Agent:</span><span class="status-idle">IDLE</span></div>
-                    <div class="status-item"><span>Haiku Generator:</span><span class="status-active">COMPOSING</span></div>
-                    <div class="status-item"><span>Greeter Agent:</span><span class="status-active">WELCOMING</span></div>
+                    <div class="status-item"><span>Haiku Generator:</span><span class="status-active">COMPOSING</span>
+                    </div>
+                    <div class="status-item"><span>Greeter Agent:</span><span class="status-active">WELCOMING</span>
+                    </div>
                     <div class="status-item"><span>Project Manager:</span><span class="status-idle">STANDBY</span></div>
                 </div>
             </div>
@@ -817,8 +902,10 @@
                 <div id="dialogue-content">Content</div>
                 <div id="dialogue-options"></div>
                 <div id="custom-question-container">
-                    <p style="margin: 5px 0; font-size: 14px; opacity: 0.8; text-align: center;">━━━ Or send direct command ━━━</p>
-                    <input type="text" id="custom-question-input" placeholder="Enter command: e.g., 'commit current changes' or 'browse to github.com'">
+                    <p style="margin: 5px 0; font-size: 14px; opacity: 0.8; text-align: center;">━━━ Or send direct
+                        command ━━━</p>
+                    <input type="text" id="custom-question-input"
+                        placeholder="Enter command: e.g., 'commit current changes' or 'browse to github.com'">
                     <button id="custom-question-submit">Execute Command</button>
                 </div>
             </div>
@@ -853,17 +940,23 @@
             <div class="sidebar-section chat">
                 <h3>💬 AI Chat Assistant</h3>
                 <div class="chat-container" id="chatContainer">
-                    <div style="color:#ff6b35;font-size:12px;margin-bottom:10px;">🤖 AI Assistant ready to help with your projects!</div>
+                    <div style="color:#ff6b35;font-size:12px;margin-bottom:10px;">🤖 The Voice of Madness!!</div>
                 </div>
-                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about your projects..." onkeypress="handleChatInput(event)">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Should we break something??"
+                    onkeypress="handleChatInput(event)">
             </div>
             <div class="sidebar-section analytics">
                 <h3>📊 Analytics</h3>
-                <div class="analytics-item"><span class="analytics-label">Active Projects:</span><span class="analytics-value" id="activeProjects">5</span></div>
-                <div class="analytics-item"><span class="analytics-label">Pending Todos:</span><span class="analytics-value" id="pendingTodos">23</span></div>
-                <div class="analytics-item"><span class="analytics-label">Completed Today:</span><span class="analytics-value" id="completedToday">7</span></div>
-                <div class="analytics-item"><span class="analytics-label">Agents Active:</span><span class="analytics-value" id="activeAgents">6</span></div>
-                <div class="analytics-item"><span class="analytics-label">System Load:</span><span class="analytics-value" id="systemLoad">42%</span></div>
+                <div class="analytics-item"><span class="analytics-label">Active Projects:</span><span class="analytics-value"
+                        id="activeProjects">5</span></div>
+                <div class="analytics-item"><span class="analytics-label">Pending Todos:</span><span class="analytics-value"
+                        id="pendingTodos">23</span></div>
+                <div class="analytics-item"><span class="analytics-label">Completed Today:</span><span class="analytics-value"
+                        id="completedToday">7</span></div>
+                <div class="analytics-item"><span class="analytics-label">Agents Active:</span><span class="analytics-value"
+                        id="activeAgents">6</span></div>
+                <div class="analytics-item"><span class="analytics-label">System Load:</span><span class="analytics-value"
+                        id="systemLoad">42%</span></div>
             </div>
             <div class="sidebar-section activity">
                 <h3>📋 Recent Activity</h3>
@@ -882,13 +975,67 @@
 
     <!-- 🎪 SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="swarmdesk-dashboard-hooks.js"></script>
     <script src="floating-panel-system.js"></script>
     <script src="floating-panel-advanced.js"></script>
-    <script src="swarmdesk-dashboard-hooks.js"></script>
     <script src="swarmdesk.js"></script>
     <script>
+        // 🚀 DEPLOYMENT SAFETY CHECK
+        // This ensures hotkeys work properly on server deployment
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎪 SwarmDesk DOM loaded, checking system state...');
+            
+            // Debug system state on server
+            if (typeof debugSwarmDesk === 'function') {
+                setTimeout(debugSwarmDesk, 1000);
+            }
+            
+            // Test hotkeys after initialization
+            if (typeof testHotkeys === 'function') {
+                setTimeout(testHotkeys, 2000);
+            }
+        });
+        
+        // 🛠️ FALLBACK HOTKEY HANDLERS
+        // These provide backup functionality if main handlers fail
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab' && e.ctrlKey) {
+                e.preventDefault();
+                const overlay = document.getElementById('ui-overlay');
+                if (overlay) {
+                    overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
+                    console.log('🔧 Fallback: Control Center toggled');
+                }
+            }
+            
+            if (e.key === '=' && e.ctrlKey) {
+                e.preventDefault();
+                const status = document.querySelector('.agent-status');
+                if (status) {
+                    status.style.display = status.style.display === 'none' ? 'block' : 'none';
+                    console.log('🔧 Fallback: Swarm Status toggled');
+                }
+            }
+        });
+    </script>
+    <script>
         // All floating panel initialization is now handled in floating-panel-system.js
-        console.log('🎮 SwarmDesk scripts loaded - floating panels auto-initialized');
+        function toggleSidebar(side)
+        {
+            const sidebar = document.getElementById(side === 'left' ? 'leftSidebar' : 'rightSidebar');
+            const icon = document.getElementById(side === 'left' ? 'leftToggleIcon' : 'rightToggleIcon');
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            if (side === 'left')
+            {
+                icon.textContent = isCollapsed ? '◀' : '▶';
+            } else
+            {
+                icon.textContent = isCollapsed ? '▶' : '◀';
+            }
+            // Trigger resize for 3D canvas
+            setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 350);
+        }
     </script>
 </body>
+
 </html>

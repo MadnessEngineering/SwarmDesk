@@ -271,4 +271,138 @@ if (typeof animate !== 'undefined')
     }
 }
 
-console.log('🎪 SwarmDesk Dashboard hooks loaded successfully!'); 
+console.log('🎪 SwarmDesk Dashboard hooks loaded successfully!');
+
+// 🌐 GLOBAL FUNCTION WRAPPERS FOR HTML INTEGRATION
+// These functions are called directly from HTML onclick handlers
+
+function selectProject(projectName) {
+    SwarmDeskDashboard.selectProject(projectName);
+}
+
+function runMCPTool(toolName) {
+    // Execute MCP tool and handle result
+    console.log(`🔧 Executing MCP tool: ${toolName}`);
+
+    // Mock tool execution for now - replace with actual MCP calls
+    const mockResults = {
+        'list_projects': 'Found 5 active projects',
+        'add_todo': 'Todo item added successfully',
+        'query_todos': 'Found 23 pending todos',
+        'check_status': 'All systems operational',
+        'analytics': 'Analytics data refreshed'
+    };
+
+    const result = mockResults[toolName] || 'Tool executed successfully';
+    SwarmDeskDashboard.executeMCPTool(toolName, result);
+
+    // Show result in chat or console
+    if (typeof logActivity === 'function') {
+        logActivity('MCP', `${toolName}: ${result}`);
+    }
+}
+
+function handleChatInput(event) {
+    if (event.key === 'Enter') {
+        const input = event.target;
+        const message = input.value.trim();
+
+        if (message) {
+            // Add to chat container
+            const chatContainer = document.getElementById('chatContainer');
+            if (chatContainer) {
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = 'color:#00ff88;font-size:12px;margin:5px 0;';
+                messageDiv.textContent = `> ${message}`;
+                chatContainer.appendChild(messageDiv);
+
+                // Auto-scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Log activity
+            SwarmDeskDashboard.logActivity('Chat', `User: ${message}`);
+
+            // Clear input
+            input.value = '';
+
+            // Mock AI response after delay
+            setTimeout(() => {
+                if (chatContainer) {
+                    const responseDiv = document.createElement('div');
+                    responseDiv.style.cssText = 'color:#ff6b35;font-size:12px;margin:5px 0;';
+                    responseDiv.textContent = `🤖 Processing: "${message}"...`;
+                    chatContainer.appendChild(responseDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }, 1000);
+        }
+    }
+}
+
+// 📊 DASHBOARD HELPER FUNCTIONS
+
+function updateCurrentProjectDetails(projectName) {
+    const detailsElement = document.getElementById('currentProjectDetails');
+    if (detailsElement && projectName) {
+        const colors = SwarmDeskDashboard.getProjectColors(projectName);
+        detailsElement.innerHTML = `
+            <div style="color: ${colors.primary}; font-weight: bold; margin-bottom: 8px;">
+                📋 ${projectName}
+            </div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+                Status: Active Development<br>
+                Last Updated: ${new Date().toLocaleDateString()}<br>
+                <span style="color: ${colors.secondary};">Click workstation for details</span>
+            </div>
+        `;
+    }
+}
+
+function logActivity(source, message) {
+    const activityLog = document.getElementById('activityLog');
+    if (activityLog) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.style.cssText = 'margin: 3px 0; padding: 3px; border-left: 2px solid #00ff88;';
+        logEntry.innerHTML = `
+            <span style="color: #888; font-size: 10px;">${timestamp}</span><br>
+            <span style="color: #00ff88;">[${source}]</span> ${message}
+        `;
+
+        activityLog.appendChild(logEntry);
+        activityLog.scrollTop = activityLog.scrollHeight;
+
+        // Keep only last 50 entries
+        while (activityLog.children.length > 50) {
+            activityLog.removeChild(activityLog.firstChild);
+        }
+    }
+}
+
+// 🎯 ANALYTICS UPDATE LOOP
+function updateAnalytics() {
+    const analytics = SwarmDeskDashboard.getAnalytics();
+
+    // Update analytics display
+    const elements = {
+        'activeProjects': analytics.activeProjects,
+        'pendingTodos': Math.floor(Math.random() * 30) + 15, // Mock dynamic data
+        'completedToday': Math.floor(Math.random() * 10) + 5,
+        'activeAgents': analytics.activeAgents,
+        'systemLoad': analytics.systemLoad
+    };
+
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    });
+}
+
+// Start analytics update loop
+setInterval(updateAnalytics, 5000);
+
+// Initial analytics update
+setTimeout(updateAnalytics, 1000);

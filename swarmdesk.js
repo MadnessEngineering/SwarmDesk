@@ -1718,7 +1718,9 @@ document.addEventListener('keydown', (e) =>
     {
         if (e.key === 'Escape')
         {
-            closeDialogue();
+            if (typeof closeDialogue === 'function') {
+                closeDialogue();
+            }
         }
         return;
     }
@@ -1730,23 +1732,43 @@ document.addEventListener('keydown', (e) =>
         {
             case 'F3':
                 e.preventDefault();
-                window.panelSystem.createContextualPanel('welcome');
+                try {
+                    window.panelSystem.createContextualPanel('welcome');
+                } catch (error) {
+                    console.warn('🔧 Panel system not ready:', error);
+                }
                 return;
             case 'F4':
                 e.preventDefault();
-                window.panelSystem.createContextualPanel('project');
+                try {
+                    window.panelSystem.createContextualPanel('project');
+                } catch (error) {
+                    console.warn('🔧 Panel system not ready:', error);
+                }
                 return;
             case 'F5':
                 e.preventDefault();
-                window.panelSystem.createContextualPanel('agent');
+                try {
+                    window.panelSystem.createContextualPanel('agent');
+                } catch (error) {
+                    console.warn('🔧 Panel system not ready:', error);
+                }
                 return;
             case 'F6':
                 e.preventDefault();
-                window.panelSystem.createContextualPanel('mcp');
+                try {
+                    window.panelSystem.createContextualPanel('mcp');
+                } catch (error) {
+                    console.warn('🔧 Panel system not ready:', error);
+                }
                 return;
             case 'F7':
                 e.preventDefault();
-                window.panelSystem.createContextualPanel('analytics');
+                try {
+                    window.panelSystem.createContextualPanel('analytics');
+                } catch (error) {
+                    console.warn('🔧 Panel system not ready:', error);
+                }
                 return;
         }
     }
@@ -1755,62 +1777,86 @@ document.addEventListener('keydown', (e) =>
     if (e.key === 'Tab')
     {
         e.preventDefault();
-        toggleControlCenter();
+        if (typeof toggleControlCenter === 'function') {
+            toggleControlCenter();
+        } else {
+            console.warn('🔧 toggleControlCenter function not available');
+        }
         return;
     }
 
     if (e.key === '=')
     {
         e.preventDefault();
-        toggleSwarmStatus();
+        if (typeof toggleSwarmStatus === 'function') {
+            toggleSwarmStatus();
+        } else {
+            console.warn('🔧 toggleSwarmStatus function not available');
+        }
         return;
     }
 
     // Handle movement controls
-    if (keys[e.code])
+    if (typeof keys !== 'undefined' && keys[e.code])
     {
-        controls[keys[e.code]] = true;
+        if (typeof controls !== 'undefined') {
+            controls[keys[e.code]] = true;
+        }
     }
 
     // Enhanced interaction controls
-    if (e.key.toLowerCase() === 'e' && nearAgent && !currentAgent)
+    if (e.key.toLowerCase() === 'e' && typeof nearAgent !== 'undefined' && nearAgent && typeof currentAgent !== 'undefined' && !currentAgent)
     {
         e.preventDefault();
-        openDialogue(nearAgent);
+        if (typeof openDialogue === 'function') {
+            openDialogue(nearAgent);
+        }
     }
 
     // 🚀 NEW: README panel interaction
-    if (e.key.toLowerCase() === 'r' && nearReadmePanel && !currentAgent)
+    if (e.key.toLowerCase() === 'r' && typeof nearReadmePanel !== 'undefined' && nearReadmePanel && typeof currentAgent !== 'undefined' && !currentAgent)
     {
         e.preventDefault();
-        showReadmeDetails(nearReadmePanel);
+        if (typeof showReadmeDetails === 'function') {
+            showReadmeDetails(nearReadmePanel);
+        }
     }
 
     // 🛠️ NEW: MCP debugging wall interaction
-    if (e.key.toLowerCase() === 'm' && nearMCPWall && !currentAgent)
+    if (e.key.toLowerCase() === 'm' && typeof nearMCPWall !== 'undefined' && nearMCPWall && typeof currentAgent !== 'undefined' && !currentAgent)
     {
         e.preventDefault();
-        showMCPDebugging();
+        if (typeof showMCPDebugging === 'function') {
+            showMCPDebugging();
+        }
     }
 
     // 🐙 NEW: GitHub repository interaction
-    if (e.key.toLowerCase() === 'g' && nearReadmePanel && !currentAgent)
+    if (e.key.toLowerCase() === 'g' && typeof nearReadmePanel !== 'undefined' && nearReadmePanel && typeof currentAgent !== 'undefined' && !currentAgent)
     {
         e.preventDefault();
-        openProjectRepository(nearReadmePanel.userData.projectName);
+        if (typeof openProjectRepository === 'function') {
+            openProjectRepository(nearReadmePanel.userData.projectName);
+        }
     }
 
     if (e.key === ' ')
     {
         e.preventDefault();
-        controls.chaos = !controls.chaos;
-        createFloatingText('🎵 CHAOS DANCE MODE! 🎵', camera.position);
+        if (typeof controls !== 'undefined') {
+            controls.chaos = !controls.chaos;
+        }
+        if (typeof createFloatingText === 'function' && typeof camera !== 'undefined') {
+            createFloatingText('🎵 CHAOS DANCE MODE! 🎵', camera.position);
+        }
     }
 
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key))
     {
         e.preventDefault();
-        handleArrowKeys(e.key);
+        if (typeof handleArrowKeys === 'function') {
+            handleArrowKeys(e.key);
+        }
     }
 });
 
@@ -2188,3 +2234,88 @@ window.addEventListener('dialogueOpened', () =>
         console.log('🖱️ Mouse look released - dialogue opened');
     }
 });
+
+// 🚀 SWARMDESK INITIALIZATION SYSTEM
+// Simple initialization without spammy dependency checking
+window.SwarmDeskInitialization = {
+    initializeWhenReady: function() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeWhenReady());
+            return;
+        }
+        
+        // Since this runs at the end of the script, dependencies should be ready
+        this.finalizeInitialization();
+    },
+    
+    finalizeInitialization: function() {
+        console.log('🎪 SwarmDesk initialization complete!');
+        
+        // Dispatch ready event
+        window.dispatchEvent(new CustomEvent('swarmDeskReady', {
+            detail: { timestamp: Date.now() }
+        }));
+        
+        // Initialize dashboard integration if available
+        if (typeof SwarmDeskDashboard !== 'undefined') {
+            console.log('🎮 Dashboard integration active');
+        }
+        
+        // Initialize floating panel system if available
+        if (typeof window.panelSystem !== 'undefined') {
+            console.log('🎨 Floating panel system active');
+        }
+        
+        // Show welcome message
+        setTimeout(() => {
+            if (typeof createFloatingText === 'function' && typeof camera !== 'undefined') {
+                createFloatingText('🚀 SwarmDesk Ready! 🚀', { x: 0, y: 5, z: 0 });
+            }
+        }, 1000);
+    }
+};
+
+// Start initialization when this script loads
+SwarmDeskInitialization.initializeWhenReady();
+
+// 🛠️ DEBUGGING HELPERS FOR SERVER DEPLOYMENT
+window.SwarmDeskDebug = {
+    logSystemState: function() {
+        console.log('🔍 SwarmDesk System State:', {
+            domReady: document.readyState,
+            threeLoaded: typeof THREE !== 'undefined',
+            sceneExists: typeof scene !== 'undefined',
+            cameraExists: typeof camera !== 'undefined',
+            controlsExists: typeof controls !== 'undefined',
+            panelSystemExists: typeof window.panelSystem !== 'undefined',
+            dashboardExists: typeof SwarmDeskDashboard !== 'undefined'
+        });
+    },
+    
+    testHotkeys: function() {
+        console.log('🎮 Testing hotkey functions:');
+        console.log('toggleControlCenter:', typeof toggleControlCenter === 'function' ? '✅ Available' : '❌ Missing');
+        console.log('toggleSwarmStatus:', typeof toggleSwarmStatus === 'function' ? '✅ Available' : '❌ Missing');
+        console.log('openDialogue:', typeof openDialogue === 'function' ? '✅ Available' : '❌ Missing');
+        console.log('showReadmeDetails:', typeof showReadmeDetails === 'function' ? '✅ Available' : '❌ Missing');
+        console.log('showMCPDebugging:', typeof showMCPDebugging === 'function' ? '✅ Available' : '❌ Missing');
+    },
+    
+    // Simple check without spamming console
+    checkCoreReady: function() {
+        const coreReady = typeof scene !== 'undefined' && 
+                         typeof camera !== 'undefined' && 
+                         typeof renderer !== 'undefined' &&
+                         typeof THREE !== 'undefined';
+        
+        const functionsReady = typeof toggleControlCenter === 'function' &&
+                              typeof toggleSwarmStatus === 'function';
+        
+        return coreReady && functionsReady;
+    }
+};
+
+// Make debug functions available globally
+window.debugSwarmDesk = window.SwarmDeskDebug.logSystemState;
+window.testHotkeys = window.SwarmDeskDebug.testHotkeys;

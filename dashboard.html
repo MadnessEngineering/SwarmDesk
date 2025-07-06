@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madness Interactive - Unified Dashboard</title>
+    <title>SwarmDesk - Madness Interactive Agent Command Center</title>
     <style>
         body {
             margin: 0;
@@ -14,34 +15,48 @@
             color: #0f0;
             position: relative;
         }
-        /* --- SIDEBAR STYLES (from three-panel) --- */
+
+        /* --- DASHBOARD CONTAINER SYSTEM --- */
         .dashboard-container {
             display: flex;
             width: 100vw;
             height: 100vh;
             position: relative;
         }
-        .left-sidebar, .right-sidebar {
+
+        /* --- SIDEBAR STYLES --- */
+        .left-sidebar,
+        .right-sidebar {
             width: 350px;
             background: linear-gradient(135deg, #001122 0%, #002244 100%);
             border-right: 2px solid #00ff88;
             box-shadow: 2px 0 20px rgba(0, 255, 136, 0.3);
             overflow-y: auto;
-            transition: width 0.3s ease, margin-left 0.3s ease;
+            transition: transform 0.3s ease;
             z-index: 1000;
+            position: absolute;
+            height: 100%;
         }
+
+        .left-sidebar {
+            left: 0;
+        }
+
         .right-sidebar {
+            right: 0;
             background: linear-gradient(135deg, #220011 0%, #440022 100%);
             border-left: 2px solid #ff6b35;
             box-shadow: -2px 0 20px rgba(255, 107, 53, 0.3);
         }
-        .left-sidebar.collapsed, .right-sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            overflow: hidden !important;
+
+        .left-sidebar.collapsed {
+            transform: translateX(-100%);
         }
+
+        .right-sidebar.collapsed {
+            transform: translateX(100%);
+        }
+
         .sidebar-toggle {
             position: absolute;
             top: 50%;
@@ -59,67 +74,435 @@
             transition: all 0.3s ease;
             z-index: 1001;
         }
-        .left-toggle { right: -20px; border-color: #00ff88; color: #00ff88; }
-        .right-toggle { left: -20px; border-color: #ff6b35; color: #ff6b35; }
-        .sidebar-toggle:hover { box-shadow: 0 0 15px currentColor; transform: translateY(-50%) scale(1.1); }
-        .sidebar-section { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-section h3 { margin: 0 0 15px 0; color: #ff6b35; text-shadow: 0 0 10px currentColor; font-size: 18px; }
-        .sidebar-section.projects h3 { color: #00ff88; }
-        .sidebar-section.mcp h3 { color: #0088ff; }
-        .sidebar-section.chat h3 { color: #ff6b35; }
-        .sidebar-section.analytics h3 { color: #ffaa00; }
-        .project-card { background: rgba(0,255,136,0.1); border: 1px solid #00ff88; border-radius: 8px; padding: 12px; margin: 8px 0; cursor: pointer; transition: all 0.3s ease; }
-        .project-card:hover { background: rgba(0,255,136,0.2); box-shadow: 0 0 10px rgba(0,255,136,0.5); transform: translateX(5px); }
-        .project-card h4 { margin: 0 0 8px 0; color: #00ff88; font-size: 14px; }
-        .project-card p { margin: 0; font-size: 12px; opacity: 0.8; line-height: 1.4; }
-        .mcp-tool { background: rgba(0,136,255,0.1); border: 1px solid #0088ff; border-radius: 6px; padding: 8px 12px; margin: 4px 0; cursor: pointer; font-size: 12px; transition: all 0.3s ease; }
-        .mcp-tool:hover { background: rgba(0,136,255,0.2); box-shadow: 0 0 8px rgba(0,136,255,0.5); }
-        .chat-container { height: 300px; background: rgba(0,0,0,0.5); border: 1px solid #ff6b35; border-radius: 8px; padding: 10px; overflow-y: auto; margin-bottom: 10px; }
-        .chat-input { width: 100%; padding: 8px; background: rgba(0,0,0,0.7); border: 1px solid #ff6b35; border-radius: 6px; color: #ff6b35; font-family: 'Courier New', monospace; font-size: 12px; box-sizing: border-box; }
-        .chat-input:focus { outline: none; box-shadow: 0 0 8px rgba(255,107,53,0.5); }
-        .analytics-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,170,0,0.2); }
-        .analytics-item:last-child { border-bottom: none; }
-        .analytics-label { color: #ffaa00; font-size: 12px; }
-        .analytics-value { color: #fff; font-weight: bold; font-size: 14px; }
-        .glow-effect { animation: glow 2s ease-in-out infinite; }
-        @keyframes glow { 0%,100%{box-shadow:0 0 5px currentColor;} 50%{box-shadow:0 0 20px currentColor;} }
-        .loading-indicator { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid currentColor; animation: spin 1s linear infinite; }
-        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-        @media (max-width: 1200px) { .left-sidebar, .right-sidebar { width: 300px; } }
-        @media (max-width: 900px) { .left-sidebar, .right-sidebar { width: 250px; } }
-        @media (max-width: 768px) { .left-sidebar, .right-sidebar { position: absolute; height: 100%; z-index: 2000; } .left-sidebar { left: 0; } .right-sidebar { right: 0; } }
+
+        .left-toggle {
+            right: -20px;
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .right-toggle {
+            left: -20px;
+            border-color: #ff6b35;
+            color: #ff6b35;
+        }
+
+        .sidebar-toggle:hover {
+            box-shadow: 0 0 15px currentColor;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-section h3 {
+            margin: 0 0 15px 0;
+            color: #ff6b35;
+            text-shadow: 0 0 10px currentColor;
+            font-size: 18px;
+        }
+
+        .sidebar-section.projects h3 {
+            color: #00ff88;
+        }
+
+        .sidebar-section.mcp h3 {
+            color: #0088ff;
+        }
+
+        .sidebar-section.chat h3 {
+            color: #ff6b35;
+        }
+
+        .sidebar-section.analytics h3 {
+            color: #ffaa00;
+        }
+
+        .project-card {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            transform: translateX(5px);
+        }
+
+        .project-card h4 {
+            margin: 0 0 8px 0;
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .project-card p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .mcp-tool {
+            background: rgba(0, 136, 255, 0.1);
+            border: 1px solid #0088ff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 4px 0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .mcp-tool:hover {
+            background: rgba(0, 136, 255, 0.2);
+            box-shadow: 0 0 8px rgba(0, 136, 255, 0.5);
+        }
+
+        .chat-container {
+            height: 300px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ff6b35;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ff6b35;
+            border-radius: 6px;
+            color: #ff6b35;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            box-sizing: border-box;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
+        }
+
+        .analytics-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 170, 0, 0.2);
+        }
+
+        .analytics-item:last-child {
+            border-bottom: none;
+        }
+
+        .analytics-label {
+            color: #ffaa00;
+            font-size: 12px;
+        }
+
+        .analytics-value {
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .glow-effect {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px currentColor;
+            }
+
+            50% {
+                box-shadow: 0 0 20px currentColor;
+            }
+        }
+
+        .loading-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid currentColor;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 1200px) {
+
+            .left-sidebar,
+            .right-sidebar {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .left-sidebar,
+            .right-sidebar {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .left-sidebar,
+            .right-sidebar {
+                position: absolute;
+                height: 100%;
+                z-index: 2000;
+            }
+
+            .left-sidebar {
+                left: 0;
+            }
+
+            .right-sidebar {
+                right: 0;
+            }
+        }
+
         /* --- FLOATING PANEL SYSTEM STYLES (from floating-panel) --- */
-        .floating-panel { position: absolute; background: linear-gradient(135deg, rgba(0,20,40,0.95) 0%, rgba(0,40,80,0.95) 100%); border: 2px solid #00ff88; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,255,136,0.3); backdrop-filter: blur(20px); min-width: 300px; min-height: 200px; z-index: 2000; transition: all 0.3s ease; }
-        .floating-panel.active { border-color: #ff6b35; box-shadow: 0 8px 32px rgba(255,107,53,0.4); z-index: 2001; }
-        .floating-panel.docked { border-radius: 8px; transition: all 0.5s ease; }
-        .panel-header { background: linear-gradient(135deg, rgba(0,255,136,0.2) 0%, rgba(0,136,255,0.2) 100%); padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 10px 10px 0 0; cursor: move; display: flex; justify-content: space-between; align-items: center; user-select: none; }
-        .panel-title { font-size: 14px; font-weight: bold; color: #00ff88; text-shadow: 0 0 8px currentColor; }
-        .panel-controls { display: flex; gap: 8px; }
-        .panel-control-btn { width: 20px; height: 20px; border: 1px solid; border-radius: 50%; background: rgba(0,0,0,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.3s ease; }
-        .minimize-btn { border-color: #ffaa00; color: #ffaa00; }
-        .close-btn { border-color: #ff4444; color: #ff4444; }
-        .dock-btn { border-color: #0088ff; color: #0088ff; }
-        .panel-control-btn:hover { transform: scale(1.1); box-shadow: 0 0 8px currentColor; }
-        .panel-tabs { display: flex; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.1); overflow-x: auto; }
-        .panel-tab { padding: 8px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #888; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; white-space: nowrap; transition: all 0.3s ease; position: relative; }
-        .panel-tab.active { color: #00ff88; border-bottom-color: #00ff88; background: rgba(0,255,136,0.1); }
-        .panel-tab:hover:not(.active) { color: #aaa; background: rgba(255,255,255,0.05); }
-        .panel-tab.context-tab { background: linear-gradient(45deg, rgba(255,107,53,0.1), rgba(255,170,0,0.1)); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
-        .panel-content { height: calc(100% - 100px); overflow-y: auto; padding: 15px; }
-        .tab-content { display: none; height: 100%; }
-        .tab-content.active { display: block; }
-        .dock-zone { position: absolute; background: rgba(0,255,136,0.1); border: 2px dashed #00ff88; border-radius: 8px; opacity: 0; transition: all 0.3s ease; pointer-events: none; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #00ff88; text-shadow: 0 0 8px currentColor; }
-        .dock-zone.active { opacity: 0.8; }
-        .dock-zone.highlight { background: rgba(0,255,136,0.3); box-shadow: 0 0 20px rgba(0,255,136,0.5); }
-        .dock-left { left: 10px; top: 10px; width: 300px; height: calc(100vh - 20px); }
-        .dock-right { right: 10px; top: 10px; width: 300px; height: calc(100vh - 20px); }
-        .dock-bottom { left: 50%; transform: translateX(-50%); bottom: 10px; width: calc(100vw - 40px); height: 200px; }
-        .dock-top { left: 50%; transform: translateX(-50%); top: 10px; width: calc(100vw - 40px); height: 150px; }
+        .floating-panel {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.95) 0%, rgba(0, 40, 80, 0.95) 100%);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(20px);
+            min-width: 300px;
+            min-height: 200px;
+            z-index: 2000;
+            transition: all 0.3s ease;
+        }
+
+        .floating-panel.active {
+            border-color: #ff6b35;
+            box-shadow: 0 8px 32px rgba(255, 107, 53, 0.4);
+            z-index: 2001;
+        }
+
+        .floating-panel.docked {
+            border-radius: 8px;
+            transition: all 0.5s ease;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 136, 255, 0.2) 100%);
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 0 0;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        .panel-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-control-btn {
+            width: 20px;
+            height: 20px;
+            border: 1px solid;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .minimize-btn {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .close-btn {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .dock-btn {
+            border-color: #0088ff;
+            color: #0088ff;
+        }
+
+        .panel-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .panel-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .panel-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #888;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .panel-tab.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .panel-tab:hover:not(.active) {
+            color: #aaa;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .panel-tab.context-tab {
+            background: linear-gradient(45deg, rgba(255, 107, 53, 0.1), rgba(255, 170, 0, 0.1));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .panel-content {
+            height: calc(100% - 100px);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .tab-content {
+            display: none;
+            height: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dock-zone {
+            position: absolute;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px dashed #00ff88;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #00ff88;
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        .dock-zone.active {
+            opacity: 0.8;
+        }
+
+        .dock-zone.highlight {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .dock-left {
+            left: 10px;
+            top: 10px;
+            width: 300px;
+            height: calc(100vh - 20px);
+        }
+
+        .dock-right {
+            right: 10px;
+            top: 10px;
+            width: 300px;
+            height: calc(100vh - 20px);
+        }
+
+        .dock-bottom {
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px;
+            width: calc(100vw - 40px);
+            height: 200px;
+        }
+
+        .dock-top {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 10px;
+            width: calc(100vw - 40px);
+            height: 150px;
+        }
+
         /* Responsive for floating panels */
-        @media (max-width: 768px) { .floating-panel { min-width: 280px; max-width: calc(100vw - 20px); } .dock-left, .dock-right { width: calc(100vw - 20px); height: 300px; } }
+        @media (max-width: 768px) {
+            .floating-panel {
+                min-width: 280px;
+                max-width: calc(100vw - 20px);
+            }
+
+            .dock-left,
+            .dock-right {
+                width: calc(100vw - 20px);
+                height: 300px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- 📋 LEFT SIDEBAR: Project Management -->
@@ -171,22 +554,29 @@
             <div id="swarmdesk-workspace" style="width:100%;height:100%;position:relative;">
                 <div id="canvas-container"></div>
                 <!-- SwarmDesk UI Overlay -->
-                <div class="swarmdesk-overlay" style="position:absolute;top:20px;left:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;border-radius:10px;border:2px solid #0f0;max-width:250px;backdrop-filter:blur(10px);z-index:999;">
+                <div class="swarmdesk-overlay"
+                    style="position:absolute;top:20px;left:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;border-radius:10px;border:2px solid #0f0;max-width:250px;backdrop-filter:blur(10px);z-index:999;">
                     <h2 style="margin:0 0 10px 0;color:#ff6b35;">🚀 SwarmDesk</h2>
                     <p style="margin:3px 0;font-size:11px;">WASD - Navigate workshop</p>
                     <p style="margin:3px 0;font-size:11px;">E - Interface with agents</p>
                     <p style="margin:3px 0;font-size:11px;">R - View README details</p>
                     <p style="margin:3px 0;font-size:11px;">M - MCP debugging</p>
-                    <p style="margin:3px 0;font-size:11px;color:#ffaa00;">🏷️ Click workstations for contextual panels</p>
+                    <p style="margin:3px 0;font-size:11px;color:#ffaa00;">🏷️ Click workstations for contextual panels
+                    </p>
                 </div>
-                <div id="interaction-prompt" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#0f0;padding:10px 20px;border-radius:20px;border:1px solid #0f0;display:none;z-index:1002;"></div>
-                <div id="dialogue-box" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.95);color:#0f0;padding:20px;border-radius:15px;border:2px solid #0f0;max-width:600px;width:90%;display:none;z-index:1002;">
+                <div id="interaction-prompt"
+                    style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#0f0;padding:10px 20px;border-radius:20px;border:1px solid #0f0;display:none;z-index:1002;">
+                </div>
+                <div id="dialogue-box"
+                    style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.95);color:#0f0;padding:20px;border-radius:15px;border:2px solid #0f0;max-width:600px;width:90%;display:none;z-index:1002;">
                     <h3 id="dialogue-name">Agent Name</h3>
                     <div id="dialogue-content">Content</div>
                     <div id="dialogue-options"></div>
                     <div style="margin-top:15px;padding-top:15px;border-top:1px solid #0f0;">
-                        <input type="text" id="custom-question-input" placeholder="Enter command..." style="width:100%;padding:8px;background:rgba(0,0,0,0.8);border:1px solid #0f0;border-radius:6px;color:#0f0;font-family:'Courier New',monospace;box-sizing:border-box;">
-                        <button id="custom-question-submit" style="background:#0f0;color:#000;border:none;padding:8px 16px;border-radius:6px;margin-top:8px;cursor:pointer;">Execute</button>
+                        <input type="text" id="custom-question-input" placeholder="Enter command..."
+                            style="width:100%;padding:8px;background:rgba(0,0,0,0.8);border:1px solid #0f0;border-radius:6px;color:#0f0;font-family:'Courier New',monospace;box-sizing:border-box;">
+                        <button id="custom-question-submit"
+                            style="background:#0f0;color:#000;border:none;padding:8px 16px;border-radius:6px;margin-top:8px;cursor:pointer;">Execute</button>
                     </div>
                 </div>
             </div>
@@ -219,17 +609,24 @@
             <div class="sidebar-section chat">
                 <h3>💬 AI Chat Assistant</h3>
                 <div class="chat-container" id="chatContainer">
-                    <div style="color:#ff6b35;font-size:12px;margin-bottom:10px;">🤖 AI Assistant ready to help with your projects!</div>
+                    <div style="color:#ff6b35;font-size:12px;margin-bottom:10px;">🤖 AI Assistant ready to help with
+                        your projects!</div>
                 </div>
-                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about your projects..." onkeypress="handleChatInput(event)">
+                <input type="text" class="chat-input" id="chatInput"
+                    placeholder="Ask me anything about your projects..." onkeypress="handleChatInput(event)">
             </div>
             <div class="sidebar-section analytics">
                 <h3>📊 Analytics</h3>
-                <div class="analytics-item"><span class="analytics-label">Active Projects:</span><span class="analytics-value" id="activeProjects">5</span></div>
-                <div class="analytics-item"><span class="analytics-label">Pending Todos:</span><span class="analytics-value" id="pendingTodos">23</span></div>
-                <div class="analytics-item"><span class="analytics-label">Completed Today:</span><span class="analytics-value" id="completedToday">7</span></div>
-                <div class="analytics-item"><span class="analytics-label">Agents Active:</span><span class="analytics-value" id="activeAgents">6</span></div>
-                <div class="analytics-item"><span class="analytics-label">System Load:</span><span class="analytics-value" id="systemLoad">42%</span></div>
+                <div class="analytics-item"><span class="analytics-label">Active Projects:</span><span
+                        class="analytics-value" id="activeProjects">5</span></div>
+                <div class="analytics-item"><span class="analytics-label">Pending Todos:</span><span
+                        class="analytics-value" id="pendingTodos">23</span></div>
+                <div class="analytics-item"><span class="analytics-label">Completed Today:</span><span
+                        class="analytics-value" id="completedToday">7</span></div>
+                <div class="analytics-item"><span class="analytics-label">Agents Active:</span><span
+                        class="analytics-value" id="activeAgents">6</span></div>
+                <div class="analytics-item"><span class="analytics-label">System Load:</span><span
+                        class="analytics-value" id="systemLoad">42%</span></div>
             </div>
             <div class="sidebar-section activity">
                 <h3>📋 Recent Activity</h3>
@@ -245,18 +642,22 @@
     <script src="floating-panel-advanced.js"></script>
     <!-- Add dashboard logic for sidebars, chat, analytics, etc. (from previous versions) -->
     <script>
-        function toggleSidebar(side) {
+        function toggleSidebar(side)
+        {
             const sidebar = document.getElementById(side === 'left' ? 'leftSidebar' : 'rightSidebar');
             const icon = document.getElementById(side === 'left' ? 'leftToggleIcon' : 'rightToggleIcon');
             const isCollapsed = sidebar.classList.toggle('collapsed');
-            if (side === 'left') {
+            if (side === 'left')
+            {
                 icon.textContent = isCollapsed ? '▶' : '◀';
-            } else {
+            } else
+            {
                 icon.textContent = isCollapsed ? '◀' : '▶';
             }
             // Trigger resize for 3D canvas
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+            setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 350);
         }
     </script>
 </body>
+
 </html>
