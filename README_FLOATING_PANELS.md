@@ -43,11 +43,11 @@ The Floating Panel System is an advanced, tabbed floating panel interface that t
 
 ```
 SwarmDesk/
-├── floating-panels-dashboard.html    # Main dashboard interface
+├── index.html                       # Main dashboard interface
 ├── floating-panel-system.js         # Core panel management system
 ├── floating-panel-advanced.js       # Advanced features (multi-monitor, AI)
 ├── swarmdesk-dashboard-hooks.js     # SwarmDesk integration hooks
-└── README_FLOATING_PANELS.md       # This documentation
+└── README_FLOATING_PANELS.md        # This documentation
 ```
 
 ## 🚀 Getting Started
@@ -62,10 +62,18 @@ SwarmDesk/
    ```
 
 2. **Create Panels**: Use keyboard shortcuts or buttons:
+   - **F3** - Welcome Panel
    - **F4** - Project Management Panel
    - **F5** - Agent Interface Panel
    - **F6** - MCP Tools Panel
    - **F7** - Analytics Panel
+   - **F8** - Debug Panel
+   - **F9** - Chat Panel
+   <!-- - **F10** - File Browser Panel
+   - **F11** - Activity Timeline Panel
+   - **F12** - Performance Metrics Panel -->
+   - **Tab** - Control Center Panel
+   - **=** - Swarm Status Panel
 
 3. **Drag & Dock**:
    - Click panel headers to drag
@@ -150,7 +158,7 @@ The system automatically integrates with SwarmDesk 3D workspace:
 
 ```javascript
 // Automatic contextual panel creation
-SwarmDeskDashboard.selectProject(projectName) 
+SwarmDeskDashboard.selectProject(projectName)
 → Creates project panel with real-time data
 
 // Agent interactions

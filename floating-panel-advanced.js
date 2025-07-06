@@ -273,7 +273,7 @@ class PanelLayoutStorage
     constructor()
     {
         this.storageKey = 'swarmdesk-panel-layouts';
-        this.maxLayouts = 10;
+        this.maxLayouts = 15;
     }
 
     save(name, layout)
@@ -714,4 +714,4 @@ window.addEventListener('load', () =>
     }, 1000);
 });
 
-console.log('🚀 Advanced Panel Features loaded successfully!'); 
+console.log('🚀 Advanced Panel Features loaded successfully!');

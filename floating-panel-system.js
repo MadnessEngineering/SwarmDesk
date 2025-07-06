@@ -617,7 +617,7 @@ class FloatingPanelSystem
         {
             // For singleton panels, just hide instead of destroy
             panel.element.style.display = 'none';
-            console.log(`🔄 Hiding singleton panel: ${panel.config.panelType}`);
+            console.log(`🔄 Hiding panel: ${panel.config.panelType}`);
             return;
         }
 
@@ -1236,4 +1236,4 @@ if (!window.panelSystem)
 } else
 {
     console.log('🎪 Floating Panel System already initialized - using existing instance');
-} 
+}
