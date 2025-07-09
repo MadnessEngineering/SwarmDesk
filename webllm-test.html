@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwarmDesk WebLLM Integration Test</title>
+    <style>
+        body {
+            background: #000511;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            text-shadow: 0 0 10px #00ff88;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-section h2 {
+            color: #ff6b35;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+        }
+        
+        .status.warning {
+            background: rgba(255, 255, 0, 0.2);
+            border: 1px solid #ffff00;
+        }
+        
+        .status.info {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+        }
+        
+        button {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: rgba(0, 255, 136, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .chat-container {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .message.user {
+            background: rgba(0, 255, 136, 0.2);
+            text-align: right;
+        }
+        
+        .message.agent {
+            background: rgba(255, 107, 53, 0.2);
+        }
+        
+        .agent-selector {
+            background: rgba(0, 0, 0, 0.3);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        input[type="text"] {
+            background: rgba(0, 0, 0, 0.3);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 10px;
+            border-radius: 4px;
+            width: 70%;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            height: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            background: #00ff88;
+            height: 100%;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .model-info {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .server-info {
+            background: rgba(255, 255, 0, 0.2);
+            border: 1px solid #ffff00;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 SwarmDesk WebLLM Integration Test</h1>
+        
+        <!-- Server Setup Instructions -->
+        <div class="server-info">
+            <h3>⚠️ Local Server Required</h3>
+            <p>To run this test, you need to serve the files from a local HTTP server due to CORS restrictions.</p>
+            <p><strong>Quick Setup:</strong></p>
+            <pre>
+# Python 3
+python -m http.server 8000
+
+# Python 2
+python -m SimpleHTTPServer 8000
+
+# Node.js (if you have http-server installed)
+npx http-server -p 8000
+
+# Then open: http://localhost:8000/webllm-test.html
+            </pre>
+        </div>
+        
+        <!-- Browser Compatibility Test -->
+        <div class="test-section">
+            <h2>1. Browser Compatibility Check</h2>
+            <div id="compatibility-status" class="status info">
+                🔄 Checking browser compatibility...
+            </div>
+            <button onclick="checkCompatibility()">🔍 Check Compatibility</button>
+        </div>
+        
+        <!-- WebLLM Initialization Test -->
+        <div class="test-section">
+            <h2>2. WebLLM Service Initialization</h2>
+            <div id="init-status" class="status info">
+                ⏳ WebLLM service not initialized
+            </div>
+            <button onclick="initializeWebLLM()" id="init-button">🚀 Initialize WebLLM</button>
+        </div>
+        
+        <!-- Model Loading Test -->
+        <div class="test-section">
+            <h2>3. Model Loading</h2>
+            <div id="model-status" class="status info">
+                📦 No model loaded
+            </div>
+            <select id="model-selector" class="agent-selector">
+                <option value="Llama-3.2-1B-Instruct-q4f32_1-MLC">Llama 3.2 1B (Fast, ~0.8GB)</option>
+                <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 3B (Balanced, ~2.0GB)</option>
+                <option value="Phi-3.5-mini-instruct-q4f32_1-MLC">Phi 3.5 Mini (Coding, ~2.4GB)</option>
+            </select>
+            <button onclick="loadModel()" id="load-button">📥 Load Selected Model</button>
+            <div class="progress-bar" id="progress-container" style="display: none;">
+                <div class="progress-fill" id="progress-bar"></div>
+            </div>
+            <div id="progress-text" style="display: none;"></div>
+        </div>
+        
+        <!-- Agent Response Test -->
+        <div class="test-section">
+            <h2>4. Agent Response Test</h2>
+            <div>
+                <label>Select Agent Type:</label>
+                <select id="agent-selector" class="agent-selector">
+                    <option value="orchestrator">🎪 Orchestrator</option>
+                    <option value="git">📋 Git Assistant</option>
+                    <option value="browser">🌐 Browser Agent</option>
+                    <option value="haiku">🎋 Haiku Bot</option>
+                    <option value="greeter">👋 Greeter</option>
+                    <option value="project">📊 Project Manager</option>
+                </select>
+            </div>
+            <div class="chat-container" id="chat-container">
+                <div class="message agent">
+                    🤖 <strong>System:</strong> Select an agent type and test a message!
+                </div>
+            </div>
+            <input type="text" id="message-input" placeholder="Enter your message..." />
+            <button onclick="sendMessage()" id="send-button">📤 Send Message</button>
+        </div>
+        
+        <!-- Performance Metrics -->
+        <div class="test-section">
+            <h2>5. Performance Metrics</h2>
+            <div id="metrics-display" class="status info">
+                📊 No metrics available yet
+            </div>
+            <button onclick="showMetrics()">📈 Show Metrics</button>
+        </div>
+    </div>
+
+    <!-- Load WebLLM Service as a regular script instead of ES6 module -->
+    <script src="webllm-service-simple.js"></script>
+    
+    <script>
+        let compatibilityResult = null;
+        let modelLoadStartTime = null;
+        let responseStartTime = null;
+        
+        // Check if WebLLM service is available
+        function checkWebLLMService() {
+            if (!window.webLLMService) {
+                console.error('WebLLM service not found. Make sure webllm-service-standalone.js is loaded.');
+                return false;
+            }
+            return true;
+        }
+        
+        // Browser Compatibility Check
+        async function checkCompatibility() {
+            const statusDiv = document.getElementById('compatibility-status');
+            statusDiv.innerHTML = '🔄 Checking compatibility...';
+            statusDiv.className = 'status info';
+            
+            if (!checkWebLLMService()) {
+                statusDiv.innerHTML = '❌ WebLLM service not loaded. Please serve from HTTP server.';
+                statusDiv.className = 'status error';
+                return;
+            }
+            
+            try {
+                compatibilityResult = await window.webLLMService.checkBrowserCompatibility();
+                
+                let statusText = '';
+                let statusClass = 'success';
+                
+                if (compatibilityResult.webgpu) {
+                    statusText += '✅ WebGPU: Supported<br>';
+                } else {
+                    statusText += '❌ WebGPU: Not Supported<br>';
+                    statusClass = 'error';
+                }
+                
+                if (compatibilityResult.webworker) {
+                    statusText += '✅ Web Workers: Supported<br>';
+                } else {
+                    statusText += '❌ Web Workers: Not Supported<br>';
+                    statusClass = 'error';
+                }
+                
+                if (compatibilityResult.webassembly) {
+                    statusText += '✅ WebAssembly: Supported<br>';
+                } else {
+                    statusText += '❌ WebAssembly: Not Supported<br>';
+                    statusClass = 'error';
+                }
+                
+                statusText += `🌐 Browser: ${compatibilityResult.browser.browser} v${compatibilityResult.browser.version}`;
+                
+                statusDiv.innerHTML = statusText;
+                statusDiv.className = `status ${statusClass}`;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error checking compatibility: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+        
+        // WebLLM Initialization
+        async function initializeWebLLM() {
+            const statusDiv = document.getElementById('init-status');
+            const button = document.getElementById('init-button');
+            
+            if (!checkWebLLMService()) {
+                statusDiv.innerHTML = '❌ WebLLM service not loaded. Please serve from HTTP server.';
+                statusDiv.className = 'status error';
+                return;
+            }
+            
+            statusDiv.innerHTML = '🔄 Initializing WebLLM...';
+            statusDiv.className = 'status info';
+            button.disabled = true;
+            
+            try {
+                const success = await window.webLLMService.initialize();
+                
+                if (success) {
+                    statusDiv.innerHTML = '✅ WebLLM initialized successfully!';
+                    statusDiv.className = 'status success';
+                    button.textContent = '✅ WebLLM Ready';
+                } else {
+                    statusDiv.innerHTML = '❌ WebLLM initialization failed';
+                    statusDiv.className = 'status error';
+                    button.disabled = false;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error initializing WebLLM: ${error.message}`;
+                statusDiv.className = 'status error';
+                button.disabled = false;
+            }
+        }
+        
+        // Model Loading
+        async function loadModel() {
+            const statusDiv = document.getElementById('model-status');
+            const button = document.getElementById('load-button');
+            const modelSelector = document.getElementById('model-selector');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            if (!checkWebLLMService()) {
+                statusDiv.innerHTML = '❌ WebLLM service not loaded. Please serve from HTTP server.';
+                statusDiv.className = 'status error';
+                return;
+            }
+            
+            const modelId = modelSelector.value;
+            
+            statusDiv.innerHTML = `🔄 Loading model: ${modelId}`;
+            statusDiv.className = 'status info';
+            button.disabled = true;
+            progressContainer.style.display = 'block';
+            progressText.style.display = 'block';
+            
+            modelLoadStartTime = Date.now();
+            
+            // Listen for progress updates
+            window.addEventListener('webllm-progress', (event) => {
+                const progress = event.detail;
+                if (progress.progress) {
+                    const percent = Math.round(progress.progress * 100);
+                    progressBar.style.width = `${percent}%`;
+                    progressText.textContent = `${percent}% - ${progress.text || 'Loading...'}`;
+                }
+            });
+            
+            try {
+                const success = await window.webLLMService.loadModel(modelId);
+                
+                if (success) {
+                    const loadTime = Date.now() - modelLoadStartTime;
+                    statusDiv.innerHTML = `✅ Model loaded successfully! (${loadTime}ms)`;
+                    statusDiv.className = 'status success';
+                    button.textContent = '✅ Model Ready';
+                    progressBar.style.width = '100%';
+                    progressText.textContent = '100% - Model Ready';
+                } else {
+                    statusDiv.innerHTML = '❌ Model loading failed';
+                    statusDiv.className = 'status error';
+                    button.disabled = false;
+                    progressContainer.style.display = 'none';
+                    progressText.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error loading model: ${error.message}`;
+                statusDiv.className = 'status error';
+                button.disabled = false;
+                progressContainer.style.display = 'none';
+                progressText.style.display = 'none';
+            }
+        }
+        
+        // Send Message to Agent
+        async function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const agentSelector = document.getElementById('agent-selector');
+            const chatContainer = document.getElementById('chat-container');
+            const sendButton = document.getElementById('send-button');
+            
+            if (!checkWebLLMService()) {
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message agent';
+                errorMessage.innerHTML = `<strong>System:</strong> ❌ WebLLM service not loaded. Please serve from HTTP server.`;
+                chatContainer.appendChild(errorMessage);
+                return;
+            }
+            
+            const message = messageInput.value.trim();
+            const agentType = agentSelector.value;
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerHTML = `<strong>You:</strong> ${message}`;
+            chatContainer.appendChild(userMessage);
+            
+            // Add loading message
+            const loadingMessage = document.createElement('div');
+            loadingMessage.className = 'message agent';
+            loadingMessage.innerHTML = `<strong>${agentType}:</strong> 🤖 Thinking...`;
+            chatContainer.appendChild(loadingMessage);
+            
+            messageInput.value = '';
+            sendButton.disabled = true;
+            responseStartTime = Date.now();
+            
+            try {
+                const response = await window.webLLMService.generateAgentResponse(agentType, message);
+                const responseTime = Date.now() - responseStartTime;
+                
+                loadingMessage.innerHTML = `<strong>${agentType}:</strong> ${response} <em style="opacity: 0.7;">(${responseTime}ms)</em>`;
+                
+            } catch (error) {
+                loadingMessage.innerHTML = `<strong>${agentType}:</strong> ❌ Error: ${error.message}`;
+            }
+            
+            sendButton.disabled = false;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Show Performance Metrics
+        function showMetrics() {
+            const metricsDiv = document.getElementById('metrics-display');
+            
+            if (!checkWebLLMService()) {
+                metricsDiv.innerHTML = '❌ WebLLM service not loaded. Please serve from HTTP server.';
+                metricsDiv.className = 'status error';
+                return;
+            }
+            
+            const status = window.webLLMService.getStatus();
+            
+            metricsDiv.innerHTML = `
+                <strong>WebLLM Status:</strong><br>
+                • Initialized: ${status.initialized ? '✅' : '❌'}<br>
+                • Current Model: ${status.currentModel || 'None'}<br>
+                • Is Loading: ${status.isLoading ? '🔄' : '✅'}<br>
+                • Is Inferencing: ${status.isInferencing ? '🔄' : '✅'}<br>
+                • Queue Length: ${status.queueLength || 0}<br>
+                • Loaded Models: ${status.loadedModels?.length || 0}
+            `;
+            metricsDiv.className = 'status info';
+        }
+        
+        // Handle Enter key in message input
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Initialize compatibility check on load
+        window.addEventListener('load', function() {
+            setTimeout(checkCompatibility, 1000);
+        });
+    </script>
+</body>
+</html> 

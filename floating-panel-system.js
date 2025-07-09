@@ -102,6 +102,10 @@ class FloatingPanelSystem
                 event.preventDefault();
                 this.createContextualPanel('debug');
                 break;
+            case 'F7':
+                event.preventDefault();
+                this.createContextualPanel('webllm');
+                break;
             case 'F9':
                 event.preventDefault();
                 this.minimizeAllPanels();
@@ -812,6 +816,17 @@ class FloatingPanelSystem
                     { id: 'activity', title: '🚀 Activity', content: this.generateActivityContent() },
                     { id: 'insights', title: '💡 Insights', content: this.generateInsightsContent() }
                 ]
+            },
+            webllm: {
+                title: '🤖 WebLLM Manager',
+                type: 'webllm-panel',
+                panelType: 'webllm', // Add this for singleton tracking
+                tabs: [
+                    { id: 'models', title: '🧠 Models', content: this.generateWebLLMModelsContent() },
+                    { id: 'compatibility', title: '✅ Compatibility', content: this.generateWebLLMCompatibilityContent() },
+                    { id: 'status', title: '⚡ Status', content: this.generateWebLLMStatusContent() },
+                    { id: 'settings', title: '⚙️ Settings', content: this.generateWebLLMSettingsContent() }
+                ]
             }
         };
 
@@ -1222,6 +1237,115 @@ class FloatingPanelSystem
                 <p style="font-size: 11px;">Execution time: ${Math.random() * 100 | 0}ms</p>
                 <p style="font-size: 11px;">Status: Success</p>
                 <p style="font-size: 11px;">Memory usage: ${Math.random() * 10 | 0}MB</p>
+            </div>
+        `;
+    }
+
+    generateWebLLMModelsContent()
+    {
+        const availableModels = window.webLLMService?.getAvailableModels() || [];
+        const currentModel = window.webLLMService?.getStatus()?.currentModel || 'None';
+        
+        return `
+            <div class="content-section">
+                <h3>🧠 Available Models</h3>
+                <div style="margin-bottom: 10px;">
+                    <p><strong>Current Model:</strong> ${currentModel}</p>
+                </div>
+                ${availableModels.map(model => `
+                    <div style="background: rgba(0,255,136,0.1); padding: 8px; margin: 4px 0; border-radius: 4px;">
+                        <div style="font-weight: bold;">${model.name}</div>
+                        <div style="font-size: 11px; opacity: 0.8;">Size: ${model.size} | Performance: ${model.performance}</div>
+                        <div style="font-size: 10px; opacity: 0.7;">${model.description}</div>
+                        <button onclick="window.webLLMService.loadModel('${model.id}')" class="action-button" style="margin-top: 4px;">
+                            Load Model
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    generateWebLLMCompatibilityContent()
+    {
+        return `
+            <div class="content-section">
+                <h3>✅ Browser Compatibility</h3>
+                <div id="webllm-compatibility-status">
+                    <p>🔄 Checking compatibility...</p>
+                </div>
+                <button onclick="this.checkWebLLMCompatibility()" class="action-button">
+                    🔍 Check Compatibility
+                </button>
+            </div>
+            <script>
+                if (window.webLLMService) {
+                    window.webLLMService.checkBrowserCompatibility().then(result => {
+                        const statusDiv = document.getElementById('webllm-compatibility-status');
+                        statusDiv.innerHTML = \`
+                            <p><strong>WebGPU:</strong> \${result.webgpu ? '✅ Supported' : '❌ Not Supported'}</p>
+                            <p><strong>Web Workers:</strong> \${result.webworker ? '✅ Supported' : '❌ Not Supported'}</p>
+                            <p><strong>WebAssembly:</strong> \${result.webassembly ? '✅ Supported' : '❌ Not Supported'}</p>
+                            <p><strong>Browser:</strong> \${result.browser.browser} v\${result.browser.version}</p>
+                        \`;
+                    });
+                }
+            </script>
+        `;
+    }
+
+    generateWebLLMStatusContent()
+    {
+        const status = window.webLLMService?.getStatus() || {};
+        
+        return `
+            <div class="content-section">
+                <h3>⚡ WebLLM Status</h3>
+                <div style="font-size: 12px;">
+                    <p><strong>Initialized:</strong> ${status.initialized ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Current Model:</strong> ${status.currentModel || 'None'}</p>
+                    <p><strong>Loading:</strong> ${status.isLoading ? '🔄 Yes' : '✅ No'}</p>
+                    <p><strong>Inferencing:</strong> ${status.isInferencing ? '🔄 Yes' : '✅ No'}</p>
+                    <p><strong>Queue Length:</strong> ${status.queueLength || 0}</p>
+                    <p><strong>Loaded Models:</strong> ${status.loadedModels?.length || 0}</p>
+                    <p><strong>Mode:</strong> ${status.mode || 'Standard'}</p>
+                </div>
+                <button onclick="window.webLLMService.initialize()" class="action-button">
+                    🚀 Initialize WebLLM
+                </button>
+            </div>
+        `;
+    }
+
+    generateWebLLMSettingsContent()
+    {
+        return `
+            <div class="content-section">
+                <h3>⚙️ WebLLM Settings</h3>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 12px;">
+                        <strong>Agent Model Assignment:</strong>
+                    </label>
+                    <select style="width: 100%; padding: 4px; margin-bottom: 8px; background: rgba(0,0,0,0.3); color: #00ff88; border: 1px solid #00ff88;">
+                        <option value="global">Use Global Model</option>
+                        <option value="per-agent">Per-Agent Models</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 12px;">
+                        <strong>Temperature:</strong>
+                    </label>
+                    <input type="range" min="0" max="1" step="0.1" value="0.7" style="width: 100%;">
+                    <span style="font-size: 11px;">0.7</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 12px;">
+                        <strong>Max Tokens:</strong>
+                    </label>
+                    <input type="number" value="200" min="50" max="500" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.3); color: #00ff88; border: 1px solid #00ff88;">
+                </div>
+                <button class="action-button">💾 Save Settings</button>
+                <button class="action-button">🔄 Reset to Defaults</button>
             </div>
         `;
     }

@@ -1,5 +1,7 @@
 // SwarmDesk - Madness Interactive Agent Command Center
 // Scene setup with cyber-punk aesthetic
+// Note: WebLLM service is loaded via script tag in index.html
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000511);
 scene.fog = new THREE.Fog(0x000511, 20, 800);
@@ -2055,40 +2057,78 @@ function generateDialogueOptions(agent)
     });
 }
 
-function selectOption(option)
+async function selectOption(option)
 {
     if (!currentAgent) return;
 
     const dialogueContent = document.getElementById('dialogue-content');
     dialogueContent.innerHTML += `<p><strong>You:</strong> ${option}</p>`;
-    dialogueContent.innerHTML += `<p><strong>${currentAgent.userData.name}:</strong> <span class="loading"></span></p>`;
+    dialogueContent.innerHTML += `<p><strong>${currentAgent.userData.name}:</strong> <span class="loading">🤖 Thinking...</span></p>`;
     dialogueContent.scrollTop = dialogueContent.scrollHeight;
 
-    // Simulate agent response
-    setTimeout(() =>
-    {
-        const response = generateAgentResponse(currentAgent, option);
+    // Update agent status to show processing
+    updateAgentStatus(currentAgent.userData.agentType, 'PROCESSING');
+
+    try {
+        // Generate agent response (now asynchronous)
+        const response = await generateAgentResponse(currentAgent, option);
+        
         dialogueContent.innerHTML = dialogueContent.innerHTML.replace(
-            '<span class="loading"></span>',
+            '<span class="loading">🤖 Thinking...</span>',
             response
         );
         dialogueContent.scrollTop = dialogueContent.scrollHeight;
+
+        // Initialize conversations array if it doesn't exist
+        if (!currentAgent.userData.conversations) {
+            currentAgent.userData.conversations = [];
+        }
 
         currentAgent.userData.conversations.push({
             user: option,
             response: response
         });
 
-        // Update agent status
-        updateAgentStatus(currentAgent.userData.agentType, 'PROCESSING');
+        // Update agent status back to active
+        updateAgentStatus(currentAgent.userData.agentType, 'ACTIVE');
 
         // Generate new options
         generateDialogueOptions(currentAgent);
-    }, 1000 + Math.random() * 2000);
+
+    } catch (error) {
+        console.error('Error generating agent response:', error);
+        
+        dialogueContent.innerHTML = dialogueContent.innerHTML.replace(
+            '<span class="loading">🤖 Thinking...</span>',
+            'Sorry, I encountered an error. Please try again.'
+        );
+        
+        updateAgentStatus(currentAgent.userData.agentType, 'ERROR');
+    }
 }
 
-function generateAgentResponse(agent, input)
+async function generateAgentResponse(agent, input)
 {
+    // Try WebLLM first, fall back to hardcoded responses if needed
+    try {
+        if (window.webLLMService) {
+            const conversationHistory = agent.userData.conversations || [];
+            const response = await window.webLLMService.generateAgentResponse(
+                agent.userData.agentType,
+                input,
+                conversationHistory
+            );
+            
+            // If WebLLM returns a response, use it
+            if (response && !response.includes('initializing') && !response.includes('calibrating')) {
+                return response;
+            }
+        }
+    } catch (error) {
+        console.warn('WebLLM response failed, using fallback:', error);
+    }
+
+    // Fallback to original hardcoded responses
     const responses = {
         'orchestrator': [
             `Excellent! Let me orchestrate that for you. The swarm is now reconfiguring to handle: "${input}". Watch the magic happen!`,
