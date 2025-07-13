@@ -1,0 +1,39 @@
+# Task 2: Settings Panel Integration
+
+## Primary Objective
+Add "AI Models" configuration tab to Inventorium Settings.jsx for WebLLM model management.
+
+## Key Focus Areas
+- Study existing Settings.jsx structure in [../src/components/Settings.jsx](mdc:../src/components/Settings.jsx)
+- Add new "AI Models" tab following established patterns
+- Implement model selection dropdown with available WebLLM models
+- Create download progress indicators with Material-UI
+- Integrate with existing localStorage persistence system
+
+## Core Files to Study
+- [../src/components/Settings.jsx](mdc:../src/components/Settings.jsx) - Main settings component
+- [../src/components/UserSettings.jsx](mdc:../src/components/UserSettings.jsx) - Settings patterns
+- [../src/contexts/AuthContext.jsx](mdc:../src/contexts/AuthContext.jsx) - User context
+
+## Implementation Strategy
+1. Add `renderAIModelsTab()` function following existing tab patterns
+2. Create model selection interface with available WebLLM models
+3. Add download progress components (Material-UI LinearProgress)
+4. Implement model caching configuration options
+5. Integrate with existing `handleSettingChange()` and localStorage
+
+## WebLLM Models to Support
+- Llama-3-8B-Instruct-q4f32_1-MLC (General purpose)
+- RedPajama-INCITE-Chat-3B-v1-q4f32_1 (Lightweight)
+- Phi-3-mini-4k-instruct-q4f16_1-MLC (Code-focused)
+- Custom model URL input option
+
+## Expected Deliverables
+- New "AI Models" tab in Settings.jsx
+- Model selection and download interface
+- Settings persistence integration
+- Model cache management tools
+description:
+globs:
+alwaysApply: false
+---

@@ -979,8 +979,7 @@ const keys = {
     KeyW: 'moveForward',
     KeyS: 'moveBackward',
     KeyA: 'moveLeft',
-    KeyD: 'moveRight',
-    Space: 'chaos'
+    KeyD: 'moveRight'
 };
 
 // Velocity for smooth movement
@@ -1842,14 +1841,18 @@ document.addEventListener('keydown', (e) =>
         }
     }
 
-    if (e.key === ' ')
+    if (e.key === ' ' && !e.repeat)
     {
         e.preventDefault();
         if (typeof controls !== 'undefined') {
             controls.chaos = !controls.chaos;
         }
         if (typeof createFloatingText === 'function' && typeof camera !== 'undefined') {
-            createFloatingText('🎵 CHAOS DANCE MODE! 🎵', camera.position);
+            if (isNaN(camera.position.x) || isNaN(camera.position.y) || isNaN(camera.position.z)) {
+                console.error("CHAOS DANCE: camera.position contains NaN values!", camera.position);
+            } else {
+                createFloatingText('🎵 CHAOS DANCE MODE! 🎵', camera.position);
+            }
         }
     }
 
@@ -1866,7 +1869,6 @@ document.addEventListener('keyup', (e) =>
 {
     const customQuestionInput = document.getElementById('custom-question-input');
     if (document.activeElement === customQuestionInput) return;
-
     if (keys[e.code])
     {
         controls[keys[e.code]] = false;
@@ -2220,26 +2222,20 @@ document.getElementById('custom-question-input').addEventListener('keypress', (e
 // 🔧 NEW MADNESS: UI Panel Toggle Functions
 function toggleControlCenter()
 {
-    const controlCenter = document.getElementById('ui-overlay');
-    const isVisible = controlCenter.style.display !== 'none';
-
-    controlCenter.style.display = isVisible ? 'none' : 'block';
-
-    const statusText = isVisible ? 'hidden' : 'visible';
-    createFloatingText(`📋 Control Center ${statusText}`, camera.position);
-    console.log(`🎮 Control Center ${statusText}`);
+    if (window.panelSystem) {
+        window.panelSystem.createContextualPanel('control_center', { startHidden: true });
+    } else {
+        console.warn('🔧 Panel system not available');
+    }
 }
 
 function toggleSwarmStatus()
 {
-    const swarmStatus = document.querySelector('.agent-status');
-    const isVisible = swarmStatus.style.display !== 'none';
-
-    swarmStatus.style.display = isVisible ? 'none' : 'block';
-
-    const statusText = isVisible ? 'hidden' : 'visible';
-    createFloatingText(`🤖 Swarm Status ${statusText}`, camera.position);
-    console.log(`🤖 Swarm Status ${statusText}`);
+    if (window.panelSystem) {
+        window.panelSystem.createContextualPanel('swarm_status', { startHidden: true });
+    } else {
+        console.warn('🔧 Panel system not available');
+    }
 }
 
 // 🎮 NEW: Auto-release pointer lock on window blur

@@ -1,0 +1,40 @@
+# Task 3: Model Management System
+
+## Primary Objective
+Implement comprehensive model download, caching, and management system for WebLLM models.
+
+## Key Focus Areas
+- Build model download manager with progress tracking
+- Implement efficient browser storage optimization (IndexedDB)
+- Create model switching functionality without page reload
+- Add SwarmDesk floating panel for model status monitoring
+- Implement robust error handling and fallback systems
+
+## Core Files to Study
+- [floating-panel-system.js](mdc:floating-panel-system.js) - Floating panel creation patterns
+- [floating-panel-advanced.js](mdc:floating-panel-advanced.js) - Advanced panel features
+- [swarmdesk.js](mdc:swarmdesk.js) - Integration with existing systems
+
+## Implementation Strategy
+1. Create ModelManager class for download/cache operations
+2. Implement IndexedDB storage for model persistence
+3. Add model switching without requiring page reload
+4. Create "Model Status" floating panel for SwarmDesk
+5. Add comprehensive error handling and model validation
+
+## Technical Requirements
+- IndexedDB for efficient model storage
+- Service Worker for background downloads (optional)
+- Progress tracking for large model downloads
+- Model verification and integrity checking
+- Graceful fallback when models fail to load
+
+## Expected Deliverables
+- ModelManager class with download/cache functionality
+- SwarmDesk floating panel for model management
+- Model switching interface
+- Error handling and fallback systems
+description:
+globs:
+alwaysApply: false
+---

@@ -1,0 +1,36 @@
+---
+title: SwarmDesk WebLLM Integration
+---
+
+# SwarmDesk WebLLM Integration Overview
+
+## Project Structure
+SwarmDesk is a 3D cyberpunk agent command center built with Three.js. Main files:
+- [swarmdesk.js](mdc:swarmdesk.js) - Core 3D environment and agent system
+- [floating-panel-system.js](mdc:floating-panel-system.js) - Floating UI panels
+- [swarmdesk-dashboard-hooks.js](mdc:swarmdesk-dashboard-hooks.js) - Dashboard integration
+
+## WebLLM Integration Goals
+- Replace current mock agent responses with local AI inference
+- Enable users to download and run models locally in browser
+- Provide per-agent model configuration
+- Maintain cyberpunk aesthetic and user experience
+
+## Key Agent Types
+- Git Assistant - Repository management
+- Browser Agent - Web automation
+- Haiku Bot - Creative content generation
+- Project Manager - Task coordination
+- Greeter - User interface routing
+
+## Architecture Integration Points
+- Agent dialogue system in [swarmdesk.js](mdc:swarmdesk.js) `generateAgentResponse()`
+- Settings panel in [../src/components/Settings.jsx](mdc:../src/components/Settings.jsx)
+- Floating panels for model management UI
+- Browser storage for model caching
+
+## WebLLM Requirements
+- WebGPU-compatible browser (Chrome 113+, Firefox 121+)
+- Model weights in MLC format hosted on HuggingFace
+- Web workers for UI performance
+- Progressive model loading and caching

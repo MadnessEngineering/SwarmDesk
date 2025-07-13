@@ -200,6 +200,10 @@ class FloatingPanelSystem
         document.getElementById('swarmdesk-workspace').appendChild(panelElement);
         panelElement.classList.add('panel-spawn');
 
+        if (config.startHidden) {
+            panelElement.style.display = 'none';
+        }
+
         // Store panel data
         this.panels.set(panelId, {
             element: panelElement,
@@ -760,6 +764,22 @@ class FloatingPanelSystem
 
         // No existing panel - create new one
         const configs = {
+            control_center: {
+                title: 'SwarmDesk Control Center',
+                type: 'control-center-panel',
+                panelType: 'control_center',
+                tabs: [
+                    { id: 'shortcuts', title: '🚀 Shortcuts', content: this.generateShortcutsContent() }
+                ]
+            },
+            swarm_status: {
+                title: 'Swarm Status',
+                type: 'swarm-status-panel',
+                panelType: 'swarm_status',
+                tabs: [
+                    { id: 'status', title: '🤖 Status', content: this.generateAgentStatusContent() }
+                ]
+            },
             welcome: {
                 title: '🎪 Welcome to Floating Madness!',
                 type: 'project-panel',
@@ -1346,6 +1366,28 @@ class FloatingPanelSystem
                 </div>
                 <button class="action-button">💾 Save Settings</button>
                 <button class="action-button">🔄 Reset to Defaults</button>
+            </div>
+        `;
+    }
+
+    generateAgentStatusContent()
+    {
+        const status = window.webLLMService?.getStatus() || {};
+        return `
+            <div class="content-section">
+                <h3>🤖 Agent Status</h3>
+                <div style="font-size: 12px;">
+                    <p><strong>Initialized:</strong> ${status.initialized ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Current Model:</strong> ${status.currentModel || 'None'}</p>
+                    <p><strong>Loading:</strong> ${status.isLoading ? '🔄 Yes' : '✅ No'}</p>
+                    <p><strong>Inferencing:</strong> ${status.isInferencing ? '🔄 Yes' : '✅ No'}</p>
+                    <p><strong>Queue Length:</strong> ${status.queueLength || 0}</p>
+                    <p><strong>Loaded Models:</strong> ${status.loadedModels?.length || 0}</p>
+                    <p><strong>Mode:</strong> ${status.mode || 'Standard'}</p>
+                </div>
+                <button onclick="window.webLLMService.initialize()" class="action-button">
+                    🚀 Initialize Agent
+                </button>
             </div>
         `;
     }

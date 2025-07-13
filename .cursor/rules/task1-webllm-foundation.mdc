@@ -1,0 +1,32 @@
+# Task 1: Research & Foundation Setup
+
+## Primary Objective
+Create a working proof-of-concept integrating WebLLM with SwarmDesk's agent dialogue system.
+
+## Key Focus Areas
+- Analyze current agent response system in [swarmdesk.js](mdc:swarmdesk.js) `generateAgentResponse()`
+- Integrate WebLLM basic functionality with single agent (recommend Git Assistant)
+- Test browser compatibility (WebGPU support)
+- Benchmark model loading times and performance
+
+## Core Files to Study
+- [swarmdesk.js](mdc:swarmdesk.js) - Agent dialogue system around lines 2090-2129
+- [index.html](mdc:index.html) - Current UI structure
+- [swarmdesk-dashboard-hooks.js](mdc:swarmdesk-dashboard-hooks.js) - Dashboard integration patterns
+
+## Implementation Strategy
+1. Add WebLLM dependency: `npm install @mlc-ai/web-llm`
+2. Create basic WebLLM engine initialization
+3. Replace `generateAgentResponse()` for one agent type
+4. Test with small model (e.g., "RedPajama-INCITE-Chat-3B-v1-q4f32_1")
+5. Document browser requirements and performance baseline
+
+## Expected Deliverables
+- Working WebLLM integration with Git Assistant
+- Browser compatibility documentation
+- Performance benchmarks
+- Foundation code for Task 2 expansion
+description:
+globs:
+alwaysApply: false
+---
