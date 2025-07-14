@@ -23,6 +23,17 @@ class FloatingPanelSystem
         this.contextualTabs = new Map();
         this.panelIdCounter = 0;
 
+        this.mcpData = {
+            tools: [],
+            logs: [],
+            status: {
+                server: 'Disconnected',
+                activeTools: 0,
+                lastPing: 'N/A'
+            }
+        };
+        this.hasInitializedMCP = false;
+
         this.init();
         FloatingPanelSystem.instance = this;
     }
@@ -105,6 +116,10 @@ class FloatingPanelSystem
             case 'F7':
                 event.preventDefault();
                 this.createContextualPanel('webllm');
+                break;
+            case 'F8':
+                event.preventDefault();
+                this.createContextualPanel('mcp');
                 break;
             case 'F9':
                 event.preventDefault();
@@ -825,7 +840,8 @@ class FloatingPanelSystem
                     { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
                     { id: 'logs', title: '📋 Logs', content: this.generateLogsContent() },
                     { id: 'debug', title: '🐛 Debug', content: this.generateDebugContent() }
-                ]
+                ],
+                onOpen: () => this.connectToMCPServer()
             },
             analytics: {
                 title: '📊 Analytics Dashboard',
@@ -853,7 +869,100 @@ class FloatingPanelSystem
         const config = configs[type];
         if (config)
         {
-            return this.createPanel(config);
+            const panelId = this.createPanel(config);
+            // If there's an onOpen callback, call it now
+            if (config.onOpen) {
+                config.onOpen();
+            }
+            return panelId;
+        }
+    }
+
+    // 📡 CONNECT TO MCP SERVER
+    connectToMCPServer() {
+        if (this.hasInitializedMCP) {
+            console.log('📡 MCP connection already initialized.');
+            return;
+        }
+
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            console.error('📡 MCP Error: User ID not found in localStorage. Cannot connect.');
+            this.mcpData.status.server = 'Auth Error';
+            this.updateMCPDebugContent();
+            return;
+        }
+
+        console.log(`📡 Connecting to MCP server for user: ${userId}...`);
+        const sse = new EventSource(`http://localhost:8000/sse?userId=${encodeURIComponent(userId)}`);
+
+        sse.onopen = () => {
+            console.log('📡 SSE connection opened.');
+            this.mcpData.status.server = 'Connected';
+            this.updateMCPDebugContent();
+            this.hasInitializedMCP = true;
+        };
+
+        sse.addEventListener('tools', (event) => {
+            const tools = JSON.parse(event.data);
+            this.mcpData.tools = tools;
+            console.log('🔧 Received tools:', tools);
+            this.updateMCPToolsContent();
+        });
+
+        sse.addEventListener('logs', (event) => {
+            const logEntry = JSON.parse(event.data);
+            this.mcpData.logs.unshift(logEntry); // Add to beginning
+            if (this.mcpData.logs.length > 50) { // Keep log size manageable
+                this.mcpData.logs.pop();
+            }
+            console.log('📋 Received log:', logEntry);
+            this.updateMCPLogsContent();
+        });
+
+        sse.addEventListener('status', (event) => {
+            const status = JSON.parse(event.data);
+            this.mcpData.status = { ...this.mcpData.status, ...status };
+            console.log('🐛 Received status:', status);
+            this.updateMCPDebugContent();
+        });
+
+        sse.onerror = (err) => {
+            console.error('📡 SSE Error:', err);
+            this.mcpData.status.server = 'Error';
+            this.updateMCPDebugContent();
+            sse.close();
+        };
+    }
+
+    // 🔄 UPDATE MCP CONTENT
+    updateMCPToolsContent() {
+        const panel = this.findPanelByType('mcp');
+        if (panel) {
+            const contentDiv = panel.element.querySelector('.tab-content[data-tab-id="tools"]');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.generateMCPToolsContent();
+            }
+        }
+    }
+
+    updateMCPLogsContent() {
+        const panel = this.findPanelByType('mcp');
+        if (panel) {
+            const contentDiv = panel.element.querySelector('.tab-content[data-tab-id="logs"]');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.generateLogsContent();
+            }
+        }
+    }
+
+    updateMCPDebugContent() {
+        const panel = this.findPanelByType('mcp');
+        if (panel) {
+            const contentDiv = panel.element.querySelector('.tab-content[data-tab-id="debug"]');
+            if (contentDiv) {
+                contentDiv.innerHTML = this.generateDebugContent();
+            }
         }
     }
 
@@ -1087,13 +1196,18 @@ class FloatingPanelSystem
 
     generateMCPToolsContent()
     {
+        if (this.mcpData.tools.length === 0) {
+            return `
+                <div class="content-section">
+                    <h3>🛠️ Available MCP Tools</h3>
+                    <p>No tools available. Waiting for server connection...</p>
+                </div>
+            `;
+        }
         return `
             <div class="content-section">
                 <h3>🛠️ Available MCP Tools</h3>
-                <button class="action-button">📂 list_projects</button>
-                <button class="action-button">📝 add_todo</button>
-                <button class="action-button">🔍 query_todos</button>
-                <button class="action-button">📊 get_analytics</button>
+                ${this.mcpData.tools.map(tool => `<button class="action-button">${tool}</button>`).join('')}
             </div>
         `;
     }
@@ -1104,9 +1218,7 @@ class FloatingPanelSystem
             <div class="content-section">
                 <h3>📋 MCP Logs</h3>
                 <div style="font-size: 11px; opacity: 0.8; height: 120px; overflow-y: auto;">
-                    <p>[14:25] list_projects - SUCCESS</p>
-                    <p>[14:23] add_todo - SUCCESS</p>
-                    <p>[14:20] query_todos - SUCCESS</p>
+                    ${this.mcpData.logs.map(log => `<p>[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}</p>`).join('')}
                 </div>
             </div>
         `;
@@ -1117,9 +1229,9 @@ class FloatingPanelSystem
         return `
             <div class="content-section">
                 <h3>🐛 Debug Info</h3>
-                <p style="font-size: 11px;">MCP Server: Connected</p>
-                <p style="font-size: 11px;">Active Tools: 12</p>
-                <p style="font-size: 11px;">Last Ping: 2ms</p>
+                <p style="font-size: 11px;">MCP Server: ${this.mcpData.status.server}</p>
+                <p style="font-size: 11px;">Active Tools: ${this.mcpData.status.activeTools}</p>
+                <p style="font-size: 11px;">Last Ping: ${this.mcpData.status.lastPing}</p>
             </div>
         `;
     }
@@ -1265,7 +1377,7 @@ class FloatingPanelSystem
     {
         const availableModels = window.webLLMService?.getAvailableModels() || [];
         const currentModel = window.webLLMService?.getStatus()?.currentModel || 'None';
-        
+
         return `
             <div class="content-section">
                 <h3>🧠 Available Models</h3>
@@ -1317,7 +1429,7 @@ class FloatingPanelSystem
     generateWebLLMStatusContent()
     {
         const status = window.webLLMService?.getStatus() || {};
-        
+
         return `
             <div class="content-section">
                 <h3>⚡ WebLLM Status</h3>
@@ -1390,6 +1502,10 @@ class FloatingPanelSystem
                 </button>
             </div>
         `;
+    }
+
+    findPanelByType(type) {
+        return Array.from(this.panels.values()).find(p => p.config.panelType === type);
     }
 }
 
