@@ -243,6 +243,16 @@ class FloatingPanelSystem
         return panelId;
     }
 
+    showPanel(panelId) {
+        const panel = this.panels.get(panelId);
+        if (panel) {
+            panel.element.style.display = 'block';
+            panel.element.classList.remove('minimized');
+            this.setActivePanel(panelId);
+            console.log(`👁️‍🗨️ Showing panel: ${panelId}`);
+        }
+    }
+
     // REMOVED createMCPToolsPanel() function as it's now handled by createContextualPanel
 
     async updateHistoryTab(panelId)
@@ -774,138 +784,128 @@ class FloatingPanelSystem
     // 🎯 CREATE CONTEXTUAL PANELS
     createContextualPanel(type)
     {
-        // Check if panel of this type already exists
-        const existingPanel = Array.from(this.panels.values()).find(
-            p => p.config && p.config.panelType === type
-        );
+        // 🧐 Check if a panel of this type already exists
+        const existingPanelId = this.findPanelByType(type);
 
-        if (existingPanel)
+        if (existingPanelId)
         {
-            // Panel exists - toggle visibility or focus it
-            const panelElement = existingPanel.element;
-            if (panelElement.style.display === 'none')
-            {
-                // Show hidden panel
-                panelElement.style.display = 'block';
-                this.setActivePanel(existingPanel.element.id);
-
-                // 🎮 Dispatch event to release mouse look
-                window.dispatchEvent(new Event('panelCreated'));
-
-                console.log(`🔄 Showing existing ${type} panel`);
-            }
-            else
-            {
-                // Hide visible panel (toggle off)
-                panelElement.style.display = 'none';
-                console.log(`🔄 Hiding ${type} panel`);
-            }
-            return existingPanel.element.id;
+            console.log(`🤔 Panel of type "${type}" already exists with ID: ${existingPanelId}. Showing it.`);
+            this.showPanel(existingPanelId);
+            return;
         }
 
-        // No existing panel - create new one
-        const configs = {
-            control_center: {
-                title: 'SwarmDesk Control Center',
-                type: 'control-center-panel',
-                panelType: 'control_center',
-                tabs: [
-                    { id: 'shortcuts', title: '🚀 Shortcuts', content: this.generateShortcutsContent() }
-                ]
-            },
-            swarm_status: {
-                title: 'Swarm Status',
-                type: 'swarm-status-panel',
-                panelType: 'swarm_status',
-                tabs: [
-                    { id: 'status', title: '🤖 Status', content: this.generateAgentStatusContent() }
-                ]
-            },
-            welcome: {
-                title: '🎪 Welcome to Floating Madness!',
-                type: 'project-panel',
-                panelType: 'welcome', // Add this for singleton tracking
-                tabs: [
-                    {
-                        id: 'welcome',
-                        title: '🚀 Welcome',
-                        content: this.generateWelcomeContent()
-                    },
-                    {
-                        id: 'shortcuts',
-                        title: '⌨️ Shortcuts',
-                        content: this.generateShortcutsContent()
-                    }
-                ]
-            },
-            project: {
-                title: '📋 Project Management',
-                type: 'project-panel',
-                panelType: 'project', // Add this for singleton tracking
-                tabs: [
-                    { id: 'overview', title: '📊 Overview', content: this.generateProjectOverviewContent() },
-                    { id: 'todos', title: '✅ Todos', content: this.generateTodosContent() },
-                    { id: 'files', title: '📁 Files', content: this.generateFilesContent() }
-                ]
-            },
-            agent: {
-                title: '🤖 Agent Interface',
-                type: 'agent-panel',
-                panelType: 'agent', // Add this for singleton tracking
-                tabs: [
-                    { id: 'chat', title: '💬 Chat', content: this.generateChatContent() },
-                    { id: 'commands', title: '⚡ Commands', content: this.generateCommandsContent() },
-                    { id: 'history', title: '📜 History', content: this.generateHistoryContent() }
-                ]
-            },
-            mcp: {
-                title: '🔧 MCP Tools',
-                type: 'mcp-panel',
-                panelType: 'mcp', // Add this for singleton tracking
-                tabs: [
-                    { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
-                    { id: 'history', title: '📜 History', content: '<div>Loading...</div>' },
-                    { id: 'debug', title: '🐛 Debug', content: this.generateDebugContent() }
-                ],
-                onOpen: () => this.connectToMCPServer()
-            },
-            analytics: {
-                title: '📊 Analytics Dashboard',
-                type: 'analytics-panel',
-                panelType: 'analytics', // Add this for singleton tracking
-                tabs: [
-                    { id: 'metrics', title: '📈 Metrics', content: this.generateMetricsContent() },
-                    { id: 'activity', title: '🚀 Activity', content: this.generateActivityContent() },
-                    { id: 'insights', title: '💡 Insights', content: this.generateInsightsContent() }
-                ]
-            },
-            webllm: {
-                title: '🤖 WebLLM Manager',
-                type: 'webllm-panel',
-                panelType: 'webllm', // Add this for singleton tracking
-                tabs: [
-                    { id: 'models', title: '🧠 Models', content: this.generateWebLLMModelsContent() },
-                    { id: 'compatibility', title: '✅ Compatibility', content: this.generateWebLLMCompatibilityContent() },
-                    { id: 'status', title: '⚡ Status', content: this.generateWebLLMStatusContent() },
-                    { id: 'settings', title: '⚙️ Settings', content: this.generateWebLLMSettingsContent() }
-                ]
-            }
-        };
-
-        const config = configs[type];
-        if (config)
+        // ⚙️ If not, create a new one based on type
+        let config;
+        switch (type)
         {
-            const panelId = this.createPanel(config);
-            // If there's an onOpen callback, call it now
-            if (config.onOpen) {
-                config.onOpen();
-            }
-            // If we just created the MCP panel, fetch its history
-            if (type === 'mcp') {
-                this.updateHistoryTab(panelId);
-            }
-            return panelId;
+            case 'control_center':
+                config = {
+                    title: 'SwarmDesk Control Center',
+                    type: 'control-center-panel',
+                    panelType: 'control_center',
+                    tabs: [
+                        { id: 'shortcuts', title: '🚀 Shortcuts', content: this.generateShortcutsContent() }
+                    ]
+                };
+                break;
+            case 'swarm_status':
+                config = {
+                    title: 'Swarm Status',
+                    type: 'swarm-status-panel',
+                    panelType: 'swarm_status',
+                    tabs: [
+                        { id: 'status', title: '🤖 Status', content: this.generateAgentStatusContent() }
+                    ]
+                };
+                break;
+            case 'welcome':
+                config = {
+                    title: '🎪 Welcome to Floating Madness!',
+                    type: 'project-panel',
+                    panelType: 'welcome', // Add this for singleton tracking
+                    tabs: [
+                        {
+                            id: 'welcome',
+                            title: '🚀 Welcome',
+                            content: this.generateWelcomeContent()
+                        },
+                        {
+                            id: 'shortcuts',
+                            title: '⌨️ Shortcuts',
+                            content: this.generateShortcutsContent()
+                        }
+                    ]
+                };
+                break;
+            case 'project':
+                config = {
+                    title: '📋 Project Management',
+                    type: 'project-panel',
+                    panelType: 'project', // Add this for singleton tracking
+                    tabs: [
+                        { id: 'overview', title: '📊 Overview', content: this.generateProjectOverviewContent() },
+                        { id: 'todos', title: '✅ Todos', content: this.generateTodosContent() },
+                        { id: 'files', title: '📁 Files', content: this.generateFilesContent() }
+                    ]
+                };
+                break;
+            case 'agent':
+                config = {
+                    title: '🤖 Agent Interface',
+                    type: 'agent-panel',
+                    panelType: 'agent', // Add this for singleton tracking
+                    tabs: [
+                        { id: 'chat', title: '💬 Chat', content: this.generateChatContent() },
+                        { id: 'commands', title: '⚡ Commands', content: this.generateCommandsContent() },
+                        { id: 'history', title: '📜 History', content: this.generateHistoryContent() }
+                    ]
+                };
+                break;
+            case 'mcp':
+                config = {
+                    title: '🔧 MCP Tools',
+                    type: 'mcp-panel',
+                    panelType: 'mcp', // Add this for singleton tracking
+                    tabs: [
+                        { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
+                        { id: 'history', title: '📜 History', content: '<div>Loading...</div>' },
+                        { id: 'debug', title: '🐛 Debug', content: this.generateDebugContent() }
+                    ],
+                    onOpen: () => this.connectToMCPServer()
+                };
+                break;
+            case 'analytics':
+                config = {
+                    title: '📊 Analytics Dashboard',
+                    type: 'analytics-panel',
+                    panelType: 'analytics', // Add this for singleton tracking
+                    tabs: [
+                        { id: 'metrics', title: '📈 Metrics', content: this.generateMetricsContent() },
+                        { id: 'activity', title: '🚀 Activity', content: this.generateActivityContent() },
+                        { id: 'insights', title: '💡 Insights', content: this.generateInsightsContent() }
+                    ]
+                };
+                break;
+            case 'webllm':
+                config = {
+                    title: '🤖 WebLLM Manager',
+                    type: 'webllm-panel',
+                    panelType: 'webllm', // Add this for singleton tracking
+                    tabs: [
+                        { id: 'models', title: '🧠 Models', content: this.generateWebLLMModelsContent() },
+                        { id: 'compatibility', title: '✅ Compatibility', content: this.generateWebLLMCompatibilityContent() },
+                        { id: 'status', title: '⚡ Status', content: this.generateWebLLMStatusContent() },
+                        { id: 'settings', title: '⚙️ Settings', content: this.generateWebLLMSettingsContent() }
+                    ]
+                };
+                break;
+            default:
+                console.warn(`Unknown panel type: ${type}`);
+                return;
         }
+
+        const newPanelId = this.createPanel(config);
+        console.log(`✨ Created new contextual panel of type "${type}" with ID: ${newPanelId}`);
     }
 
     // 📡 CONNECT TO MCP SERVER
@@ -1574,7 +1574,7 @@ class FloatingPanelSystem
     }
 
     findPanelByType(type) {
-        return Array.from(this.panels.values()).find(p => p.config.panelType === type);
+        return Array.from(this.panels.values()).find(p => p.config.panelType === type)?.element.id;
     }
 }
 
