@@ -45,6 +45,7 @@ class FloatingPanelSystem
         this.setupEventListeners();
         this.createInitialPanels();
         this.setupSwarmDeskIntegration();
+        this.createMCPToolsPanel();
 
         console.log('🎪 Floating Panel System initialized!');
     }
@@ -237,6 +238,52 @@ class FloatingPanelSystem
 
         console.log(`🏷️ Created panel: ${panelId} (${config.title})`);
         return panelId;
+    }
+
+    createMCPToolsPanel()
+    {
+        const mcpContent = `
+            <div class="content-section">
+                <p>Use MCP to interact with the system.</p>
+                <button class="mcp-button" onclick="panelSystem.runMCPTool('list_projects')">List Projects</button>
+                <button class="mcp-button" onclick="panelSystem.runMCPTool('add_todo')">Add Todo</button>
+            </div>
+        `;
+
+        this.createPanel('mcp-panel', 'MCP Tools', mcpContent, {
+            tabs: [{
+                id: 'tools',
+                label: 'Tools',
+                content: mcpContent
+            }, {
+                id: 'history',
+                label: 'History',
+                content: 'Loading history...'
+            }],
+            initialPosition: { x: 400, y: 150 }
+        });
+
+        this.updateHistoryTab();
+    }
+
+    async updateHistoryTab()
+    {
+        const panel = this.panels.get('mcp-panel'); // Use get for consistency with other panels
+        if (!panel) return;
+
+        const historyContent = await this.generateHistoryContent();
+        const historyTab = panel.element.querySelector('.tab-content[data-tab-id="history"]');
+        if (historyTab)
+        {
+            historyTab.innerHTML = historyContent;
+        }
+    }
+
+    runMCPTool(command)
+    {
+        console.log(`Running MCP Tool: ${command}`);
+        // Placeholder for actual MCP tool execution
+        this.updateHistoryTab(); // Refresh history after running a tool
     }
 
     // 📑 SETUP PANEL TABS
@@ -1180,15 +1227,54 @@ class FloatingPanelSystem
         `;
     }
 
-    generateHistoryContent()
+    async fetchCommandHistory()
     {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken)
+        {
+            console.warn("No auth token found for history fetch.");
+            return [];
+        }
+
+        try
+        {
+            const response = await fetch('/api/mongo/todo_logs?limit=5', {
+                headers: {
+                    'Authorization': authToken
+                }
+            });
+            if (!response.ok)
+            {
+                throw new Error(`History fetch failed: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data.logEntries || data.logs || [];
+        } catch (error)
+        {
+            console.error("Error fetching command history:", error);
+            return [];
+        }
+    }
+
+    async generateHistoryContent()
+    {
+        const historyLogs = await this.fetchCommandHistory();
+        let historyHtml = '<p>No history found.</p>';
+
+        if (historyLogs.length > 0)
+        {
+            historyHtml = historyLogs.map(log =>
+            {
+                const timestamp = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `<p>${timestamp} - ${log.operation} "${log.todo_description}"</p>`;
+            }).join('');
+        }
+
         return `
             <div class="content-section">
                 <h3>📜 Command History</h3>
                 <div style="font-size: 11px; opacity: 0.8;">
-                    <p>14:23 - search_projects "SwarmDesk"</p>
-                    <p>14:20 - add_todo "Create floating panels"</p>
-                    <p>14:15 - deploy "dashboard-integration"</p>
+                    ${historyHtml}
                 </div>
             </div>
         `;
