@@ -1778,10 +1778,10 @@ document.addEventListener('keydown', (e) =>
     if (e.key === 'Tab')
     {
         e.preventDefault();
-        if (typeof toggleControlCenter === 'function') {
-            toggleControlCenter();
+        if (typeof window.toggleSwarmDeskMode === 'function') {
+            window.toggleSwarmDeskMode();
         } else {
-            console.warn('🔧 toggleControlCenter function not available');
+            console.warn('🔧 toggleSwarmDeskMode function not available on window');
         }
         return;
     }
