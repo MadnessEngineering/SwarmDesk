@@ -45,8 +45,7 @@ class FloatingPanelSystem
         this.setupEventListeners();
         this.createInitialPanels();
         this.setupSwarmDeskIntegration();
-        this.createMCPToolsPanel();
-
+        // REMOVED: this.createMCPToolsPanel(); // Panel creation is now handled by hotkeys.
         console.log('🎪 Floating Panel System initialized!');
     }
 
@@ -102,25 +101,29 @@ class FloatingPanelSystem
         // Handle keyboard shortcuts for panel system
         switch (event.key)
         {
-            case 'F1':
+            case 'F3': // Welcome panel (changed from F1)
                 event.preventDefault();
                 this.createContextualPanel('welcome');
                 break;
-            case 'F2':
+            case 'F4': // Project panel
                 event.preventDefault();
-                this.toggleAllPanels();
+                this.createContextualPanel('project');
                 break;
-            case 'F8':
+            case 'F5': // Agent panel
                 event.preventDefault();
-                this.createContextualPanel('debug');
+                this.createContextualPanel('agent');
                 break;
-            case 'F7':
-                event.preventDefault();
-                this.createContextualPanel('webllm');
-                break;
-            case 'F8':
+            case 'F6': // MCP Tools panel
                 event.preventDefault();
                 this.createContextualPanel('mcp');
+                break;
+            case 'F7': // Analytics panel
+                event.preventDefault();
+                this.createContextualPanel('analytics');
+                break;
+            case 'F8': // WebLLM Panel (changed from debug)
+                event.preventDefault();
+                this.createContextualPanel('webllm');
                 break;
             case 'F9':
                 event.preventDefault();
@@ -240,35 +243,11 @@ class FloatingPanelSystem
         return panelId;
     }
 
-    createMCPToolsPanel()
+    // REMOVED createMCPToolsPanel() function as it's now handled by createContextualPanel
+
+    async updateHistoryTab(panelId)
     {
-        const mcpContent = `
-            <div class="content-section">
-                <p>Use MCP to interact with the system.</p>
-                <button class="mcp-button" onclick="panelSystem.runMCPTool('list_projects')">List Projects</button>
-                <button class="mcp-button" onclick="panelSystem.runMCPTool('add_todo')">Add Todo</button>
-            </div>
-        `;
-
-        this.createPanel('mcp-panel', 'MCP Tools', mcpContent, {
-            tabs: [{
-                id: 'tools',
-                label: 'Tools',
-                content: mcpContent
-            }, {
-                id: 'history',
-                label: 'History',
-                content: 'Loading history...'
-            }],
-            initialPosition: { x: 400, y: 150 }
-        });
-
-        this.updateHistoryTab();
-    }
-
-    async updateHistoryTab()
-    {
-        const panel = this.panels.get('mcp-panel'); // Use get for consistency with other panels
+        const panel = this.panels.get(panelId);
         if (!panel) return;
 
         const historyContent = await this.generateHistoryContent();
@@ -784,7 +763,7 @@ class FloatingPanelSystem
                 },
                 onMCPTool: (toolName, result) =>
                 {
-                    this.createContextualMCPPanel(toolName, result);
+                    // This is now handled by the main MCP panel
                 }
             });
 
@@ -885,7 +864,7 @@ class FloatingPanelSystem
                 panelType: 'mcp', // Add this for singleton tracking
                 tabs: [
                     { id: 'tools', title: '🛠️ Tools', content: this.generateMCPToolsContent() },
-                    { id: 'logs', title: '📋 Logs', content: this.generateLogsContent() },
+                    { id: 'history', title: '📜 History', content: '<div>Loading...</div>' },
                     { id: 'debug', title: '🐛 Debug', content: this.generateDebugContent() }
                 ],
                 onOpen: () => this.connectToMCPServer()
@@ -920,6 +899,10 @@ class FloatingPanelSystem
             // If there's an onOpen callback, call it now
             if (config.onOpen) {
                 config.onOpen();
+            }
+            // If we just created the MCP panel, fetch its history
+            if (type === 'mcp') {
+                this.updateHistoryTab(panelId);
             }
             return panelId;
         }
