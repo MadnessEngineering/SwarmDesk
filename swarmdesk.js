@@ -1805,12 +1805,30 @@ document.addEventListener('keydown', (e) =>
         }
     }
 
-    // Enhanced interaction controls
-    if (e.key.toLowerCase() === 'e' && typeof nearAgent !== 'undefined' && nearAgent && typeof currentAgent !== 'undefined' && !currentAgent)
+    // Enhanced interaction controls - E key for agent dialogue OR project navigator
+    if (e.key.toLowerCase() === 'e')
     {
         e.preventDefault();
-        if (typeof openDialogue === 'function') {
-            openDialogue(nearAgent);
+        
+        // Priority 1: Agent interaction (existing functionality)
+        if (typeof nearAgent !== 'undefined' && nearAgent && typeof currentAgent !== 'undefined' && !currentAgent)
+        {
+            if (typeof openDialogue === 'function') {
+                openDialogue(nearAgent);
+            }
+        }
+        // Priority 2: Project Navigator (new functionality)
+        else
+        {
+            if (typeof window.SwarmDeskDashboard !== 'undefined' && typeof window.SwarmDeskDashboard.openProjectNavigator === 'function')
+            {
+                window.SwarmDeskDashboard.openProjectNavigator();
+            }
+            else if (typeof window.panelSystem !== 'undefined')
+            {
+                // Fallback: Create project panel if navigator not available
+                window.panelSystem.createContextualPanel('project');
+            }
         }
     }
 

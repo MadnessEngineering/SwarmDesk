@@ -10,7 +10,8 @@ window.SwarmDeskDashboard = {
         onProjectSelect: null,
         onAgentInteract: null,
         onMCPTool: null,
-        onActivityLog: null
+        onActivityLog: null,
+        onProjectNavigator: null
     },
 
     // 📊 Register dashboard callbacks
@@ -35,6 +36,18 @@ window.SwarmDeskDashboard = {
 
         // Focus camera on project workstation if possible
         this.focusOnProject(projectName);
+    },
+
+    // 🚀 Project Navigator handler
+    openProjectNavigator: function ()
+    {
+        // Trigger project navigator in React dashboard
+        if (this.sidebarCallbacks.onProjectNavigator)
+        {
+            this.sidebarCallbacks.onProjectNavigator();
+        }
+
+        this.logActivity('SwarmDesk', 'Opened Project Navigator');
     },
 
     // 🤖 Agent interaction handler
