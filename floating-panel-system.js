@@ -243,6 +243,18 @@ class FloatingPanelSystem
         return panelId;
     }
 
+    togglePanel(panelId) {
+        const panel = this.panels.get(panelId);
+        if (panel) {
+            const isVisible = panel.element.style.display !== 'none' && !panel.element.classList.contains('minimized');
+            if (isVisible) {
+                this.hidePanel(panelId);
+            } else {
+                this.showPanel(panelId);
+            }
+        }
+    }
+
     showPanel(panelId) {
         const panel = this.panels.get(panelId);
         if (panel) {
@@ -250,6 +262,14 @@ class FloatingPanelSystem
             panel.element.classList.remove('minimized');
             this.setActivePanel(panelId);
             console.log(`👁️‍🗨️ Showing panel: ${panelId}`);
+        }
+    }
+
+    hidePanel(panelId) {
+        const panel = this.panels.get(panelId);
+        if (panel) {
+            panel.element.style.display = 'none';
+            console.log(`🙈 Hiding panel: ${panelId}`);
         }
     }
 
@@ -789,8 +809,8 @@ class FloatingPanelSystem
 
         if (existingPanelId)
         {
-            console.log(`🤔 Panel of type "${type}" already exists with ID: ${existingPanelId}. Showing it.`);
-            this.showPanel(existingPanelId);
+            console.log(`🤔 Panel of type "${type}" already exists with ID: ${existingPanelId}. Toggling it.`);
+            this.togglePanel(existingPanelId);
             return;
         }
 
@@ -909,7 +929,7 @@ class FloatingPanelSystem
     }
 
     // 📡 CONNECT TO MCP SERVER
-    connectToMCPServer() {
+    async connectToMCPServer() {
         if (this.hasInitializedMCP) {
             console.log('📡 MCP connection already initialized.');
             return;
@@ -924,45 +944,62 @@ class FloatingPanelSystem
         }
 
         console.log(`📡 Connecting to MCP server for user: ${userId}...`);
-        const sse = new EventSource(`http://localhost:8000/sse?userId=${encodeURIComponent(userId)}`);
-
-        sse.onopen = () => {
-            console.log('📡 SSE connection opened.');
-            this.mcpData.status.server = 'Connected';
-            this.updateMCPDebugContent();
-            this.hasInitializedMCP = true;
-        };
-
-        sse.addEventListener('tools', (event) => {
-            const tools = JSON.parse(event.data);
+        try {
+            // Fetch initial data for MCP tools
+            const response = await fetch('http://localhost:8000/api/tools'); // Corrected port and endpoint
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const tools = await response.json();
             this.mcpData.tools = tools;
             console.log('🔧 Received tools:', tools);
             this.updateMCPToolsContent();
-        });
 
-        sse.addEventListener('logs', (event) => {
-            const logEntry = JSON.parse(event.data);
-            this.mcpData.logs.unshift(logEntry); // Add to beginning
-            if (this.mcpData.logs.length > 50) { // Keep log size manageable
-                this.mcpData.logs.pop();
-            }
-            console.log('📋 Received log:', logEntry);
-            this.updateMCPLogsContent();
-        });
+            // Set up SSE for logs and status
+            const sse = new EventSource(`http://localhost:8000/sse?userId=${encodeURIComponent(userId)}`);
 
-        sse.addEventListener('status', (event) => {
-            const status = JSON.parse(event.data);
-            this.mcpData.status = { ...this.mcpData.status, ...status };
-            console.log('🐛 Received status:', status);
+            sse.onopen = () => {
+                console.log('📡 SSE connection opened.');
+                this.mcpData.status.server = 'Connected';
+                this.updateMCPDebugContent();
+                this.hasInitializedMCP = true;
+            };
+
+            sse.addEventListener('tools', (event) => {
+                const tools = JSON.parse(event.data);
+                this.mcpData.tools = tools;
+                console.log('🔧 Received tools:', tools);
+                this.updateMCPToolsContent();
+            });
+
+            sse.addEventListener('logs', (event) => {
+                const logEntry = JSON.parse(event.data);
+                this.mcpData.logs.unshift(logEntry); // Add to beginning
+                if (this.mcpData.logs.length > 50) { // Keep log size manageable
+                    this.mcpData.logs.pop();
+                }
+                console.log('📋 Received log:', logEntry);
+                this.updateMCPLogsContent();
+            });
+
+            sse.addEventListener('status', (event) => {
+                const status = JSON.parse(event.data);
+                this.mcpData.status = { ...this.mcpData.status, ...status };
+                console.log('🐛 Received status:', status);
+                this.updateMCPDebugContent();
+            });
+
+            sse.onerror = (err) => {
+                console.error('📡 SSE Error:', err);
+                this.mcpData.status.server = 'Error';
+                this.updateMCPDebugContent();
+                sse.close();
+            };
+        } catch (error) {
+            console.error('Error connecting to MCP server:', error);
+            this.mcpData.status.server = 'Connection Error';
             this.updateMCPDebugContent();
-        });
-
-        sse.onerror = (err) => {
-            console.error('📡 SSE Error:', err);
-            this.mcpData.status.server = 'Error';
-            this.updateMCPDebugContent();
-            sse.close();
-        };
+        }
     }
 
     // 🔄 UPDATE MCP CONTENT
