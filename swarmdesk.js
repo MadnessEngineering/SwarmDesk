@@ -16,6 +16,49 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x000511);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
+// 🎮 Initialize standardized SwarmDesk controls
+function initializeSwarmControls() {
+    if (typeof SwarmDeskControls !== 'undefined') {
+        swarmControls = new SwarmDeskControls(camera, renderer, document.getElementById('canvas-container'), {
+            enablePointerLock: true,
+            callbacks: {
+                onEscape: () => {
+                    if (currentAgent) {
+                        closeDialogue();
+                    }
+                },
+                onProjectNavigator: () => {
+                    if (typeof window.SwarmDeskDashboard !== 'undefined') {
+                        window.SwarmDeskDashboard.openProjectNavigator();
+                    }
+                },
+                onTogglePanel: (panelType) => {
+                    if (typeof window.panelSystem !== 'undefined') {
+                        switch(panelType) {
+                            case 'control-center':
+                                window.panelSystem.createContextualPanel('welcome');
+                                break;
+                            case 'swarm-status':
+                                window.panelSystem.createContextualPanel('analytics');
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+        console.log('🎮 SwarmDesk Controls initialized with standardized system');
+    } else {
+        console.warn('⚠️ SwarmDeskControls not available, using legacy system');
+    }
+}
+
+// Initialize controls after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSwarmControls);
+} else {
+    initializeSwarmControls();
+}
+
 // Project README data - the heart of our madness!
 const projectReadmes = {
     "SwarmDesk": {
@@ -965,7 +1008,10 @@ let nearReadmePanel = null;
 let nearMCPWall = false;
 let currentInteractiveObject = null;
 
-// Enhanced controls with new madness features!
+// 🎮 STANDARDIZED SWARMDESK CONTROLS
+let swarmControls = null;
+
+// Legacy controls for compatibility
 const controls = {
     moveForward: false,
     moveBackward: false,
@@ -982,7 +1028,7 @@ const keys = {
     KeyD: 'moveRight'
 };
 
-// Velocity for smooth movement
+// Velocity for smooth movement - now managed by SwarmControls
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
@@ -1323,8 +1369,23 @@ function animate(currentTime)
     // 🚀 FIXED: Track animation frames for debugging
     animationFrameCount++;
 
-    // 🎪 NEW: Enhanced movement system (FIXED!)
-    if (!currentAgent)
+    // 🎮 STANDARDIZED: Movement system using SwarmControls
+    if (!currentAgent && swarmControls)
+    {
+        swarmControls.update();
+        
+        // Sync legacy controls for compatibility
+        if (swarmControls.controls) {
+            Object.assign(controls, swarmControls.controls);
+        }
+        
+        // Copy velocity for legacy systems that might use it
+        if (swarmControls.velocity) {
+            velocity.copy(swarmControls.velocity);
+        }
+    }
+    // Fallback to legacy movement system if SwarmControls not available
+    else if (!currentAgent)
     {
         // Reset direction
         direction.set(0, 0, 0);
@@ -1797,16 +1858,18 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
-    // Handle movement controls
-    if (typeof keys !== 'undefined' && keys[e.code])
+    // Handle movement controls - use SwarmControls if available, otherwise legacy
+    if (!swarmControls && typeof keys !== 'undefined' && keys[e.code])
     {
         if (typeof controls !== 'undefined') {
             controls[keys[e.code]] = true;
         }
     }
+    // Note: SwarmControls handles movement keys automatically when enabled
 
     // Enhanced interaction controls - E key for agent dialogue OR project navigator
-    if (e.key.toLowerCase() === 'e')
+    // Only handle if SwarmControls is not active (it handles E key with agent priority logic)
+    if (!swarmControls && e.key.toLowerCase() === 'e')
     {
         e.preventDefault();
         
@@ -1887,10 +1950,13 @@ document.addEventListener('keyup', (e) =>
 {
     const customQuestionInput = document.getElementById('custom-question-input');
     if (document.activeElement === customQuestionInput) return;
-    if (keys[e.code])
+    
+    // Only handle keyup for legacy controls when SwarmControls is not active
+    if (!swarmControls && keys[e.code])
     {
         controls[keys[e.code]] = false;
     }
+    // Note: SwarmControls handles keyup events automatically when enabled
 });
 
 document.addEventListener('keydown', (e) =>
