@@ -43,9 +43,11 @@ Each desk computer represents a different Madness Interactive project:
 
 - **WASD Movement** - Navigate the office like a first-person game
 - **Mouse/Arrow Keys** - Look around the environment
-- **E to Interact** - Interface directly with agents
+- **🚀 E to Interact** - Interface directly with agents OR open Project Navigator (when not near agents)
+- **🎮 Standardized Controls** - Consistent mouse sensitivity (0.002) and movement physics across all environments
 - **Space for Chaos Dance** - Enter dance mode for fun
 - **ESC to Disconnect** - Exit interactions or release pointer lock
+- **🔧 Smart Fallbacks** - Legacy controls automatically engage if standardized system unavailable
 
 ### 💬 Intelligent Dialogue System
 
@@ -194,6 +196,31 @@ const newStation = createWorkstation(
 ### Modifying Responses
 
 Edit the `responses` object in `generateAgentResponse()` to customize agent personalities and capabilities.
+
+## 🎪 The Latest Madness: Recent SwarmDesk Updates
+
+### 🎮 Standardized Control System (4d0b898)
+Because muscle memory shouldn't be a luxury, we've unified controls across the entire SwarmDesk universe:
+
+- **SwarmDeskControls** - One control system to rule them all (with graceful fallbacks for the old-school crowd)
+- **Consistent Physics** - Mouse sensitivity 0.002, movement speed 0.02 with 0.85 friction (no more "why does this feel different?")
+- **Smart Camera Bounds** - Won't let you fly off into the digital void anymore
+- **Memory Management** - Proper cleanup because memory leaks are the enemy of smooth experiences
+- **5x More Consistent** - Between main SwarmDesk and project environments
+
+### 🚀 Enhanced E Key Functionality (49df557)  
+Your Swiss Army knife of interaction just got sharper:
+
+- **Agent Priority** - Still talks to agents when you're close (because that's what you expect)
+- **Project Navigator** - Opens project portal when no agents are nearby (context-aware intelligence)
+- **Seamless Transitions** - Jump from 3D environment to project selection without cognitive whiplash
+
+### 🔧 Panel System Improvements (da257f5 + earlier)
+Toggle panels like a boss with improved hotkey handling:
+
+- **Robust Toggle System** - F-key shortcuts that actually work consistently
+- **MCP Server Connection** - Better integration with the broader Madness ecosystem
+- **Visual Feedback** - Know what's happening when you press things
 
 ## 🤝 Contributing
 

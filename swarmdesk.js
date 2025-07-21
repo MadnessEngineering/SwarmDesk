@@ -2,6 +2,36 @@
 // Scene setup with cyber-punk aesthetic
 // Note: WebLLM service is loaded via script tag in index.html
 
+// 🎮 STANDARDIZED SWARMDESK CONTROLS
+let swarmControls = null;
+let currentAgent = null;
+let projectReadmes = {}; // Initialize as empty object
+
+async function fetchProjectData() {
+    try {
+        const response = await fetch('/api/projects/all');
+        const projects = await response.json();
+
+        // Transform the array of projects into the format expected by SwarmDesk
+        projects.forEach(project => {
+            projectReadmes[project.name] = {
+                title: project.display_name,
+                description: project.description,
+                features: project.features || [],
+                github: project.git_url,
+                status: project.status,
+                visibility: project.visibility
+            };
+        });
+
+        console.log('✅ Project data loaded from database');
+    } catch (error) {
+        console.error('❌ Error fetching project data:', error);
+        // Fallback to an empty object or handle error appropriately
+        projectReadmes = {};
+    }
+}
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000511);
 scene.fog = new THREE.Fog(0x000511, 20, 800);
@@ -16,97 +46,140 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x000511);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-// Project README data - the heart of our madness!
-const projectReadmes = {
-    "SwarmDesk": {
-        title: "🎮 SwarmDesk",
-        description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
-        features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
-        github: "https://github.com/MadnessEngineering/SwarmDesk.git",
-        status: "🔥 Active Development",
-        visibility: "public"
-    },
-    "Inventorium": {
-        title: "📦 Inventorium",
-        description: "Todo Inventory management system - Keep up with Agents at speed, and edit their thoughts as they tinker",
-        features: ["📋 Task tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
-        github: "https://github.com/MadnessEngineering/Inventorium.git",
-        status: "🚀 Active Development (private repo)",
-        visibility: "private"
-    },
-    "Swarmonomicon": {
-        title: "🐝 Swarmonomicon",
-        description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
-        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
-        github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
-        status: "✨ modularly functional",
-        visibility: "public"
-    },
-    "Whispermind_Conduit": {
-        title: "🌐 Whispermind Conduit",
-        description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
-        features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
-        github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
-        status: "🔮 mostly conceptual (private repo)",
-        visibility: "private"
-    },
-    "Omnispindle-cli-bridge": {
-        title: "🌀 Omnispindle CLI Bridge",
-        description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
-        features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
-        github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
-        status: "🔄 Just in my gemini account lol (private repo)",
-        visibility: "private"
-    },
-    "EventGhost-Rust": {
-        title: "🎭 EventGhost-Rust",
-        description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
-        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
-        github: "https://github.com/DanEdens/EventGhost-Rust.git",
-        status: "🛠️ Rust-Powered Excellence",
-        visibility: "public"
-    },
-    "DVTTestKit": {
-        title: "🧪 DVT TestKit",
-        description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
-        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
-        github: "https://github.com/DanEdens/DVTTestKit.git",
-        status: "🔬 Testing Excellence",
-        visibility: "public"
-    },
-    "Omnispindle": {
-        title: "🌀 Omnispindle MCP",
-        description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
-        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
-        github: "https://github.com/MadnessEngineering/Omnispindle.git",
-        status: "🔄 Continuous Evolution",
-        visibility: "public"
-    },
-    "FastMCP-Template": {
-        title: "⚡ FastMCP Server Template",
-        description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
-        features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
-        github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
-        status: "🏗️ Foundation Ready (but outdated)",
-        visibility: "public"
-    },
-    "Tinker": {
-        title: "🔨 Tinker Rust",
-        description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
-        features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
-        github: "https://github.com/DanEdens/Tinker.git",
-        status: "🔬 Experimental Forge",
-        visibility: "public"
-    },
-    "Cogwyrm": {
-        title: "🐉 Cogwyrm Mobile",
-        description: "Advanced Android mobile application - the digital dragon that lives in your pocket, bringing AI intelligence to mobile interfaces",
-        features: ["📱 Native Android development", "🤖 AI-powered mobile interfaces", "🐉 Dragon-themed user experience", "⚡ High-performance mobile optimization"],
-        github: "https://github.com/MadnessEngineering/Cogwyrm.git",
-        status: "🔥 Mobile Madness in Development",
-        visibility: "public"
+// 🎮 Initialize standardized SwarmDesk controls
+function initializeSwarmControls() {
+    if (typeof SwarmDeskControls !== 'undefined') {
+        swarmControls = new SwarmDeskControls(camera, renderer, document.getElementById('canvas-container'), {
+            enablePointerLock: true,
+            callbacks: {
+                onEscape: () => {
+                    if (currentAgent) {
+                        closeDialogue();
+                    }
+                },
+                onProjectNavigator: () => {
+                    if (typeof window.SwarmDeskDashboard !== 'undefined') {
+                        window.SwarmDeskDashboard.openProjectNavigator();
+                    }
+                },
+                onTogglePanel: (panelType) => {
+                    if (typeof window.panelSystem !== 'undefined') {
+                        switch(panelType) {
+                            case 'control-center':
+                                window.panelSystem.createContextualPanel('welcome');
+                                break;
+                            case 'swarm-status':
+                                window.panelSystem.createContextualPanel('analytics');
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+        console.log('🎮 SwarmDesk Controls initialized with standardized system');
+    } else {
+        console.warn('⚠️ SwarmDeskControls not available, using legacy system');
     }
-};
+}
+
+// Initialize controls after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSwarmControls);
+} else {
+    initializeSwarmControls();
+}
+
+// Project README data - the heart of our madness!
+// const projectReadmes = {
+//     "SwarmDesk": {
+//         title: "🎮 SwarmDesk",
+//         description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
+//         features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
+//         github: "https://github.com/MadnessEngineering/SwarmDesk.git",
+//         status: "🔥 Active Development",
+//         visibility: "public"
+//     },
+//     "Inventorium": {
+//         title: "📦 Inventorium",
+//         description: "Todo Inventory management system - Keep up with Agents at speed, and edit their thoughts as they tinker",
+//         features: ["📋 Task tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
+//         github: "https://github.com/MadnessEngineering/Inventorium.git",
+//         status: "🚀 Active Development (private repo)",
+//         visibility: "private"
+//     },
+//     "Swarmonomicon": {
+//         title: "🐝 Swarmonomicon",
+//         description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
+//         features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
+//         github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
+//         status: "✨ modularly functional",
+//         visibility: "public"
+//     },
+//     "Whispermind_Conduit": {
+//         title: "🌐 Whispermind Conduit",
+//         description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
+//         features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
+//         github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
+//         status: "🔮 mostly conceptual (private repo)",
+//         visibility: "private"
+//     },
+//     "Omnispindle-cli-bridge": {
+//         title: "🌀 Omnispindle CLI Bridge",
+//         description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
+//         features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
+//         github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
+//         status: "🔄 Just in my gemini account lol (private repo)",
+//         visibility: "private"
+//     },
+//     "EventGhost-Rust": {
+//         title: "🎭 EventGhost-Rust",
+//         description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
+//         features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
+//         github: "https://github.com/DanEdens/EventGhost-Rust.git",
+//         status: "🛠️ Rust-Powered Excellence",
+//         visibility: "public"
+//     },
+//     "DVTTestKit": {
+//         title: "🧪 DVT TestKit",
+//         description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
+//         features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
+//         github: "https://github.com/DanEdens/DVTTestKit.git",
+//         status: "🔬 Testing Excellence",
+//         visibility: "public"
+//     },
+//     "Omnispindle": {
+//         title: "🌀 Omnispindle MCP",
+//         description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
+//         features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
+//         github: "https://github.com/MadnessEngineering/Omnispindle.git",
+//         status: "🔄 Continuous Evolution",
+//         visibility: "public"
+//     },
+//     "FastMCP-Template": {
+//         title: "⚡ FastMCP Server Template",
+//         description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
+//         features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
+//         github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
+//         status: "🏗️ Foundation Ready (but outdated)",
+//         visibility: "public"
+//     },
+//     "Tinker": {
+//         title: "🔨 Tinker Rust",
+//         description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
+//         features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
+//         github: "https://github.com/DanEdens/Tinker.git",
+//         status: "🔬 Experimental Forge",
+//         visibility: "public"
+//     },
+//     "Cogwyrm": {
+//         title: "🐉 Cogwyrm Mobile",
+//         description: "Advanced Android mobile application - the digital dragon that lives in your pocket, bringing AI intelligence to mobile interfaces",
+//         features: ["📱 Native Android development", "🤖 AI-powered mobile interfaces", "🐉 Dragon-themed user experience", "⚡ High-performance mobile optimization"],
+//         github: "https://github.com/MadnessEngineering/Cogwyrm.git",
+//         status: "🔥 Mobile Madness in Development",
+//         visibility: "public"
+//     }
+// };
 
 // GitHub repository mapping for each project
 const projectRepositories = {
@@ -549,146 +622,382 @@ function createMCPDebuggingWall()
     return wall;
 }
 
-// Create workstations for different projects
-const workstations = [
-    createWorkstation(-15, -15, "SwarmDesk", "project"),
-    createWorkstation(0, -15, "Inventorium", "git"),
-    createWorkstation(15, -15, "Swarmonomicon", "haiku"),
-    createWorkstation(-15, 0, "Whispermind_Conduit", "browser"),
-    createWorkstation(0, 0, "Omnispindle-cli-bridge", "automation"),
-    createWorkstation(15, 0, "EventGhost-Rust", "git"),
-];
-
-workstations.forEach(station => scene.add(station));
-
-// 🚀 MADNESS ENHANCEMENT: Add MCP Debugging Wall to the scene!
-const mcpWall = createMCPDebuggingWall();
-scene.add(mcpWall);
-
-// Agent characters
-const agents = [];
-
-function createAgent(name, role, x, z, color, agentType, personality)
+// 🚀 MADNESS ENHANCED: Animation loop with interactive features
+function animate(currentTime)
 {
-    const group = new THREE.Group();
+    requestAnimationFrame(animate);
 
-    // Body with cyberpunk aesthetic
-    const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 0.8, 8);
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        metalness: 0.3,
-        roughness: 0.7
+    const time = currentTime * 0.001;
+
+    // 🚀 FIXED: Track animation frames for debugging
+    animationFrameCount++;
+
+    // 🎮 STANDARDIZED: Movement system using SwarmControls
+    if (!currentAgent && swarmControls)
+    {
+        swarmControls.update();
+
+        // Sync legacy controls for compatibility
+        if (swarmControls.controls) {
+            Object.assign(controls, swarmControls.controls);
+        }
+
+        // Copy velocity for legacy systems that might use it
+        if (swarmControls.velocity) {
+            velocity.copy(swarmControls.velocity);
+        }
+    }
+    // Fallback to legacy movement system if SwarmControls not available
+    else if (!currentAgent)
+    {
+        // Reset direction
+        direction.set(0, 0, 0);
+
+        // Calculate movement direction relative to camera rotation
+        if (controls.moveForward) direction.z -= 1;
+        if (controls.moveBackward) direction.z += 1;
+        if (controls.moveLeft) direction.x -= 1;
+        if (controls.moveRight) direction.x += 1;
+
+        // Apply camera rotation to movement direction
+        if (direction.length() > 0)
+        {
+            direction.normalize();
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0; // Keep movement horizontal
+            direction.normalize();
+
+            // Apply movement with proper speed
+            velocity.add(direction.multiplyScalar(0.02));
+        }
+
+        // Apply movement to camera
+        camera.position.add(velocity);
+        velocity.multiplyScalar(0.85); // Friction
+
+        // Keep camera above ground
+        camera.position.y = Math.max(1.6, camera.position.y);
+
+        // Keep player in reasonable bounds
+        camera.position.x = Math.max(-25, Math.min(25, camera.position.x));
+        camera.position.z = Math.max(-25, Math.min(25, camera.position.z));
+    }
+
+    // 🚀 NEW: Check for interactive objects
+    checkInteractions();
+
+    // Animate particles
+    const positions = particles.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3)
+    {
+        // 🚀 FIXED: Add NaN validation to runtime particle animation
+        const currentY = positions[i + 1];
+        const currentX = positions[i];
+        const yUpdate = Math.sin(time + currentX * 0.01) * 0.02;
+
+        // Validate calculations and provide fallbacks
+        if (isFinite(yUpdate) && isFinite(currentY))
+        {
+            positions[i + 1] += yUpdate;
+            if (positions[i + 1] > 20) positions[i + 1] = 0;
+        }
+        else
+        {
+            // Reset to safe position if NaN detected
+            positions[i + 1] = Math.random() * 20;
+        }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+
+    // Animate holographic displays
+    for (let i = 0; i < scene.children.length; i++)
+    {
+        const child = scene.children[i];
+        if (child.material && child.material.color && child.material.transparent)
+        {
+            child.material.opacity = 0.6 + Math.sin(time * 2) * 0.2;
+        }
+    }
+
+    // Animate workstation data streams
+    workstations.forEach(station =>
+    {
+        if (station.userData.streams)
+        {
+            station.userData.streams.forEach(stream =>
+            {
+                stream.position.y = stream.userData.originalY +
+                    Math.sin(time * stream.userData.speed + stream.userData.offset) * 0.5;
+                stream.rotation.y += 0.02;
+            });
+        }
     });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    group.add(body);
 
-    // Head with holographic glow
-    const headGeometry = new THREE.SphereGeometry(0.25, 12, 8);
-    const headMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a2a2a,
-        metalness: 0.8,
-        roughness: 0.2
+    // 🤖 Enhanced agent animation
+    agents.forEach(agent =>
+    {
+        // Agent movement AI with enhanced behaviors
+        if (!agent.userData.isDancing && Math.random() < 0.003)
+        {
+            const radius = 5;
+            agent.userData.targetPosition.set(
+                agent.userData.initialPosition.x + (Math.random() - 0.5) * radius,
+                0,
+                agent.userData.initialPosition.z + (Math.random() - 0.5) * radius
+            );
+            agent.userData.moveTimer = 0;
+        }
+
+        // Smooth movement
+        const targetDistance = agent.position.distanceTo(agent.userData.targetPosition);
+        if (targetDistance > 0.1)
+        {
+            const direction = agent.userData.targetPosition.clone().sub(agent.position).normalize();
+            agent.position.add(direction.multiplyScalar(0.01));
+            agent.lookAt(agent.userData.targetPosition.x, agent.position.y, agent.userData.targetPosition.z);
+        }
+
+        // 🎵 Chaos dance mode
+        if (controls.chaos || agent.userData.isDancing)
+        {
+            agent.position.y = 0.2 + Math.sin(time * 5 + agent.position.x) * 0.3;
+            agent.rotation.y += 0.1;
+            if (agent.userData.halo)
+            {
+                agent.userData.halo.rotation.z += 0.2;
+                agent.userData.halo.material.opacity = 0.8 + Math.sin(time * 8) * 0.2;
+            }
+        }
+
+        // Arm movement
+        if (agent.userData.leftArm && agent.userData.rightArm)
+        {
+            agent.userData.leftArm.rotation.z = Math.sin(time * 2) * 0.3;
+            agent.userData.rightArm.rotation.z = -Math.sin(time * 2) * 0.3;
+        }
+
+        // Halo glow animation
+        if (agent.userData.halo)
+        {
+            agent.userData.halo.material.opacity = 0.6 + Math.sin(time * 3) * 0.3;
+        }
+
+        // Status-based color changes
+        if (agent.userData.isActive)
+        {
+            const colorShift = Math.sin(time * 4) * 0.1;
+            agent.children[0].material.emissive.setRGB(colorShift, colorShift, colorShift);
+        }
     });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.25;
-    head.castShadow = true;
-    group.add(head);
 
-    // Holographic interface around head
-    const haloGeometry = new THREE.RingGeometry(0.3, 0.35, 16);
-    const haloMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.6,
-        side: THREE.DoubleSide
+    // 🌟 Enhanced MCP wall animation
+    if (mcpWall)
+    {
+        // Subtle wall breathing effect
+        mcpWall.scale.setScalar(1 + Math.sin(time * 0.5) * 0.02);
+
+        // Border glow pulsing
+        if (mcpWall.children[2])
+        { // Border element
+            const glowIntensity = 0.5 + Math.sin(time * 2) * 0.3;
+            mcpWall.children[2].material.opacity = glowIntensity;
+        }
+    }
+
+    // 📖 README panel subtle animations
+    workstations.forEach(station =>
+    {
+        station.children.forEach(child =>
+        {
+            if (child.userData && child.userData.type === 'readme-panel')
+            {
+                child.rotation.y = -Math.PI / 6 + Math.sin(time * 0.5) * 0.05;
+
+                // Keep panels floating above desk surface (desk is at 0.75 in local coords)
+                const baseHeight = 1.5; // Base position well above desk
+                const floatAnimation = Math.sin(time * 1.5) * 0.03; // Small float effect
+                const minHeight = 1.0; // Minimum height above desk surface (0.75)
+
+                // Calculate final position ensuring it stays above desk
+                const finalHeight = baseHeight + floatAnimation;
+                child.position.y = Math.max(minHeight, finalHeight);
+            }
+        });
     });
-    const halo = new THREE.Mesh(haloGeometry, haloMaterial);
-    halo.position.y = 1.25;
-    halo.rotation.x = Math.PI / 2;
-    group.add(halo);
 
-    // Arms with data connectors
-    const armGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.6, 6);
-    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    // 🌟 COSMIC STARFIELD ANIMATIONS - The epic space vibes!
+    // Twinkling stars effect
+    if (starField && starField.geometry.attributes.color)
+    {
+        const starColors = starField.geometry.attributes.color.array;
+        for (let i = 0; i < starColors.length; i += 3)
+        {
+            const starIndex = i / 3;
+            const twinkleSpeed = 1 + (starIndex % 7) * 0.3;
+            const twinkle = 0.7 + Math.sin(time * twinkleSpeed + starIndex) * 0.3;
 
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-0.3, 0.7, 0);
-    leftArm.rotation.z = Math.PI / 6;
-    group.add(leftArm);
+            // 🚀 FIXED: Validate twinkle calculation to prevent NaN
+            const validTwinkle = isFinite(twinkle) ? twinkle : 0.7;
 
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    rightArm.position.set(0.3, 0.7, 0);
-    rightArm.rotation.z = -Math.PI / 6;
-    group.add(rightArm);
+            // Apply twinkling to each color component while preserving star color
+            const baseR = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 1.0);
+            const baseG = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 1.0 : 0.7);
+            const baseB = starIndex % 7 < 4 ? 1.0 : (starIndex % 7 < 6 ? 0.7 : 0.7);
 
-    // Legs
-    const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 6);
-    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            // 🚀 FIXED: Validate final color values before assignment
+            starColors[i] = isFinite(baseR * validTwinkle) ? baseR * validTwinkle : baseR;
+            starColors[i + 1] = isFinite(baseG * validTwinkle) ? baseG * validTwinkle : baseG;
+            starColors[i + 2] = isFinite(baseB * validTwinkle) ? baseB * validTwinkle : baseB;
+        }
+        starField.geometry.attributes.color.needsUpdate = true;
+    }
 
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.15, 0.4, 0);
-    group.add(leftLeg);
+    // Slow rotation of the entire starfield for cosmic drift
+    if (starField)
+    {
+        starField.rotation.y += 0.0003;
+        starField.rotation.x += 0.0001;
+    }
 
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    rightLeg.position.set(0.15, 0.4, 0);
-    group.add(rightLeg);
+    // 🌠 Shooting stars management
+    // Occasionally create new shooting stars
+    if (Math.random() < 0.002 && shootingStars.length < 3)
+    {
+        createShootingStar();
+    }
 
-    // Name and role label
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
-    const context = canvas.getContext('2d');
-    context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    context.fillRect(0, 0, 256, 64);
-    context.fillStyle = `rgb(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255})`;
-    context.font = 'bold 16px Courier New';
-    context.textAlign = 'center';
-    context.fillText(name, 128, 20);
-    context.font = '12px Courier New';
-    context.fillText(role, 128, 35);
-    context.font = '10px Courier New';
-    context.fillText(`[${agentType.toUpperCase()}]`, 128, 50);
+    // Update existing shooting stars
+    for (let i = shootingStars.length - 1; i >= 0; i--)
+    {
+        const star = shootingStars[i];
+        const starData = star.userData;
 
-    const texture = new THREE.CanvasTexture(canvas);
-    const labelMaterial = new THREE.SpriteMaterial({ map: texture });
-    const label = new THREE.Sprite(labelMaterial);
-    label.position.y = 1.8;
-    label.scale.set(2, 0.5, 1);
-    group.add(label);
+        // Move the shooting star
+        const positions = star.geometry.attributes.position.array;
+        for (let j = 0; j < positions.length; j += 3)
+        {
+            positions[j] += starData.velocity.x;
+            positions[j + 1] += starData.velocity.y;
+            positions[j + 2] += starData.velocity.z;
+        }
+        star.geometry.attributes.position.needsUpdate = true;
 
-    group.position.set(x, 0, z);
-    group.userData = {
-        name,
-        role,
-        agentType,
-        personality,
-        conversations: [],
-        initialPosition: new THREE.Vector3(x, 0, z),
-        targetPosition: new THREE.Vector3(x, 0, z),
-        moveTimer: 0,
-        isDancing: false,
-        isActive: Math.random() > 0.5,
-        halo: halo,
-        leftArm: leftArm,
-        rightArm: rightArm,
-        color: color
-    };
+        // Fade out over time
+        starData.life--;
+        star.material.opacity = starData.life / starData.maxLife;
 
-    agents.push(group);
-    return group;
+        // Remove expired shooting stars
+        if (starData.life <= 0)
+        {
+            scene.remove(star);
+            star.geometry.dispose();
+            star.material.dispose();
+            shootingStars.splice(i, 1);
+        }
+    }
+
+    // 🌟 PIXELY STAR MADNESS - Close-range retro space vibes!
+    if (pixelStarsInitialized && pixelStars && pixelStars.geometry && pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
+    {
+        const pixelPositions = pixelStars.geometry.attributes.position.array;
+        const pixelColors = pixelStars.geometry.attributes.color.array;
+
+        // 🚀 FIXED: Check arrays are properly initialized before animation
+        if (!pixelPositions || !pixelColors || pixelPositions.length === 0 || pixelColors.length === 0)
+        {
+            return; // Skip this frame if geometry isn't ready
+        }
+
+        for (let i = 0; i < pixelPositions.length; i += 3)
+        {
+            const pixelIndex = i / 3;
+
+            // 🚀 FIXED: Validate current positions before calculations
+            if (!isFinite(pixelPositions[i]) || !isFinite(pixelPositions[i + 1]) || !isFinite(pixelPositions[i + 2]))
+            {
+                // Reset invalid positions to safe defaults
+                pixelPositions[i] = (Math.random() - 0.5) * 80;
+                pixelPositions[i + 1] = Math.random() * 25 + 10;
+                pixelPositions[i + 2] = (Math.random() - 0.5) * 80;
+            }
+
+            // 🚀 FIXED: Guard against undefined time value
+            if (!isFinite(time))
+            {
+                continue; // Skip this pixel if time is invalid
+            }
+
+            // Gentle floating motion - different for each pixel
+            const floatSpeed = 0.5 + (pixelIndex % 3) * 0.2;
+            const floatAmount = 0.05 + (pixelIndex % 5) * 0.01;
+            const floatDelta = Math.sin(time * floatSpeed + pixelIndex) * floatAmount;
+
+            // 🚀 FIXED: Validate float delta before applying
+            if (isFinite(floatDelta))
+            {
+                pixelPositions[i + 1] += floatDelta;
+            }
+
+            // Subtle sideways drift
+            const driftX = Math.sin(time * 0.3 + pixelIndex * 0.1) * 0.01;
+            const driftZ = Math.cos(time * 0.4 + pixelIndex * 0.1) * 0.01;
+
+            // 🚀 FIXED: Validate drift before applying
+            if (isFinite(driftX)) pixelPositions[i] += driftX;
+            if (isFinite(driftZ)) pixelPositions[i + 2] += driftZ;
+
+            // Wrap around if they drift too far
+            if (pixelPositions[i] > 50) pixelPositions[i] = -50;
+            if (pixelPositions[i] < -50) pixelPositions[i] = 50;
+            if (pixelPositions[i + 2] > 50) pixelPositions[i + 2] = -50;
+            if (pixelPositions[i + 2] < -50) pixelPositions[i + 2] = 50;
+
+            // Reset if they fall too low or go too high
+            if (pixelPositions[i + 1] < 5) pixelPositions[i + 1] = 35;
+            if (pixelPositions[i + 1] > 35) pixelPositions[i + 1] = 5;
+
+            // 🚀 FIXED: Check bounds before accessing color array
+            if (i + 2 >= pixelColors.length)
+            {
+                break; // Prevent array bounds overflow
+            }
+
+            // Retro blinking/pulsing effect
+            const blinkSpeed = 2 + (pixelIndex % 4) * 0.5;
+            const blinkIntensity = 0.7 + Math.sin(time * blinkSpeed + pixelIndex) * 0.3;
+
+            // 🚀 FIXED: Validate colors and blink intensity
+            if (isFinite(blinkIntensity) && pixelColors[i] !== undefined && pixelColors[i + 1] !== undefined && pixelColors[i + 2] !== undefined)
+            {
+                // Apply blinking to color while preserving hue
+                const baseR = pixelColors[i] > 0.8 ? 1.0 : pixelColors[i];
+                const baseG = pixelColors[i + 1] > 0.8 ? 1.0 : pixelColors[i + 1];
+                const baseB = pixelColors[i + 2] > 0.8 ? 1.0 : pixelColors[i + 2];
+
+                const newR = baseR * blinkIntensity;
+                const newG = baseG * blinkIntensity;
+                const newB = baseB * blinkIntensity;
+
+                // Final validation before assignment
+                pixelColors[i] = isFinite(newR) ? newR : baseR;
+                pixelColors[i + 1] = isFinite(newG) ? newG : baseG;
+                pixelColors[i + 2] = isFinite(newB) ? newB : baseB;
+            }
+        }
+
+        // 🚀 FIXED: Only update geometry if we have valid data
+        if (pixelStars.geometry.attributes.position && pixelStars.geometry.attributes.color)
+        {
+            pixelStars.geometry.attributes.position.needsUpdate = true;
+            pixelStars.geometry.attributes.color.needsUpdate = true;
+        }
+
+        // Overall pixely star system rotation for extra dynamism
+        pixelStars.rotation.y += 0.001;
+    }
+
+    renderer.render(scene, camera);
 }
-
-// Create Swarmonomicon agents
-const daneAgent = createAgent('D.Edens', 'Mad Tinkerer', -10, -8, 0xff6b35, 'orchestrator', 'chaotic_genius');
-const gitAgent = createAgent('Git Assistant', 'Code Shepherd', -5, -8, 0x00ff00, 'git', 'methodical_precise');
-const browserAgent = createAgent('Browser Agent', 'Web Crawler', 0, -8, 0x0088ff, 'browser', 'curious_explorer');
-const haikuAgent = createAgent('Haiku Bot', 'Digital Poet', 5, -8, 0xff6b35, 'haiku', 'zen_creative');
-const greeterAgent = createAgent('Greeter', 'Interface Guide', 10, -8, 0x00ffff, 'greeter', 'welcoming_efficient');
-const projectAgent = createAgent('Project Manager', 'System Architect', 15, -8, 0xff00ff, 'project', 'organized_visionary');
-
-scene.add(daneAgent, gitAgent, browserAgent, haikuAgent, greeterAgent, projectAgent);
 
 // 🌟 ENHANCED COSMIC STARFIELD for maximum space vibes!
 // Distant starfield background
@@ -929,43 +1238,32 @@ window.toggleStarfield = toggleStarfield;
 
 // 🌠 Shooting stars (occasional streaks)
 const shootingStars = [];
-function createShootingStar()
-{
-    const geometry = new THREE.BufferGeometry();
-    const material = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-    });
 
-    const points = [];
-    const startX = (Math.random() - 0.5) * 200;
-    const startY = 20 + Math.random() * 30;
-    const startZ = (Math.random() - 0.5) * 200;
+async function initializeScene() {
+    await fetchProjectData();
 
-    points.push(new THREE.Vector3(startX, startY, startZ));
-    points.push(new THREE.Vector3(startX - 5, startY - 2, startZ - 5));
+    // Create workstations for different projects
+    const workstations = [
+        createWorkstation(-15, -15, "SwarmDesk", "project"),
+        createWorkstation(0, -15, "Inventorium", "git"),
+        createWorkstation(15, -15, "Swarmonomicon", "haiku"),
+        createWorkstation(-15, 0, "Whispermind_Conduit", "browser"),
+        createWorkstation(0, 0, "Omnispindle-cli-bridge", "automation"),
+        createWorkstation(15, 0, "EventGhost-Rust", "git"),
+    ];
 
-    geometry.setFromPoints(points);
-    const line = new THREE.Line(geometry, material);
+    workstations.forEach(station => scene.add(station));
 
-    line.userData = {
-        velocity: new THREE.Vector3(-0.5, -0.1, -0.3),
-        life: 100,
-        maxLife: 100
-    };
+    // ... (rest of the scene initialization)
 
-    scene.add(line);
-    shootingStars.push(line);
+    // Start the animation loop
+    animate();
 }
 
-// Enhanced interaction system variables
-let nearReadmePanel = null;
-let nearMCPWall = false;
-let currentInteractiveObject = null;
+// 🎮 STANDARDIZED SWARMDESK CONTROLS
+//let swarmControls = null;
 
-// Enhanced controls with new madness features!
+// Legacy controls for compatibility
 const controls = {
     moveForward: false,
     moveBackward: false,
@@ -982,7 +1280,7 @@ const keys = {
     KeyD: 'moveRight'
 };
 
-// Velocity for smooth movement
+// Velocity for smooth movement - now managed by SwarmControls
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
@@ -992,7 +1290,7 @@ let euler = new THREE.Euler(0, 0, 0, 'YXZ');
 let pointerLocked = false;
 
 // Current agent being interacted with
-let currentAgent = null;
+//let currentAgent = null;
 let nearAgent = null;
 
 function checkInteractions()
@@ -1323,8 +1621,23 @@ function animate(currentTime)
     // 🚀 FIXED: Track animation frames for debugging
     animationFrameCount++;
 
-    // 🎪 NEW: Enhanced movement system (FIXED!)
-    if (!currentAgent)
+    // 🎮 STANDARDIZED: Movement system using SwarmControls
+    if (!currentAgent && swarmControls)
+    {
+        swarmControls.update();
+
+        // Sync legacy controls for compatibility
+        if (swarmControls.controls) {
+            Object.assign(controls, swarmControls.controls);
+        }
+
+        // Copy velocity for legacy systems that might use it
+        if (swarmControls.velocity) {
+            velocity.copy(swarmControls.velocity);
+        }
+    }
+    // Fallback to legacy movement system if SwarmControls not available
+    else if (!currentAgent)
     {
         // Reset direction
         direction.set(0, 0, 0);
@@ -1676,7 +1989,8 @@ function animate(currentTime)
 }
 
 // Start the madness!
-animate();
+// animate();
+initializeScene();
 
 // Window resize handler
 window.addEventListener('resize', () =>
@@ -1797,19 +2111,21 @@ document.addEventListener('keydown', (e) =>
         return;
     }
 
-    // Handle movement controls
-    if (typeof keys !== 'undefined' && keys[e.code])
+    // Handle movement controls - use SwarmControls if available, otherwise legacy
+    if (!swarmControls && typeof keys !== 'undefined' && keys[e.code])
     {
         if (typeof controls !== 'undefined') {
             controls[keys[e.code]] = true;
         }
     }
+    // Note: SwarmControls handles movement keys automatically when enabled
 
     // Enhanced interaction controls - E key for agent dialogue OR project navigator
-    if (e.key.toLowerCase() === 'e')
+    // Only handle if SwarmControls is not active (it handles E key with agent priority logic)
+    if (!swarmControls && e.key.toLowerCase() === 'e')
     {
         e.preventDefault();
-        
+
         // Priority 1: Agent interaction (existing functionality)
         if (typeof nearAgent !== 'undefined' && nearAgent && typeof currentAgent !== 'undefined' && !currentAgent)
         {
@@ -1887,10 +2203,13 @@ document.addEventListener('keyup', (e) =>
 {
     const customQuestionInput = document.getElementById('custom-question-input');
     if (document.activeElement === customQuestionInput) return;
-    if (keys[e.code])
+
+    // Only handle keyup for legacy controls when SwarmControls is not active
+    if (!swarmControls && keys[e.code])
     {
         controls[keys[e.code]] = false;
     }
+    // Note: SwarmControls handles keyup events automatically when enabled
 });
 
 document.addEventListener('keydown', (e) =>
@@ -2092,7 +2411,7 @@ async function selectOption(option)
     try {
         // Generate agent response (now asynchronous)
         const response = await generateAgentResponse(currentAgent, option);
-        
+
         dialogueContent.innerHTML = dialogueContent.innerHTML.replace(
             '<span class="loading">🤖 Thinking...</span>',
             response
@@ -2117,12 +2436,12 @@ async function selectOption(option)
 
     } catch (error) {
         console.error('Error generating agent response:', error);
-        
+
         dialogueContent.innerHTML = dialogueContent.innerHTML.replace(
             '<span class="loading">🤖 Thinking...</span>',
             'Sorry, I encountered an error. Please try again.'
         );
-        
+
         updateAgentStatus(currentAgent.userData.agentType, 'ERROR');
     }
 }
@@ -2138,7 +2457,7 @@ async function generateAgentResponse(agent, input)
                 input,
                 conversationHistory
             );
-            
+
             // If WebLLM returns a response, use it
             if (response && !response.includes('initializing') && !response.includes('calibrating')) {
                 return response;
@@ -2298,29 +2617,29 @@ window.SwarmDeskInitialization = {
             document.addEventListener('DOMContentLoaded', () => this.initializeWhenReady());
             return;
         }
-        
+
         // Since this runs at the end of the script, dependencies should be ready
         this.finalizeInitialization();
     },
-    
+
     finalizeInitialization: function() {
         console.log('🎪 SwarmDesk initialization complete!');
-        
+
         // Dispatch ready event
         window.dispatchEvent(new CustomEvent('swarmDeskReady', {
             detail: { timestamp: Date.now() }
         }));
-        
+
         // Initialize dashboard integration if available
         if (typeof SwarmDeskDashboard !== 'undefined') {
             console.log('🎮 Dashboard integration active');
         }
-        
+
         // Initialize floating panel system if available
         if (typeof window.panelSystem !== 'undefined') {
             console.log('🎨 Floating panel system active');
         }
-        
+
         // Show welcome message
         setTimeout(() => {
             if (typeof createFloatingText === 'function' && typeof camera !== 'undefined') {
@@ -2346,7 +2665,7 @@ window.SwarmDeskDebug = {
             dashboardExists: typeof SwarmDeskDashboard !== 'undefined'
         });
     },
-    
+
     testHotkeys: function() {
         console.log('🎮 Testing hotkey functions:');
         console.log('toggleControlCenter:', typeof toggleControlCenter === 'function' ? '✅ Available' : '❌ Missing');
@@ -2355,17 +2674,17 @@ window.SwarmDeskDebug = {
         console.log('showReadmeDetails:', typeof showReadmeDetails === 'function' ? '✅ Available' : '❌ Missing');
         console.log('showMCPDebugging:', typeof showMCPDebugging === 'function' ? '✅ Available' : '❌ Missing');
     },
-    
+
     // Simple check without spamming console
     checkCoreReady: function() {
-        const coreReady = typeof scene !== 'undefined' && 
-                         typeof camera !== 'undefined' && 
+        const coreReady = typeof scene !== 'undefined' &&
+                         typeof camera !== 'undefined' &&
                          typeof renderer !== 'undefined' &&
                          typeof THREE !== 'undefined';
-        
+
         const functionsReady = typeof toggleControlCenter === 'function' &&
                               typeof toggleSwarmStatus === 'function';
-        
+
         return coreReady && functionsReady;
     }
 };

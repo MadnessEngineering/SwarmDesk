@@ -1,6 +1,23 @@
 // 🎪 DASHBOARD INTEGRATION HOOKS FOR SWARMDESK
 // This file enhances the existing SwarmDesk with dashboard communication
 
+// Helper function to wait for a global variable
+function waitFor(variableName, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            if (window[variableName] && Object.keys(window[variableName]).length > 0) {
+                clearInterval(interval);
+                resolve(window[variableName]);
+            } else if (Date.now() - startTime > timeout) {
+                clearInterval(interval);
+                reject(new Error(`Timeout waiting for ${variableName}`));
+            }
+        }, 100);
+    });
+}
+
+
 // 🔧 Dashboard Communication Bridge
 window.SwarmDeskDashboard = {
     // Current state
@@ -168,7 +185,7 @@ window.SwarmDeskDashboard = {
     getAnalytics: function ()
     {
         return {
-            activeProjects: Object.keys(projectReadmes).length,
+            activeProjects: Object.keys(projectReadmes || {}).length,
             totalAgents: agents ? agents.length : 6,
             activeAgents: agents ? agents.filter(a => a.userData.isActive).length : 4,
             systemLoad: Math.floor(30 + Math.random() * 40) + '%',
@@ -223,42 +240,49 @@ if (typeof runMCPCommand !== 'undefined')
 }
 
 // 🚀 DASHBOARD INITIALIZATION
-document.addEventListener('DOMContentLoaded', function ()
+document.addEventListener('DOMContentLoaded', async function ()
 {
-    // Wait for dashboard functions to be available
-    setTimeout(() =>
-    {
-        if (typeof updateCurrentProjectDetails === 'function')
+    try {
+        // Wait for projectReadmes to be loaded by swarmdesk.js
+        await waitFor('projectReadmes');
+
+        // Wait for dashboard functions to be available
+        setTimeout(() =>
         {
-            SwarmDeskDashboard.registerCallbacks({
-                onProjectSelect: function (projectName, projectData)
-                {
-                    updateCurrentProjectDetails(projectName);
-                    logActivity('SwarmDesk', `Dashboard: Selected ${projectName}`);
-                },
-
-                onAgentInteract: function (agentData)
-                {
-                    logActivity('Agent', `Dashboard: Interfacing with ${agentData.name}`);
-                },
-
-                onMCPTool: function (toolName, result)
-                {
-                    logActivity('MCP', `Dashboard: ${toolName} executed`);
-                },
-
-                onActivityLog: function (source, message, timestamp)
-                {
-                    if (typeof logActivity === 'function')
+            if (typeof updateCurrentProjectDetails === 'function')
+            {
+                SwarmDeskDashboard.registerCallbacks({
+                    onProjectSelect: function (projectName, projectData)
                     {
-                        logActivity(source, message);
-                    }
-                }
-            });
+                        updateCurrentProjectDetails(projectName);
+                        logActivity('SwarmDesk', `Dashboard: Selected ${projectName}`);
+                    },
 
-            console.log('🎪 SwarmDesk Dashboard integration initialized!');
-        }
-    }, 1000);
+                    onAgentInteract: function (agentData)
+                    {
+                        logActivity('Agent', `Dashboard: Interfacing with ${agentData.name}`);
+                    },
+
+                    onMCPTool: function (toolName, result)
+                    {
+                        logActivity('MCP', `Dashboard: ${toolName} executed`);
+                    },
+
+                    onActivityLog: function (source, message, timestamp)
+                    {
+                        if (typeof logActivity === 'function')
+                        {
+                            logActivity(source, message);
+                        }
+                    }
+                });
+
+                console.log('🎪 SwarmDesk Dashboard integration initialized!');
+            }
+        }, 1000);
+    } catch (error) {
+        console.error('Error initializing dashboard hooks:', error);
+    }
 });
 
 // 🎮 Enhanced animation loop integration
