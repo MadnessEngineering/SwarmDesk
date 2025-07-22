@@ -2,6 +2,100 @@
 // Scene setup with cyber-punk aesthetic
 // Note: WebLLM service is loaded via script tag in index.html
 
+// 🎮 STANDARDIZED SWARMDESK CONTROLS
+let swarmControls = null;
+let currentAgent = null;
+const projectReadmes = {
+    "SwarmDesk": {
+        title: "🎮 SwarmDesk",
+        description: "3D interactive agent command center - the cyberpunk control room for the Madness Interactive ecosystem",
+        features: ["🎮 3D interactive environment", "🤖 Direct agent communication", "📊 Real-time system monitoring", "🎪 Chaos mode activation"],
+        github: "https://github.com/MadnessEngineering/SwarmDesk.git",
+        status: "🔥 Active Development",
+        visibility: "public"
+    },
+    "Inventorium": {
+        title: "📦 Inventorium",
+        description: "Todo Inventory management system - Keep up with Agents at speed, and edit their thoughts as they tinker",
+        features: ["📋 Task tracking", "🏷️ Smart categorization", "📈 Analytics dashboard", "🔄 Cross-system integration"],
+        github: "https://github.com/MadnessEngineering/Inventorium.git",
+        status: "🚀 Active Development (private repo)",
+        visibility: "private"
+    },
+    "Swarmonomicon": {
+        title: "🐝 Swarmonomicon",
+        description: "AI agent swarm coordination system - the sacred book of digital bee orchestration and collective intelligence",
+        features: ["🤖 Agent orchestration", "💬 Communication protocols", "🎮 Interactive interfaces", "🧠 Collective intelligence"],
+        github: "https://github.com/MadnessEngineering/Swarmonomicon.git",
+        status: "✨ modularly functional",
+        visibility: "public"
+    },
+    "Whispermind_Conduit": {
+        title: "🌐 Whispermind Conduit",
+        description: "Neural network communication bridge - the whispered thoughts between AI minds across the digital realm",
+        features: ["🧠 Neural bridging", "🔗 Cross-system communication", "📡 Signal processing", "⚡ Real-time data flow"],
+        github: "https://github.com/MadnessEngineering/Whispermind_Conduit.git",
+        status: "🔮 mostly conceptual (private repo)",
+        visibility: "private"
+    },
+    "Omnispindle-cli-bridge": {
+        title: "🌀 Omnispindle CLI Bridge",
+        description: "Command-line interface bridge for the Omnispindle ecosystem - spinning command into action",
+        features: ["⌨️ CLI integration", "🌀 Omnispindle connection", "🔧 Tool automation", "⚡ Rapid deployment"],
+        github: "https://github.com/MadnessEngineering/Omnispindle-cli-bridge.git",
+        status: "🔄 Just in my gemini account lol (private repo)",
+        visibility: "private"
+    },
+    "EventGhost-Rust": {
+        title: "🎭 EventGhost-Rust",
+        description: "High-performance automation system rewritten in Rust - the phantom that haunts your system with efficiency",
+        features: ["🚀 Lightning-fast event processing", "🔧 Plugin architecture", "🌐 Network automation", "⚡ Memory safety"],
+        github: "https://github.com/DanEdens/EventGhost-Rust.git",
+        status: "🛠️ Rust-Powered Excellence",
+        visibility: "public"
+    },
+    "DVTTestKit": {
+        title: "🧪 DVT TestKit",
+        description: "Design Verification Testing framework - ensuring quality through systematic chaos testing",
+        features: ["✅ Automated testing", "📊 Performance metrics", "🔍 Regression detection", "🎯 Precision validation"],
+        github: "https://github.com/DanEdens/DVTTestKit.git",
+        status: "🔬 Testing Excellence",
+        visibility: "public"
+    },
+    "Omnispindle": {
+        title: "🌀 Omnispindle MCP",
+        description: "MCP server for todo management and project coordination - the spinning wheel of infinite productivity",
+        features: ["📝 Todo management", "🔄 MCP integration", "🎯 Project coordination", "📊 Progress tracking"],
+        github: "https://github.com/MadnessEngineering/Omnispindle.git",
+        status: "🔄 Continuous Evolution",
+        visibility: "public"
+    },
+    "FastMCP-Template": {
+        title: "⚡ FastMCP Server Template",
+        description: "Rapid MCP server development template - bootstrapping madness at the speed of thought",
+        features: ["🚀 Quick deployment", "🔧 Template system", "📋 Best practices", "⚡ Rapid prototyping"],
+        github: "https://github.com/DanEdens/dans-fastmcp-server-template.git",
+        status: "🏗️ Foundation Ready (but outdated)",
+        visibility: "public"
+    },
+    "Tinker": {
+        title: "🔨 Tinker Rust",
+        description: "Advanced tinkering and experimentation framework in Rust - where mad science meets elegant code",
+        features: ["🔬 Experimentation tools", "🔨 Rapid prototyping", "⚡ Rust performance", "🧪 Mad science ready"],
+        github: "https://github.com/DanEdens/Tinker.git",
+        status: "🔬 Experimental Forge",
+        visibility: "public"
+    },
+    "Cogwyrm": {
+        title: "🐉 Cogwyrm Mobile",
+        description: "Advanced Android mobile application - the digital dragon that lives in your pocket, bringing AI intelligence to mobile interfaces",
+        features: ["📱 Native Android development", "🤖 AI-powered mobile interfaces", "🐉 Dragon-themed user experience", "⚡ High-performance mobile optimization"],
+        github: "https://github.com/MadnessEngineering/Cogwyrm.git",
+        status: "🔥 Mobile Madness in Development",
+        visibility: "public"
+    }
+};
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000511);
 scene.fog = new THREE.Fog(0x000511, 20, 800);
@@ -1009,7 +1103,7 @@ let nearMCPWall = false;
 let currentInteractiveObject = null;
 
 // 🎮 STANDARDIZED SWARMDESK CONTROLS
-let swarmControls = null;
+//let swarmControls = null;
 
 // Legacy controls for compatibility
 const controls = {
@@ -1038,7 +1132,7 @@ let euler = new THREE.Euler(0, 0, 0, 'YXZ');
 let pointerLocked = false;
 
 // Current agent being interacted with
-let currentAgent = null;
+//let currentAgent = null;
 let nearAgent = null;
 
 function checkInteractions()
