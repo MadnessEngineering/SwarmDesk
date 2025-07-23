@@ -1268,7 +1268,18 @@ class FloatingPanelSystem
                 throw new Error(`History fetch failed: ${response.statusText}`);
             }
             const data = await response.json();
-            return data.logEntries || data.logs || [];
+            const logs = data.logEntries || data.logs || [];
+            
+            // Transform logs to ensure consistent field names (same as ActivityLogPanel)
+            const transformedLogs = Array.isArray(logs) ? logs.map(log => ({
+                ...log,
+                todo_description: log.todo_description || log.description || log.todoTitle || log.todo_title || 'Unknown task',
+                timestamp: log.timestamp || log.created_at || new Date().toISOString(),
+                user_id: log.user_id || 'system',
+                project: log.project || 'unknown'
+            })) : [];
+            
+            return transformedLogs;
         } catch (error)
         {
             console.error("Error fetching command history:", error);
